@@ -1,0 +1,32 @@
+# Node & package manager
+node_modules
+package-lock.json
+yarn.lock
+
+# Env files
+.env
+.dev/preview.stdout.log
+.dev/preview.stderr.log
+.dev/*.stdout.log
+.dev/*.stderr.log
+.dev/*preview-dom.html
+.dev/preview-*.png
+.dev/*headless*.png
+.dev/*collapsed*.png
+.dev/*preview-cdp*.png
+.dev/*profile*/
+preview/*.log
+/.codex/
+/.impeccable.md
+/.tmp-edge-profile/
+/.tmp-playwright/
+/.tmp-router-*.css
+/.tmp-router-*.js
+/status-preview.stdout.log
+/status-preview.stderr.log
+
+# System Configuration File
+.DS_Store
+/.claude
+/.vite/deps
+/.vs

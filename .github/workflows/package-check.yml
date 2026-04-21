@@ -1,0 +1,49 @@
+name: OpenWrt Package Build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/package-check.yml"
+      - "Makefile"
+      - ".dev/**"
+      - "root/**"
+      - "ucode/**"
+      - "htdocs/**"
+  pull_request:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/package-check.yml"
+      - "Makefile"
+      - ".dev/**"
+      - "root/**"
+      - "ucode/**"
+      - "htdocs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-build:
+    name: build luci-theme-md3e ${{ matrix.pkg_type }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg_type: [ipk, apk]
+
+    steps:
+      - uses: eamonxg/build-luci-package@9e0ac900222d31fd1690acbfebed207eb0282b6a
+        with:
+          package: luci-theme-md3e
+          pkg_type: ${{ matrix.pkg_type }}
+          prep_script: |
+            ./scripts/feeds update -f base luci
+            ./scripts/feeds install -p luci-base
+          artifact_paths: |
+            bin/packages/$ARCH/base/*luci-theme-md3e*.[ai]pk

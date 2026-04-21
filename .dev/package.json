@@ -1,0 +1,22 @@
+{
+	"name": "luci-theme-md3e",
+	"description": "Material Design 3 Expressive-inspired OpenWrt LuCI theme built with Vite and TailwindCSS",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"preview": "vite --mode local-preview --host 127.0.0.1 --port 4173",
+		"build": "npm run clean && vite build",
+		"clean": "node scripts/clean.js"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.1.11",
+		"@types/node": "^24.0.0",
+		"prettier": "^3.6.2",
+		"prettier-plugin-tailwindcss": "^0.7.0",
+		"tailwind-scrollbar": "^4.0.2",
+		"tailwindcss": "^4.1.11",
+		"terser": "^5.43.1",
+		"vite": "^7.3.2"
+	},
+	"packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
+}

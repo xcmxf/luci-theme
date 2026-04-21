@@ -1,0 +1,1857 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>MD3E Local Preview</title>
+    <script type="module" src="/src/preview/local-preview.js"></script>
+    <style>
+      @media (min-width: 921px) {
+        .mobile-menu-overlay,
+        .header-row-2 {
+          display: none !important;
+        }
+      }
+
+      .preview-login-stage {
+        display: none;
+      }
+
+      body[data-preview-auth="logged-out"] > header,
+      body[data-preview-auth="logged-out"] > .mobile-menu-overlay,
+      body[data-preview-auth="logged-out"] > #maincontent,
+      body[data-preview-auth="logged-out"] > footer {
+        display: none !important;
+      }
+
+      body[data-preview-auth="logged-out"] > .preview-login-stage {
+        display: block;
+      }
+
+      .preview-login-stage .login-screen {
+        min-height: 100dvh;
+      }
+
+      .preview-login-note {
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.6;
+        color: var(--muted-foreground);
+      }
+
+      .docs-sidebar {
+        margin-right: 0 !important;
+      }
+
+      .md3e-nav-shell {
+        width: 100%;
+      }
+
+      .sidebar-nav {
+        width: 100% !important;
+        max-width: none !important;
+      }
+
+      .preview-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .preview-grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .preview-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .preview-hero {
+        margin-bottom: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .preview-hero h1 {
+        margin: 0 0 0.6rem;
+        font-size: 2.4rem;
+        line-height: 1.05;
+        letter-spacing: -0.05em;
+      }
+
+      .preview-hero p {
+        margin: 0;
+        max-width: 42rem;
+        color: var(--muted-foreground);
+      }
+
+      .preview-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      .preview-chip {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--foreground);
+        background: color-mix(in srgb, var(--panel-bg) 84%, transparent);
+        box-shadow:
+          
+          0 14px 28px -24px var(--expressive-shadow);
+      }
+
+      .preview-chip-swatch {
+        width: 0.9rem;
+        height: 0.9rem;
+        border-radius: 999px;
+      }
+
+      .preview-kpi {
+        padding: 1.15rem 1.25rem;
+        border-radius: 1.5rem;
+        border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+        background: linear-gradient(
+          165deg,
+          color-mix(in srgb, var(--surface-highlight) 82%, transparent),
+          color-mix(in srgb, var(--panel-bg) 96%, transparent)
+        );
+        box-shadow: 0 12px 32px -28px var(--expressive-shadow);
+        transition: transform 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67), box-shadow 0.4s ease;
+      }
+
+      .preview-kpi:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 24px 48px -32px var(--expressive-shadow);
+      }
+
+      .preview-kpi strong {
+        display: block;
+        margin-top: 0.45rem;
+        font-size: 1.6rem;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+      }
+
+      .preview-progress {
+        position: relative;
+        overflow: hidden;
+        height: 0.85rem;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--foreground) 6%, transparent);
+        margin-top: 0.85rem;
+      }
+
+      .preview-progress > span {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--value, 50%);
+        border-radius: inherit;
+        background: linear-gradient(
+          90deg,
+          var(--progress-bar-start),
+          var(--progress-bar-end)
+        );
+      }
+
+      .preview-note {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+      }
+
+      .preview-reveal {
+        opacity: 0;
+        transform: translateY(1rem) scale(0.985);
+        animation: preview-reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      .preview-overview-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.85fr);
+        gap: 1rem;
+        margin-top: 1.1rem;
+      }
+
+      .preview-overview-story {
+        position: relative;
+        overflow: hidden;
+        padding: 1.8rem;
+        border-radius: 2.25rem;
+        border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+        background:
+          radial-gradient(circle at top left, color-mix(in oklab, var(--md-sys-color-primary-container) 62%, transparent) 0%, transparent 48%),
+          radial-gradient(circle at bottom right, color-mix(in oklab, var(--md-sys-color-secondary-container) 24%, transparent) 0%, transparent 42%),
+          linear-gradient(155deg, color-mix(in oklab, var(--surface-highlight) 76%, transparent), color-mix(in oklab, var(--panel-bg) 98%, transparent));
+        box-shadow: 0 38px 72px -46px var(--expressive-shadow);
+      }
+
+      .preview-overview-story::after {
+        content: "";
+        position: absolute;
+        inset: auto -8% -28% auto;
+        width: 17rem;
+        height: 17rem;
+        border-radius: 999px;
+        background: radial-gradient(circle, color-mix(in oklab, var(--md-sys-color-secondary-container) 40%, transparent), transparent 68%);
+        opacity: 0.8;
+        pointer-events: none;
+      }
+
+      .preview-overview-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .preview-overview-kicker {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+      }
+
+      .preview-overview-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--foreground);
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 78%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 62%, transparent);
+      }
+
+      .preview-overview-badge::before {
+        content: "";
+        width: 0.52rem;
+        height: 0.52rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--success) 78%, white);
+        box-shadow: 0 0 0 0.25rem color-mix(in oklab, var(--success) 16%, transparent);
+      }
+
+      .preview-overview-title {
+        margin: 1rem 0 0;
+        max-width: 14ch;
+        font-size: clamp(1.9rem, 1.55rem + 1vw, 2.65rem);
+        line-height: 0.98;
+        letter-spacing: -0.065em;
+      }
+
+      .preview-overview-copy {
+        margin: 0.95rem 0 0;
+        max-width: 42rem;
+        color: var(--muted-foreground);
+        font-size: 0.96rem;
+        line-height: 1.68;
+      }
+
+      .preview-overview-health {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+        margin-top: 1.3rem;
+      }
+
+      .preview-overview-health-item {
+        display: grid;
+        gap: 0.2rem;
+        padding: 0.95rem 1rem;
+        border-radius: 1.2rem;
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 76%, transparent);
+        box-shadow:
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 56%, transparent),
+          0 18px 32px -30px var(--expressive-shadow);
+      }
+
+      .preview-overview-health-item strong {
+        font-size: 0.8rem;
+        line-height: 1.1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .preview-overview-health-item span {
+        color: var(--muted-foreground);
+        font-size: 0.88rem;
+        line-height: 1.45;
+      }
+
+      .preview-overview-spectrum {
+        margin-top: 1.35rem;
+        padding: 1rem 1rem 0.9rem;
+        border-radius: 1.2rem;
+        background: color-mix(in oklab, var(--panel-bg) 92%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 52%, transparent);
+      }
+
+      .preview-overview-spectrum__head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .preview-overview-spectrum__label {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--foreground);
+      }
+
+      .preview-overview-spectrum__value {
+        font-size: 0.82rem;
+        color: var(--muted-foreground);
+      }
+
+      .preview-overview-spectrum__bars {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+        gap: 0.35rem;
+        height: 6.4rem;
+        margin-top: 0.9rem;
+      }
+
+      .preview-overview-spectrum__bars span {
+        display: block;
+        height: var(--height);
+        min-height: 0.8rem;
+        border-radius: 999px 999px 0.5rem 0.5rem;
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--md-sys-color-primary) 68%, white),
+          color-mix(in oklab, var(--md-sys-color-secondary) 72%, var(--md-sys-color-primary-container))
+        );
+        box-shadow: 0 16px 24px -22px color-mix(in oklab, var(--md-sys-color-primary) 34%, transparent);
+      }
+
+      .preview-overview-spectrum__legend {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.65rem;
+        font-size: 0.78rem;
+        color: var(--muted-foreground);
+      }
+
+      .preview-overview-side {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .preview-overview-panel,
+      .preview-overview-card {
+        padding: 1.15rem;
+        border-radius: 1.45rem;
+        border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--surface-highlight) 58%, transparent),
+          color-mix(in oklab, var(--panel-bg) 96%, transparent)
+        );
+        box-shadow: 0 20px 42px -36px var(--expressive-shadow);
+      }
+
+      .preview-overview-panel strong {
+        display: block;
+        margin-top: 0.35rem;
+        font-size: 1.85rem;
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+
+      .preview-overview-panel p {
+        margin: 0.75rem 0 0;
+        color: var(--muted-foreground);
+        font-size: 0.86rem;
+        line-height: 1.55;
+      }
+
+      .preview-overview-panel__stack {
+        display: grid;
+        gap: 0.7rem;
+        margin-top: 0.95rem;
+      }
+
+      .preview-overview-panel__row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        font-size: 0.84rem;
+      }
+
+      .preview-overview-panel__row span:last-child {
+        color: var(--muted-foreground);
+      }
+
+      .preview-overview-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .preview-overview-card--traffic {
+        grid-column: span 5;
+      }
+
+      .preview-overview-card--clients {
+        grid-column: span 4;
+      }
+
+      .preview-overview-card--timeline {
+        grid-column: span 3;
+      }
+
+      .preview-overview-card__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+      }
+
+      .preview-overview-card__eyebrow::before {
+        content: "";
+        width: 0.48rem;
+        height: 0.48rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--md-sys-color-primary) 68%, white);
+      }
+
+      .preview-overview-card__title {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 1.2rem;
+        line-height: 1.15;
+        letter-spacing: -0.035em;
+      }
+
+      .preview-overview-card__copy {
+        margin: 0.7rem 0 0;
+        color: var(--muted-foreground);
+        font-size: 0.86rem;
+        line-height: 1.6;
+      }
+
+      .preview-overview-flow {
+        display: grid;
+        gap: 0.8rem;
+        margin-top: 1rem;
+      }
+
+      .preview-overview-flow__row {
+        display: grid;
+        grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.84rem;
+      }
+
+      .preview-overview-flow__row span:last-child {
+        color: var(--muted-foreground);
+      }
+
+      .preview-overview-flow__bar {
+        position: relative;
+        overflow: hidden;
+        height: 0.72rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--foreground) 8%, transparent);
+      }
+
+      .preview-overview-flow__bar::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--value);
+        border-radius: inherit;
+        background: linear-gradient(
+          90deg,
+          color-mix(in oklab, var(--md-sys-color-primary) 76%, white),
+          color-mix(in oklab, var(--md-sys-color-secondary) 62%, var(--md-sys-color-primary-container))
+        );
+      }
+
+      .preview-overview-client-list {
+        display: grid;
+        gap: 0.8rem;
+        margin-top: 1rem;
+      }
+
+      .preview-overview-client {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .preview-overview-client__dot {
+        width: 0.8rem;
+        height: 0.8rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--md-sys-color-primary) 78%, white);
+        box-shadow: 0 0 0 0.26rem color-mix(in oklab, var(--md-sys-color-primary) 14%, transparent);
+      }
+
+      .preview-overview-client__meta {
+        min-width: 0;
+      }
+
+      .preview-overview-client__meta strong {
+        display: block;
+        font-size: 0.92rem;
+        line-height: 1.25;
+      }
+
+      .preview-overview-client__meta span {
+        display: block;
+        margin-top: 0.18rem;
+        color: var(--muted-foreground);
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+
+      .preview-overview-client__value {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--foreground);
+      }
+
+      .preview-overview-timeline {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      .preview-overview-timeline__item {
+        display: grid;
+        gap: 0.18rem;
+        padding: 0.8rem 0.9rem;
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 76%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 54%, transparent);
+      }
+
+      .preview-overview-timeline__item strong {
+        font-size: 0.82rem;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .preview-overview-timeline__item span {
+        color: var(--muted-foreground);
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+
+      .preview-overview-note {
+        margin-top: 1rem;
+      }
+
+      .preview-section-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: start;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid color-mix(in oklab, var(--border) 42%, transparent);
+      }
+
+      .preview-section-head__content {
+        display: grid;
+        gap: 0.45rem;
+        min-width: 0;
+        max-width: 42rem;
+      }
+
+      .preview-section-head__eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+      }
+
+      .preview-section-head__title {
+        margin: 0;
+        font-size: clamp(1.6rem, 1.45rem + 0.6vw, 2.3rem);
+        line-height: 1.05;
+        letter-spacing: -0.055em;
+        font-weight: 700;
+      }
+
+      .preview-section-head__copy {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.98rem;
+        line-height: 1.68;
+      }
+
+      .preview-section-pills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.6rem;
+      }
+
+      .preview-section-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.48rem 0.72rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--foreground);
+        background: color-mix(in oklab, var(--panel-bg) 90%, transparent);
+        box-shadow:
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 56%, transparent),
+          0 14px 24px -26px var(--expressive-shadow);
+      }
+
+      .preview-section-pill::before {
+        content: "";
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--md-sys-color-primary) 74%, white);
+      }
+
+      .preview-form-cluster {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+        gap: 1rem;
+      }
+
+      .preview-insight-card,
+      .preview-tab-stage,
+      .preview-table-shell,
+      .preview-device-stack {
+        padding: 1.1rem;
+        border-radius: 1.45rem;
+        border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--surface-highlight) 58%, transparent),
+          color-mix(in oklab, var(--panel-bg) 96%, transparent)
+        );
+        box-shadow: 0 22px 42px -36px var(--expressive-shadow);
+      }
+
+      .preview-insight-card {
+        display: grid;
+        gap: 0.95rem;
+        align-content: start;
+      }
+
+      .preview-insight-card__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+      }
+
+      .preview-insight-card__title {
+        margin: 0;
+        font-size: 1.15rem;
+        line-height: 1.14;
+        letter-spacing: -0.04em;
+      }
+
+      .preview-insight-card__copy {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
+
+      .preview-insight-list {
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      .preview-insight-list__item {
+        display: grid;
+        gap: 0.18rem;
+        padding: 0.8rem 0.85rem;
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 78%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 54%, transparent);
+      }
+
+      .preview-insight-list__item strong {
+        font-size: 0.8rem;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .preview-insight-list__item span {
+        color: var(--muted-foreground);
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+
+      .preview-tab-stage {
+        display: grid;
+        gap: 1.5rem;
+        padding: 1.85rem;
+        border-radius: 2.25rem;
+        border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+        background: linear-gradient(
+          165deg,
+          color-mix(in oklab, var(--surface-highlight) 72%, transparent),
+          color-mix(in oklab, var(--panel-bg) 98%, transparent)
+        );
+        box-shadow: 0 32px 64px -42px var(--expressive-shadow);
+      }
+
+      .preview-tab-stage__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 0.5rem;
+      }
+
+      .preview-tab-stage__intro {
+        display: grid;
+        gap: 0.65rem;
+        max-width: 42rem;
+      }
+
+      .preview-tab-stage__kicker {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: color-mix(in oklab, var(--muted-foreground) 86%, transparent);
+      }
+
+      .preview-tab-stage__title {
+        margin: 0;
+        font-size: clamp(1.4rem, 1.25rem + 0.4vw, 1.85rem);
+        line-height: 1.05;
+        letter-spacing: -0.045em;
+        font-weight: 700;
+      }
+
+      .preview-tab-stage__copy {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.94rem;
+        line-height: 1.62;
+      }
+
+      .preview-tab-stage__meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.6rem;
+      }
+
+      .preview-tab-stage__meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--foreground);
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 82%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 48%, transparent);
+      }
+
+      .preview-tab-stage__meta span::before {
+        content: "";
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--md-sys-color-primary) 76%, white);
+      }
+
+      .preview-tab-stage__panel {
+        padding: 1.25rem;
+        border-radius: 1.5rem;
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 72%, transparent);
+        box-shadow: 
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 45%, transparent),
+          0 16px 32px -28px var(--expressive-shadow);
+      }
+
+      .preview-tab-stage__panel .cbi-tabmenu {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid color-mix(in oklab, var(--border) 32%, transparent);
+      }
+
+      .preview-tab-stage__panel .cbi-tabmenu li {
+        padding: 0.75rem 1.25rem;
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--muted-foreground);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border-bottom: 2px solid transparent;
+      }
+
+      .preview-tab-stage__panel .cbi-tabmenu li.cbi-tab {
+        color: var(--md-sys-color-primary);
+        border-bottom-color: var(--md-sys-color-primary);
+      }
+
+      .preview-tab-stage__note {
+        margin: 0 0 1.25rem;
+        padding: 0.85rem 1.15rem;
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--surface-highlight) 32%, transparent);
+        color: var(--muted-foreground);
+        font-size: 0.84rem;
+        line-height: 1.58;
+        border-left: 3px solid color-mix(in oklab, var(--md-sys-color-primary) 45%, transparent);
+      }
+
+      .preview-table-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.22fr) minmax(16rem, 0.78fr);
+        gap: 1rem;
+      }
+
+      .preview-table-shell {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .preview-table-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .preview-table-summary__item {
+        display: grid;
+        gap: 0.18rem;
+        padding: 0.85rem 0.9rem;
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 78%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 54%, transparent);
+      }
+
+      .preview-table-summary__item strong {
+        font-size: 0.82rem;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .preview-table-summary__item span {
+        color: var(--muted-foreground);
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+
+      .preview-device-stack {
+        display: grid;
+        gap: 1.25rem;
+        align-content: start;
+        padding: 1.5rem;
+        border-radius: 2rem;
+        border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--surface-highlight) 54%, transparent),
+          color-mix(in oklab, var(--panel-bg) 96%, transparent)
+        );
+        box-shadow: 0 28px 56px -36px var(--expressive-shadow);
+      }
+
+      .preview-device-stack__head {
+        display: grid;
+        gap: 0.45rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .preview-device-stack__head strong {
+        font-size: 1.25rem;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+        font-weight: 700;
+      }
+
+      .preview-device-stack__head p {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+
+      .preview-device-card {
+        display: grid;
+        gap: 0.85rem;
+        padding: 1.15rem;
+        border-radius: 1.35rem;
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 82%, transparent);
+        box-shadow: 
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 42%, transparent),
+          0 12px 24px -18px var(--expressive-shadow);
+        transition: all 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        cursor: default;
+      }
+
+      .preview-device-card:hover {
+        transform: translateX(6px) scale(1.01);
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 92%, transparent);
+        box-shadow: 
+          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 15%, transparent),
+          0 20px 42px -28px var(--expressive-shadow);
+      }
+
+      .preview-device-card__top {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .preview-device-card__name {
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .preview-device-card__name strong {
+        font-size: 1.05rem;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+
+      .preview-device-card__name span {
+        color: var(--muted-foreground);
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+
+      .preview-device-card__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--foreground);
+        background: color-mix(in oklab, var(--md-sys-color-secondary-container) 66%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 45%, transparent);
+      }
+
+      .preview-device-card__badge::before {
+        content: "";
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--md-sys-color-primary) 76%, white);
+      }
+
+      .preview-device-card__metrics {
+        display: grid;
+        gap: 0.55rem;
+        padding-top: 0.65rem;
+        border-top: 1px solid color-mix(in oklab, var(--border) 24%, transparent);
+      }
+
+      .preview-device-card__metrics div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.84rem;
+      }
+
+      .preview-device-card__metrics span:first-child {
+        color: var(--muted-foreground);
+        font-weight: 500;
+      }
+
+      .preview-device-card__metrics span:last-child {
+        font-weight: 700;
+        color: var(--foreground);
+      }
+
+      @keyframes preview-reveal {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .preview-table {
+        display: table !important;
+        width: 100%;
+        border-spacing: 0 0.75rem !important;
+      }
+
+      .preview-table > .tr {
+        display: table-row !important;
+      }
+
+      .preview-table > .tr > .th,
+      .preview-table > .tr > .td {
+        display: table-cell !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        white-space: normal;
+      }
+
+      .preview-table > .tr > .th::before,
+      .preview-table > .tr > .td::before {
+        display: none !important;
+        content: none !important;
+      }
+
+      @media (max-width: 920px) {
+        .docs-sidebar {
+          display: none !important;
+        }
+
+        #maincontent {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 0 !important;
+        }
+
+        .docs-content {
+          max-width: none !important;
+        }
+
+        .header-row-2 {
+          display: flex !important;
+          opacity: 1 !important;
+          overflow: visible !important;
+        }
+
+        .mobile-menu-overlay {
+          display: block !important;
+        }
+      }
+
+      @media (min-width: 921px) and (max-width: 1180px) {
+        .docs-content {
+          max-width: none !important;
+        }
+      }
+
+      @media (max-width: 820px) {
+        .preview-grid.two,
+        .preview-grid.three {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-overview-health {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 1100px) {
+        .preview-overview-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-form-cluster,
+        .preview-table-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-overview-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .preview-overview-card--traffic,
+        .preview-overview-card--clients,
+        .preview-overview-card--timeline {
+          grid-column: span 1;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .preview-overview-story,
+        .preview-overview-panel,
+        .preview-overview-card {
+          padding: 1rem;
+        }
+
+        .preview-overview-title {
+          max-width: none;
+          font-size: 1.7rem;
+        }
+
+        .preview-section-head,
+        .preview-tab-stage__head {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .preview-section-pills,
+        .preview-tab-stage__meta {
+          justify-content: flex-start;
+        }
+
+        .preview-table-summary {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-overview-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-overview-flow__row {
+          grid-template-columns: 1fr;
+          gap: 0.45rem;
+        }
+
+        .preview-overview-client {
+          grid-template-columns: auto minmax(0, 1fr);
+        }
+
+        .preview-overview-client__value {
+          grid-column: 2;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .preview-reveal {
+          opacity: 1;
+          transform: none;
+          animation: none;
+        }
+      }
+
+      .cbi-page-actions {
+        position: sticky;
+        bottom: 1.5rem;
+        z-index: 50;
+        margin: 3rem auto 2rem;
+        animation: preview-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation-delay: 0.85s;
+      }
+
+      .alert-message {
+        position: relative;
+        padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+        border-radius: 1.25rem;
+        border: 1px solid transparent;
+        margin: 1.5rem 0;
+        font-size: 0.94rem;
+        line-height: 1.6;
+        overflow: hidden;
+        box-shadow: 0 12px 24px -16px var(--expressive-shadow);
+      }
+
+      .alert-message::before {
+        content: "";
+        position: absolute;
+        inset: 1.15rem auto auto 1.25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background-color: currentColor;
+        mask-size: contain;
+        mask-repeat: no-repeat;
+      }
+
+      .alert-message h4 {
+        margin: 0 0 0.35rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--foreground);
+      }
+
+      .alert-message p {
+        margin: 0;
+        color: color-mix(in oklab, var(--foreground) 76%, transparent);
+      }
+
+      .alert-message.info {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--md-sys-color-primary-container) 24%, transparent), color-mix(in oklab, var(--surface-highlight) 45%, transparent));
+        color: var(--md-sys-color-primary);
+        border-color: color-mix(in oklab, var(--md-sys-color-primary) 15%, transparent);
+      }
+      .alert-message.info::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E"); }
+
+      .alert-message.warning {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--md-sys-color-tertiary-container) 20%, transparent), color-mix(in oklab, var(--surface-highlight) 45%, transparent));
+        color: var(--md-sys-color-tertiary);
+        border-color: color-mix(in oklab, var(--md-sys-color-tertiary) 15%, transparent);
+      }
+      .alert-message.warning::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E"); }
+
+      .alert-message.error {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--md-sys-color-error-container) 18%, transparent), color-mix(in oklab, var(--surface-highlight) 45%, transparent));
+        color: var(--md-sys-color-error);
+        border-color: color-mix(in oklab, var(--md-sys-color-error) 15%, transparent);
+      }
+      .alert-message.error::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E"); }
+      .preview-log-shell {
+        position: relative;
+        overflow: hidden;
+        margin-top: 1.5rem;
+        border-radius: 1.5rem;
+        border: 1px solid color-mix(in oklab, var(--border) 64%, transparent);
+        background: color-mix(in oklab, var(--panel-bg) 98%, black);
+        box-shadow: 
+          0 20px 48px -32px var(--expressive-shadow),
+          inset 0 0 0 1px color-mix(in oklab, var(--surface-highlight) 20%, transparent);
+      }
+
+      .preview-log-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: color-mix(in oklab, var(--surface-highlight) 32%, transparent);
+        border-bottom: 1px solid color-mix(in oklab, var(--border) 24%, transparent);
+      }
+
+      .preview-log-head strong {
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+
+      .preview-log-content {
+        padding: 0.75rem 0;
+        font-family: 'Geist Mono', 'Menlo', monospace;
+        font-size: 0.84rem;
+        line-height: 1.7;
+        overflow-x: auto;
+      }
+
+      .preview-log-line {
+        display: flex;
+        gap: 1.25rem;
+        padding: 0 1.25rem;
+        white-space: nowrap;
+        transition: background 0.2s ease;
+      }
+
+      .preview-log-line:hover {
+        background: color-mix(in oklab, var(--surface-highlight) 42%, transparent);
+      }
+
+      .preview-log-time {
+        flex: none;
+        color: color-mix(in oklab, var(--muted-foreground) 64%, transparent);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .preview-log-tag {
+        flex: none;
+        width: 4.5rem;
+        font-weight: 700;
+        text-transform: lowercase;
+      }
+
+      .preview-log-tag--wan { color: var(--md-sys-color-primary); }
+      .preview-log-tag--mesh { color: var(--md-sys-color-tertiary); }
+      .preview-log-tag--qos { color: var(--md-sys-color-error); }
+      .preview-log-tag--dns { color: var(--success); }
+
+      .preview-log-msg {
+        color: var(--foreground);
+        white-space: normal;
+      }
+    </style>
+  </head>
+  <body data-page="preview-local-md3e" data-preview-auth="logged-in">
+    <header>
+      <div id="header-blur-overlay" class="header-blur-overlay" data-is-opaque="false"></div>
+      <div class="header-content">
+        <div class="header-brand-wrap">
+          <a class="brand" href="/preview.html"><img class="brand-logo" src="/luci-static/md3e/images/logo.svg" alt="" width="24" height="24" /><span class="brand-text">md3e.local</span></a>
+          <div class="header-context">
+            <span class="header-context-eyebrow">Router workspace</span>
+            <span class="header-context-value">Material 3 operations shell</span>
+          </div>
+        </div>
+        <div class="header-spacer"></div>
+        <div class="header-actions">
+          <button class="theme-toggle" aria-label="Toggle dark mode"><svg class="theme-toggle-sun" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M7 1h2v2H7zM7 13h2v2H7zM13 7h2v2h-2zM1 7h2v2H1zM11.24 3.34l1.41 1.41-1.42 1.42-1.41-1.41zM3.34 11.24l1.41 1.41-1.41 1.41-1.42-1.41zM11.24 12.66l-1.41-1.41 1.41-1.42 1.42 1.42zM3.34 4.76 1.92 3.34l1.42-1.41 1.41 1.41zM8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><svg class="theme-toggle-moon" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.7 1.3A6 6 0 1 0 14.7 9a5.3 5.3 0 0 1-4.7-7.7Z"/></svg></button>
+          <a class="header-logout-btn js-preview-logout" href="#preview-login">Log out</a>
+        </div>
+      </div>
+      <div class="header-row-2">
+        <a class="mobile-header-brand" href="/preview.html" aria-label="md3e.local" title="md3e.local"><img class="mobile-header-brand-logo" src="/luci-static/md3e/images/logo.svg" alt="" width="24" height="24" /></a>
+        <div class="header-breadcrumb"><span>Preview</span><svg class="breadcrumb-chevron" width="3" height="24" viewBox="0 -9 3 24" fill="none"><path d="M0 0L3 3L0 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="breadcrumb-current">Local MD3E Gallery</span></div>
+        <button class="mobile-menu-toggle-row2" id="mobile-menu-btn" aria-expanded="false" title="Menu"><svg viewBox="0 0 16 16" width="16" height="16" fill="none"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      </div>
+    </header>
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay">
+      <div class="mobile-nav-close" id="mobile-nav-close"><svg viewBox="0 0 16 16" width="16" height="16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <nav class="mobile-nav">
+        <div class="mobile-nav-header">
+          <div class="mobile-nav-brand-wrap">
+            <a class="brand" href="/preview.html"><img class="brand-logo" src="/luci-static/md3e/images/logo.svg" alt="" width="24" height="24" /><span class="brand-text">md3e.local</span></a>
+            <div class="mobile-nav-context">
+              <span class="mobile-nav-context-eyebrow">Router workspace</span>
+              <span class="mobile-nav-context-value">Material 3 operations shell</span>
+            </div>
+          </div>
+        </div>
+        <div class="mobile-nav-list">
+          <nav class="md3e-mobile-primary-nav" aria-label="Primary navigation">
+            <ul class="md3e-mobile-primary-list">
+              <li class="md3e-mobile-primary-item">
+                <button class="md3e-mobile-primary-toggle" type="button" data-mode="status" aria-expanded="false">
+                  <span class="md3e-mobile-primary-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h3l2.25-5L14 17l2.15-4H20"/></svg></span>
+                  <span class="md3e-mobile-primary-link__label">Status</span>
+                  <span class="md3e-mobile-primary-link__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <div class="md3e-mobile-primary-children">
+                  <ul class="md3e-mobile-secondary-list">
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link active" href="#section-overview">Overview</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-settings">Quick Settings</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-tabs">Segmented Views</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-table">Client Table</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-feedback">Feedback States</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="md3e-mobile-primary-item">
+                <button class="md3e-mobile-primary-toggle" type="button" data-mode="network" aria-expanded="false">
+                  <span class="md3e-mobile-primary-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5a11 11 0 0 1 15 0M7.5 13.5a6.5 6.5 0 0 1 9 0M10.5 16.5a2.5 2.5 0 0 1 3 0M12 20h.01"/></svg></span>
+                  <span class="md3e-mobile-primary-link__label">Network</span>
+                  <span class="md3e-mobile-primary-link__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <div class="md3e-mobile-primary-children">
+                  <ul class="md3e-mobile-secondary-list">
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-navigation">Navigation Rail</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-submenus">Nested Menus</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-feedback">Feedback States</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="md3e-mobile-primary-item">
+                <button class="md3e-mobile-primary-toggle" type="button" data-mode="services" aria-expanded="false">
+                  <span class="md3e-mobile-primary-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5 12 4l7 3.5-7 3.5-7-3.5Zm0 4.5L12 15.5 19 12M5 16.5 12 20l7-3.5"/></svg></span>
+                  <span class="md3e-mobile-primary-link__label">Services</span>
+                  <span class="md3e-mobile-primary-link__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <div class="md3e-mobile-primary-children">
+                  <ul class="md3e-mobile-secondary-list">
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-logs">Dense Logs</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-feedback">Feedback States</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="md3e-mobile-primary-item">
+                <button class="md3e-mobile-primary-toggle" type="button" data-mode="system" aria-expanded="false">
+                  <span class="md3e-mobile-primary-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M5 18h14M8 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg></span>
+                  <span class="md3e-mobile-primary-link__label">System</span>
+                  <span class="md3e-mobile-primary-link__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <div class="md3e-mobile-primary-children">
+                  <ul class="md3e-mobile-secondary-list">
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-settings">Quick Settings</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="md3e-mobile-primary-item expanded">
+                <button class="md3e-mobile-primary-toggle active" type="button" data-mode="admin" aria-expanded="true">
+                  <span class="md3e-mobile-primary-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V8.5a4 4 0 0 1 8 0V11M6.5 11h11v8h-11z"/></svg></span>
+                  <span class="md3e-mobile-primary-link__label">Admin</span>
+                  <span class="md3e-mobile-primary-link__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <div class="md3e-mobile-primary-children">
+                  <ul class="md3e-mobile-secondary-list">
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link active" href="#section-overview">Overview</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-settings">Quick Settings</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-tabs">Segmented Views</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-table">Client Table</a></li>
+                    <li class="md3e-mobile-secondary-item"><a class="md3e-mobile-secondary-link" href="#section-feedback">Feedback States</a></li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <div class="mobile-nav-footer">
+          <button class="theme-toggle mobile-nav-footer-btn" aria-label="Toggle dark mode"><svg class="theme-toggle-sun" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M7 1h2v2H7zM7 13h2v2H7zM13 7h2v2h-2zM1 7h2v2H1zM11.24 3.34l1.41 1.41-1.42 1.42-1.41-1.41zM3.34 11.24l1.41 1.41-1.41 1.41-1.42-1.41zM11.24 12.66l-1.41-1.41 1.41-1.42 1.42 1.42zM3.34 4.76 1.92 3.34l1.42-1.41 1.41 1.41zM8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><svg class="theme-toggle-moon" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.7 1.3A6 6 0 1 0 14.7 9a5.3 5.3 0 0 1-4.7-7.7Z"/></svg><span>Theme</span></button>
+          <a class="mobile-nav-footer-btn mobile-nav-footer-btn--logout header-logout-btn js-preview-logout" href="#preview-login"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log out</span></a>
+        </div>
+      </nav>
+    </div>
+    <div id="maincontent">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-shell">
+          <div class="docs-sidebar-top">
+            <a class="sidebar-brand sidebar-brand-square" href="/preview.html" aria-label="md3e.local" title="md3e.local"><img class="brand-logo" src="/luci-static/md3e/images/logo.svg" alt="" width="24" height="24" /></a>
+          </div>
+          <div class="docs-sidebar-nav" id="sidebar-nav-host">
+            <div class="md3e-nav-shell is-collapsed">
+              <nav class="md3e-mode-rail" aria-label="Primary navigation">
+                <a class="md3e-mode-link active" href="#section-overview" data-mode="status"><span class="md3e-mode-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h3l2.25-5L14 17l2.15-4H20"/></svg></span><span class="md3e-mode-link__label">Status</span></a>
+                <a class="md3e-mode-link" href="#section-navigation" data-mode="network"><span class="md3e-mode-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5a11 11 0 0 1 15 0M7.5 13.5a6.5 6.5 0 0 1 9 0M10.5 16.5a2.5 2.5 0 0 1 3 0M12 20h.01"/></svg></span><span class="md3e-mode-link__label">Network</span></a>
+                <a class="md3e-mode-link" href="#section-logs" data-mode="services"><span class="md3e-mode-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5 12 4l7 3.5-7 3.5-7-3.5Zm0 4.5L12 15.5 19 12M5 16.5 12 20l7-3.5"/></svg></span><span class="md3e-mode-link__label">Services</span></a>
+                <a class="md3e-mode-link" href="#section-settings" data-mode="system"><span class="md3e-mode-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M5 18h14M8 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg></span><span class="md3e-mode-link__label">System</span></a>
+                <a class="md3e-mode-link" href="#page-actions" data-mode="admin"><span class="md3e-mode-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V8.5a4 4 0 0 1 8 0V11M6.5 11h11v8h-11z"/></svg></span><span class="md3e-mode-link__label">Admin</span></a>
+              </nav>
+              <div class="md3e-nav-panel">
+                <nav class="sidebar-nav" aria-label="Status">
+                  <div class="md3e-nav-panel-head">
+                    <p class="md3e-nav-panel-kicker">Status</p>
+                    <h3 class="md3e-nav-panel-title">Live system view</h3>
+                    <p class="md3e-nav-panel-copy">Overview, runtime signals, and feedback states tuned for quick scanning.</p>
+                  </div>
+                  <div class="md3e-nav-panel-scroll">
+                    <ul class="sidebar-list md3e-subnav-list">
+                      <li class="sidebar-item active"><a class="sidebar-link md3e-subnav-link active" href="#section-overview">Overview</a></li>
+                      <li class="sidebar-item"><a class="sidebar-link md3e-subnav-link" href="#section-settings">Quick Settings</a></li>
+                      <li class="sidebar-item"><a class="sidebar-link md3e-subnav-link" href="#section-tabs">Segmented Views</a></li>
+                      <li class="sidebar-item"><a class="sidebar-link md3e-subnav-link" href="#section-table">Client Table</a></li>
+                      <li class="sidebar-item"><a class="sidebar-link md3e-subnav-link" href="#section-feedback">Feedback States</a></li>
+                    </ul>
+                  </div>
+                </nav>
+              </div>
+            </div>
+          </div>
+          <div class="docs-sidebar-tools">
+            <button class="theme-toggle sidebar-tool sidebar-tool-toggle" aria-label="Toggle dark mode"><svg class="theme-toggle-sun" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M7 1h2v2H7zM7 13h2v2H7zM13 7h2v2h-2zM1 7h2v2H1zM11.24 3.34l1.41 1.41-1.42 1.42-1.41-1.41zM3.34 11.24l1.41 1.41-1.41 1.41-1.42-1.41zM11.24 12.66l-1.41-1.41 1.41-1.42 1.42 1.42zM3.34 4.76 1.92 3.34l1.42-1.41 1.41 1.41zM8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><svg class="theme-toggle-moon" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.7 1.3A6 6 0 1 0 14.7 9a5.3 5.3 0 0 1-4.7-7.7Z"/></svg></button>
+            <a class="sidebar-tool sidebar-tool-logout js-preview-logout" href="#preview-login" aria-label="Log out" title="Log out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
+          </div>
+        </div>
+      </aside>
+      <div class="docs-content">
+        <section class="md3e-page-hero">
+          <div class="md3e-page-hero__intro">
+            <div class="md3e-page-hero__eyebrow">
+              <span class="page-category-label">Status</span>
+              <span class="md3e-page-hero__path">Local preview</span>
+            </div>
+            <h1 class="md3e-page-hero__title">Material 3 LuCI shell preview</h1>
+            <p class="md3e-page-hero__summary">This harness now previews the new adaptive rail, supporting navigation panel, calmer section surfaces, and the denser page chrome used across the rebuilt MD3E interface.</p>
+          </div>
+          <div class="md3e-page-hero__sections">
+            <a class="md3e-page-chip" href="#section-overview">Overview</a>
+            <a class="md3e-page-chip" href="#section-settings">Quick Settings</a>
+            <a class="md3e-page-chip" href="#section-tabs">Segmented Views</a>
+            <a class="md3e-page-chip" href="#section-table">Client Table</a>
+            <a class="md3e-page-chip" href="#section-feedback">Feedback States</a>
+          </div>
+        </section>
+        <div id="view">
+          <div class="cbi-map">
+            <div class="preview-hero">
+              <h1>MD3E Local Preview</h1>
+              <p>Router-free component gallery for tuning the theme itself, without the noise of a live LuCI session. This page should feel curated, not like two shells rendered on top of each other.</p>
+              <div class="preview-chip-row">
+                <span class="preview-chip"><span class="preview-chip-swatch" style="background:#f6f7fb;box-shadow:inset 0 0 0 1px rgba(12,18,28,.12)"></span>Porcelain</span>
+                <span class="preview-chip"><span class="preview-chip-swatch" style="background:#4d5668"></span>Slate</span>
+                <span class="preview-chip"><span class="preview-chip-swatch" style="background:#0f1115;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)"></span>OLED</span>
+              </div>
+            </div>
+            <div class="cbi-section" id="section-overview">
+              <div class="cbi-title"><h3>Overview</h3></div>
+              <div class="cbi-section-descr">A more expressive status overview should feel like a composed command deck: atmospheric enough to look intentional, calm enough that uptime, WAN posture, and client pressure still scan instantly.</div>
+              <div class="preview-overview-shell">
+                <article class="preview-overview-story preview-reveal">
+                  <div class="preview-overview-head">
+                    <span class="preview-overview-kicker">Status Overview</span>
+                    <span class="preview-overview-badge">Topology settled</span>
+                  </div>
+                  <h4 class="preview-overview-title">Signal-first posture for the router's live operating state.</h4>
+                  <p class="preview-overview-copy">This direction treats overview like a professional control surface instead of a generic KPI shelf. The page opens with one strong surface, then steps down into quieter operational panels for traffic balance, client load, and maintenance cadence.</p>
+                  <div class="preview-overview-health">
+                    <div class="preview-overview-health-item"><strong>WAN</strong><span>PPPoE stable · 18 ms median</span></div>
+                    <div class="preview-overview-health-item"><strong>Mesh</strong><span>2 satellite links holding at -56 dBm</span></div>
+                    <div class="preview-overview-health-item"><strong>Thermals</strong><span>CPU 51°C with no throttling events</span></div>
+                    <div class="preview-overview-health-item"><strong>Policy</strong><span>4 queues prioritized, zero drops in last hour</span></div>
+                  </div>
+                  <div class="preview-overview-spectrum">
+                    <div class="preview-overview-spectrum__head">
+                      <span class="preview-overview-spectrum__label">Peak-hour throughput</span>
+                      <span class="preview-overview-spectrum__value">19:00 to 23:00 window</span>
+                    </div>
+                    <div class="preview-overview-spectrum__bars">
+                      <span style="--height: 24%"></span>
+                      <span style="--height: 32%"></span>
+                      <span style="--height: 44%"></span>
+                      <span style="--height: 57%"></span>
+                      <span style="--height: 68%"></span>
+                      <span style="--height: 86%"></span>
+                      <span style="--height: 100%"></span>
+                      <span style="--height: 88%"></span>
+                      <span style="--height: 76%"></span>
+                      <span style="--height: 59%"></span>
+                      <span style="--height: 42%"></span>
+                      <span style="--height: 29%"></span>
+                    </div>
+                    <div class="preview-overview-spectrum__legend"><span>17:00</span><span>23:00</span></div>
+                  </div>
+                </article>
+                <div class="preview-overview-side">
+                  <article class="preview-overview-panel preview-reveal" style="animation-delay: 0.12s;">
+                    <span class="preview-overview-kicker">Traffic Served</span>
+                    <strong>2.48 TB</strong>
+                    <p>Seven-day throughput stayed inside the calmer shaping envelope, with streaming traffic absorbing most of the evening burst.</p>
+                    <div class="preview-overview-panel__stack">
+                      <div class="preview-overview-panel__row"><span>Downlink</span><span>1.91 TB</span></div>
+                      <div class="preview-overview-panel__row"><span>Uplink</span><span>572 GB</span></div>
+                      <div class="preview-overview-panel__row"><span>Peak egress</span><span>842 Mbps</span></div>
+                    </div>
+                  </article>
+                  <article class="preview-overview-panel preview-reveal" style="animation-delay: 0.18s;">
+                    <span class="preview-overview-kicker">Client Pressure</span>
+                    <strong>27 active</strong>
+                    <p>Four latency-sensitive devices are pinned to the cleaner 6 GHz window while bulk traffic stays on the wired backbone.</p>
+                    <div class="preview-overview-panel__stack">
+                      <div class="preview-overview-panel__row"><span>6 GHz</span><span>9 devices</span></div>
+                      <div class="preview-overview-panel__row"><span>5 GHz</span><span>11 devices</span></div>
+                      <div class="preview-overview-panel__row"><span>Ethernet</span><span>7 devices</span></div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+              <div class="preview-overview-grid">
+                <article class="preview-overview-card preview-overview-card--traffic preview-reveal" style="animation-delay: 0.22s;">
+                  <span class="preview-overview-card__eyebrow">Traffic Balance</span>
+                  <strong class="preview-overview-card__title">Uplink and downlink split still reads cleanly under pressure.</strong>
+                  <p class="preview-overview-card__copy">Rather than a generic mini chart, this layout makes the traffic story legible at a glance and leaves enough room for short operational notes.</p>
+                  <div class="preview-overview-flow">
+                    <div class="preview-overview-flow__row"><span>Streaming</span><div class="preview-overview-flow__bar" style="--value: 78%;"></div><span>812 Mbps</span></div>
+                    <div class="preview-overview-flow__row"><span>Workload sync</span><div class="preview-overview-flow__bar" style="--value: 54%;"></div><span>563 Mbps</span></div>
+                    <div class="preview-overview-flow__row"><span>Mesh backhaul</span><div class="preview-overview-flow__bar" style="--value: 38%;"></div><span>401 Mbps</span></div>
+                  </div>
+                </article>
+                <article class="preview-overview-card preview-overview-card--clients preview-reveal" style="animation-delay: 0.28s;">
+                  <span class="preview-overview-card__eyebrow">Client Fabric</span>
+                  <strong class="preview-overview-card__title">The devices that currently define the room.</strong>
+                  <p class="preview-overview-card__copy">A more expressive overview can still stay practical by highlighting only the few clients shaping most of the network posture.</p>
+                  <div class="preview-overview-client-list">
+                    <div class="preview-overview-client">
+                      <span class="preview-overview-client__dot"></span>
+                      <div class="preview-overview-client__meta"><strong>Apple TV 4K</strong><span>Wired living room stream · priority queue</span></div>
+                      <span class="preview-overview-client__value">611 GB</span>
+                    </div>
+                    <div class="preview-overview-client">
+                      <span class="preview-overview-client__dot"></span>
+                      <div class="preview-overview-client__meta"><strong>ThinkPad X1</strong><span>Roaming across main AP and study mesh node</span></div>
+                      <span class="preview-overview-client__value">-57 dBm</span>
+                    </div>
+                    <div class="preview-overview-client">
+                      <span class="preview-overview-client__dot"></span>
+                      <div class="preview-overview-client__meta"><strong>Pixel 8 Pro</strong><span>6 GHz preferred path with low jitter budget</span></div>
+                      <span class="preview-overview-client__value">18 ms</span>
+                    </div>
+                  </div>
+                </article>
+                <article class="preview-overview-card preview-overview-card--timeline preview-reveal" style="animation-delay: 0.34s;">
+                  <span class="preview-overview-card__eyebrow">Maintenance</span>
+                  <strong class="preview-overview-card__title">Quiet windows for intervention.</strong>
+                  <p class="preview-overview-card__copy">The expressive layer should still help the operator answer “when can I safely touch this?”</p>
+                  <div class="preview-overview-timeline">
+                    <div class="preview-overview-timeline__item"><strong>03:00</strong><span>Adblock and package metadata refresh</span></div>
+                    <div class="preview-overview-timeline__item"><strong>04:30</strong><span>Snapshot backup and config export</span></div>
+                    <div class="preview-overview-timeline__item"><strong>Sunday</strong><span>Preferred firmware window with lowest client pressure</span></div>
+                  </div>
+                </article>
+              </div>
+              <div class="alert-message info preview-overview-note"><h4>Preview Direction</h4><p>This overview mock is intentionally more expressive than the rest of the harness. It is the place to test stronger hierarchy, atmospheric surfaces, and operational storytelling before applying the pattern to the real `Status > Overview` route.</p></div>
+            </div>
+            <div class="cbi-section" id="section-settings">
+              <div class="cbi-title"><h3>Quick Settings</h3></div>
+              <div class="preview-section-head preview-reveal" style="animation-delay: 0.4s;">
+                <div class="preview-section-head__content">
+                  <span class="preview-section-head__eyebrow">Section Header</span>
+                  <h4 class="preview-section-head__title">Settings should still feel editorial, even when the work is mostly forms.</h4>
+                  <p class="preview-section-head__copy">The section header carries the context and the mood. The form rows stay efficient; the meaning and hierarchy live above them.</p>
+                </div>
+                <div class="preview-section-pills">
+                  <span class="preview-section-pill">4 rows staged</span>
+                  <span class="preview-section-pill">Density calm</span>
+                  <span class="preview-section-pill">Field contrast raised</span>
+                </div>
+              </div>
+              <div class="preview-form-cluster">
+                <div>
+                  <div class="cbi-value"><div class="cbi-value-title">Device Hostname<div class="cbi-value-description">Primary hostname shown in shell and login screen.</div></div><div class="cbi-value-field"><input type="text" value="md3e-gateway" /></div></div>
+                  <div class="cbi-value"><div class="cbi-value-title">Palette Mode<div class="cbi-value-description">White-gray by day, OLED black by night, with blue and red reserved for signal.</div></div><div class="cbi-value-field"><select><option>Porcelain</option><option>Slate</option><option>OLED</option></select></div></div>
+                  <div class="cbi-value"><div class="cbi-value-title">Compact Status Chips<div class="cbi-value-description">Example boolean row using the theme toggle-switch pattern.</div></div><div class="cbi-value-field"><input type="checkbox" checked /></div></div>
+                  <div class="cbi-value"><div class="cbi-value-title">Router Notes<div class="cbi-value-description">Textarea shape and focus treatment in a standard settings section.</div></div><div class="cbi-value-field"><textarea rows="4">Prioritize softer cards, clearer field grouping, and a calmer high-density information rhythm.</textarea></div></div>
+                </div>
+                <aside class="preview-insight-card preview-reveal" style="animation-delay: 0.46s;">
+                  <span class="preview-insight-card__label">Operational Reading</span>
+                  <h4 class="preview-insight-card__title">A section header should explain why these controls are grouped together.</h4>
+                  <p class="preview-insight-card__copy">This card is not another form surface. It is a quieter narrative layer that tells the operator what this section changes in practice.</p>
+                  <div class="preview-insight-list">
+                    <div class="preview-insight-list__item"><strong>Hostname</strong><span>Appears in shell, login, and local discovery surfaces.</span></div>
+                    <div class="preview-insight-list__item"><strong>Palette</strong><span>Lets the shell switch between day-safe porcelain and lower-glare OLED.</span></div>
+                    <div class="preview-insight-list__item"><strong>Notes</strong><span>Supports human memory without turning the form into a dashboard.</span></div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+            <div class="cbi-section" id="section-tabs">
+              <div class="cbi-title"><h3>Segmented Views</h3></div>
+              <div class="preview-section-head preview-reveal" style="animation-delay: 0.5s;">
+                <div class="preview-section-head__content">
+                  <span class="preview-section-head__eyebrow">Tabs And Segments</span>
+                  <h4 class="preview-section-head__title">Switchers should feel like part of the story, not detached pills dropped on top.</h4>
+                  <p class="preview-section-head__copy">This stage treats tabs as a real module: a short explanation, state chips, and then the controls inside a contained surface with enough breathing room.</p>
+                </div>
+                <div class="preview-section-pills">
+                  <span class="preview-section-pill">2 tab systems</span>
+                  <span class="preview-section-pill">Motion-aware</span>
+                  <span class="preview-section-pill">Navigation calm</span>
+                </div>
+              </div>
+              <div class="preview-tab-stage preview-reveal" style="animation-delay: 0.56s;">
+                <div class="preview-tab-stage__head">
+                  <div class="preview-tab-stage__intro">
+                    <span class="preview-tab-stage__kicker">Segmented Workspace</span>
+                    <h4 class="preview-tab-stage__title">Appearance, density, and motion belong in one coherent control surface.</h4>
+                    <p class="preview-tab-stage__copy">The switcher and the active panel should read as one module, so the user can tell what changed and what remains stable.</p>
+                  </div>
+                  <div class="preview-tab-stage__meta">
+                    <span>3 states</span>
+                    <span>1 active panel</span>
+                    <span>Low-noise motion</span>
+                  </div>
+                </div>
+                <div class="preview-tab-stage__panel">
+                  <ul class="cbi-tabmenu" data-preview-tabs="segmented">
+                    <li class="cbi-tab" data-preview-target="appearance"><a href="#appearance">Appearance</a></li>
+                    <li data-preview-target="density"><a href="#density">Density</a></li>
+                    <li data-preview-target="motion"><a href="#motion">Motion</a></li>
+                  </ul>
+                  <div class="cbi-section-node-tabbed" data-preview-group="segmented">
+                    <div class="cbi-section-node" data-tab-title="appearance" data-preview-panel="appearance" data-tab-active="true">
+                      <div class="cbi-value"><div class="cbi-value-title">Surface Expression</div><div class="cbi-value-field">Solid layered panels instead of stacked glass cards</div></div>
+                      <div class="cbi-value"><div class="cbi-value-title">Shape Language</div><div class="cbi-value-field">Material 3 expressive curves with restrained asymmetry</div></div>
+                    </div>
+                    <div class="cbi-section-node" data-tab-title="density" data-preview-panel="density" data-tab-active="false">
+                      <div class="cbi-value"><div class="cbi-value-title">Form Rhythm</div><div class="cbi-value-field">Flat rows inside clear sections, without card-inside-card noise</div></div>
+                      <div class="cbi-value"><div class="cbi-value-title">Action Footer</div><div class="cbi-value-field">Sticky confirmation bar that stays visible without shouting</div></div>
+                    </div>
+                    <div class="cbi-section-node" data-tab-title="motion" data-preview-panel="motion" data-tab-active="false">
+                      <div class="cbi-value"><div class="cbi-value-title">Transitions</div><div class="cbi-value-field">Short expo curves for menu, tab, and toast state changes</div></div>
+                      <div class="cbi-value"><div class="cbi-value-title">Menu Behavior</div><div class="cbi-value-field">Expandable sections and a cleaner single-sidebar layout</div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="preview-tab-stage__panel">
+                  <p class="preview-tab-stage__note">Top-level route tabs should keep the same expressive calm, but with a slightly simpler treatment because they carry heavier navigation responsibility.</p>
+                  <div id="tabmenu"><ul class="tabs" data-preview-tabs="top-tabs"><li class="active" data-preview-target="devices"><a href="#devices">Devices</a></li><li data-preview-target="logs"><a href="#logs">Logs</a></li><li data-preview-target="packages"><a href="#packages">Packages</a></li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="cbi-section" id="section-table">
+              <div class="cbi-title"><h3>Client Table</h3></div>
+              <div class="preview-section-head preview-reveal" style="animation-delay: 0.62s;">
+                <div class="preview-section-head__content">
+                  <span class="preview-section-head__eyebrow">Client And Table Summary</span>
+                  <h4 class="preview-section-head__title">Dense lists scan faster when the page tells you what changed before you read the rows.</h4>
+                  <p class="preview-section-head__copy">The table keeps its operational density, but the module now opens with a compact summary strip and a short device spotlight that gives the operator immediate context.</p>
+                </div>
+                <div class="preview-section-pills">
+                  <span class="preview-section-pill">3 priority clients</span>
+                  <span class="preview-section-pill">WAN calm</span>
+                  <span class="preview-section-pill">6 GHz preferred</span>
+                </div>
+              </div>
+              <div class="preview-table-layout">
+                <div class="preview-table-shell preview-reveal" style="animation-delay: 0.68s;">
+                  <div class="preview-table-summary">
+                    <div class="preview-table-summary__item"><strong>Lease Churn</strong><span>4 renewals in the last hour</span></div>
+                    <div class="preview-table-summary__item"><strong>Peak Load</strong><span>Streaming window currently dominant</span></div>
+                    <div class="preview-table-summary__item"><strong>Roaming</strong><span>2 mesh transitions without packet loss</span></div>
+                  </div>
+                  <div class="preview-grid two">
+                    <div class="preview-kpi">CPU Load<strong>34%</strong><div class="preview-progress" style="--value:34%"><span></span></div><div class="preview-note">Low thermal pressure</div></div>
+                    <div class="preview-kpi">Memory<strong>61%</strong><div class="preview-progress" style="--value:61%"><span></span></div><div class="preview-note">2.4 GB of 4 GB in use</div></div>
+                  </div>
+                  <div class="table preview-table">
+                    <div class="tr cbi-section-table-titles"><div class="th col-3">Client</div><div class="th col-2">Band</div><div class="th col-2">Signal</div><div class="th col-3">Traffic</div><div class="th col-2">State</div></div>
+                    <div class="tr"><div class="td col-3" data-title="Client">Pixel 8 Pro</div><div class="td col-2" data-title="Band">6 GHz</div><div class="td col-2" data-title="Signal">-49 dBm</div><div class="td col-3" data-title="Traffic">382 GB / 7d</div><div class="td col-2" data-title="State">Preferred</div></div>
+                    <div class="tr"><div class="td col-3" data-title="Client">ThinkPad X1</div><div class="td col-2" data-title="Band">5 GHz</div><div class="td col-2" data-title="Signal">-57 dBm</div><div class="td col-3" data-title="Traffic">129 GB / 7d</div><div class="td col-2" data-title="State">Active</div></div>
+                    <div class="tr"><div class="td col-3" data-title="Client">Apple TV</div><div class="td col-2" data-title="Band">Ethernet</div><div class="td col-2" data-title="Signal">N/A</div><div class="td col-3" data-title="Traffic">611 GB / 7d</div><div class="td col-2" data-title="State">Streaming</div></div>
+                  </div>
+                </div>
+                <aside class="preview-device-stack preview-reveal" style="animation-delay: 0.74s;">
+                  <div class="preview-device-stack__head">
+                    <strong>Priority Clients</strong>
+                    <p>A smaller expressive list can sit beside the table and explain why these rows matter right now.</p>
+                  </div>
+                  <article class="preview-device-card">
+                    <div class="preview-device-card__top">
+                      <div class="preview-device-card__name"><strong>Apple TV 4K</strong><span>Living room stream pinned to wired priority path</span></div>
+                      <span class="preview-device-card__badge">Stable</span>
+                    </div>
+                    <div class="preview-device-card__metrics">
+                      <div><span>Weekly traffic</span><span>611 GB</span></div>
+                      <div><span>Queue</span><span>Video preferred</span></div>
+                    </div>
+                  </article>
+                  <article class="preview-device-card">
+                    <div class="preview-device-card__top">
+                      <div class="preview-device-card__name"><strong>Pixel 8 Pro</strong><span>6 GHz handset kept on low-jitter path</span></div>
+                      <span class="preview-device-card__badge">Fast lane</span>
+                    </div>
+                    <div class="preview-device-card__metrics">
+                      <div><span>Signal</span><span>-49 dBm</span></div>
+                      <div><span>Latency</span><span>18 ms</span></div>
+                    </div>
+                  </article>
+                  <article class="preview-device-card">
+                    <div class="preview-device-card__top">
+                      <div class="preview-device-card__name"><strong>ThinkPad X1</strong><span>Roams across main AP and study mesh node</span></div>
+                      <span class="preview-device-card__badge">Adaptive</span>
+                    </div>
+                    <div class="preview-device-card__metrics">
+                      <div><span>Signal</span><span>-57 dBm</span></div>
+                      <div><span>Roam assists</span><span>2 in 24h</span></div>
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            </div>
+            <div class="cbi-section" id="section-navigation">
+              <div class="cbi-title"><h3>Navigation Rail</h3></div>
+              <div class="cbi-section-descr">This block exists purely to judge whether the large-screen rail and its grouped submenu rhythm still feel like one MD3E system.</div>
+              <div class="preview-grid three">
+                <div class="preview-kpi">Rail Width<strong>5.75rem</strong><div class="preview-note">Compact enough to read as a destination rail, not a classic sidebar.</div></div>
+                <div class="preview-kpi">Item Height<strong>76 px</strong><div class="preview-note">Each destination still has enough vertical air to feel intentional.</div></div>
+                <div class="preview-kpi">Grouping<strong>3 clusters</strong><div class="preview-note">Multiple submenu groups help expose spacing and hover cadence issues.</div></div>
+              </div>
+            </div>
+            <div class="cbi-section" id="section-submenus">
+              <div class="cbi-title"><h3>Nested Menus</h3></div>
+              <div class="cbi-section-descr">Use this section to inspect secondary destination rows, inset submenu surfaces, and active markers without needing a live router tree.</div>
+              <div class="cbi-value"><div class="cbi-value-title">Expanded Section<div class="cbi-value-description">Should read as a parent destination without overpowering the actual submenu links.</div></div><div class="cbi-value-field">Network</div></div>
+              <div class="cbi-value"><div class="cbi-value-title">Submenu Surface<div class="cbi-value-description">The nested surface should feel like a quieter menu layer, not a full secondary card.</div></div><div class="cbi-value-field">Inset, compact, and softly raised</div></div>
+            </div>
+            <div class="cbi-section" id="section-feedback">
+              <div class="cbi-title"><h3>Feedback States</h3></div>
+              <div class="cbi-section-descr">Status panels, callouts, and page-level hints should stay restrained enough that the navigation treatment still feels primary.</div>
+              <div class="alert-message warning"><h4>Policy path updated</h4><p>The submenu should still scan cleanly even when the page body contains warning states or high-contrast notices.</p></div>
+            </div>
+            <div class="cbi-section" id="section-logs">
+              <div class="cbi-title"><h3>Dense Logs</h3></div>
+              <div class="cbi-section-descr">A heavier content section makes it easier to spot whether the left rail spacing and subsection alignment still hold when the page gets visually busy.</div>
+              <div class="preview-log-shell preview-reveal" style="animation-delay: 0.8s;">
+                <div class="preview-log-head">
+                  <strong>System Event Stream</strong>
+                  <div class="preview-section-pills">
+                    <span class="preview-section-pill">Live feed</span>
+                  </div>
+                </div>
+                <div class="preview-log-content">
+                  <div class="preview-log-line"><span class="preview-log-time">10:42:11</span><span class="preview-log-tag preview-log-tag--wan">wan0</span><span class="preview-log-msg">DHCP renew accepted from upstream gateway</span></div>
+                  <div class="preview-log-line"><span class="preview-log-time">10:42:18</span><span class="preview-log-tag preview-log-tag--mesh">mesh</span><span class="preview-log-msg">Roaming assist signal sent to ThinkPad X1 (force-steer to 6GHz)</span></div>
+                  <div class="preview-log-line"><span class="preview-log-time">10:42:29</span><span class="preview-log-tag preview-log-tag--dns">dns</span><span class="preview-log-msg">Cache warm for 18 local clients; 42 downstream records purged</span></div>
+                  <div class="preview-log-line"><span class="preview-log-time">10:42:42</span><span class="preview-log-tag preview-log-tag--qos">qos</span><span class="preview-log-msg">Priority burst triggered on streaming profile (Apple TV 4K)</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="cbi-page-actions" id="page-actions">
+              <div class="cbi-dropdown btn cbi-button cbi-button-apply important">
+                <ul>
+                  <li data-value="0" selected="" display="0">Save &amp; Apply</li>
+                  <li data-value="1">Apply unchecked</li>
+                </ul>
+                <span class="more" tabindex="-1">···</span>
+                <span class="open" tabindex="-1">▾</span>
+                <div><input type="hidden" name="cbi.apply" value="0" /></div>
+              </div>
+              <button class="cbi-button cbi-button-save">Save</button>
+              <button class="cbi-button cbi-button-reset">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-login-stage" id="preview-login">
+      <div class="login-screen">
+        <canvas class="login-canvas" aria-hidden="true"></canvas>
+        <div class="login-gradient-bottom"></div>
+        <div class="login-gradient-radial"></div>
+        <div class="login-gradient-top"></div>
+        <div class="login-shell">
+          <div class="login-stage">
+            <section class="login-story" aria-label="Preview Router Overview">
+              <div class="login-story-bar">
+                <button class="theme-toggle login-theme-toggle" aria-label="Toggle dark mode"><svg class="theme-toggle-sun" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M7 1h2v2H7zM7 13h2v2H7zM13 7h2v2h-2zM1 7h2v2H1zM11.24 3.34l1.41 1.41-1.42 1.42-1.41-1.41zM3.34 11.24l1.41 1.41-1.41 1.41-1.42-1.41zM11.24 12.66l-1.41-1.41 1.41-1.42 1.42 1.42zM3.34 4.76 1.92 3.34l1.42-1.41 1.41 1.41zM8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><svg class="theme-toggle-moon" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.7 1.3A6 6 0 1 0 14.7 9a5.3 5.3 0 0 1-4.7-7.7Z"/></svg></button>
+              </div>
+
+              <div class="login-brandlock">
+                <div class="login-mark" aria-hidden="true">
+                  <img src="/luci-static/md3e/images/logo.svg" alt="" width="32" height="32" />
+                </div>
+                <div class="login-brand-copy">
+                  <p class="login-overline">OpenWrt LuCI</p>
+                  <h1 class="login-hostname">md3e.local</h1>
+                </div>
+              </div>
+
+              <p class="login-lead">A Material Design 3 Expressive-inspired LuCI theme for OpenWrt.</p>
+            </section>
+
+            <form method="post" class="login-card preview-login-form" novalidate>
+              <div class="login-card-head">
+                <p class="login-eyebrow">Authorization Required</p>
+                <h2 class="login-title">Sign in to continue</h2>
+                <p class="login-subtitle">Preview-only auth flow for checking the local login shell and animation states.</p>
+              </div>
+              <div class="alert-message error preview-login-error" role="alert" hidden>Invalid username and/or password! Please try again.</div>
+              <div class="login-fields">
+                <label class="login-field" for="preview-luci-username">
+                  <span class="login-label">Login</span>
+                  <input name="luci_username" id="preview-luci-username" type="text" class="login-input" value="" autocomplete="username" placeholder="Username" />
+                </label>
+                <label class="login-field" for="preview-luci-password">
+                  <span class="login-label">Password</span>
+                  <input name="luci_password" id="preview-luci-password" type="password" class="login-input" autocomplete="current-password" placeholder="Password" />
+                </label>
+              </div>
+              <button type="submit" class="login-submit">
+                <span>Log in</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </button>
+              <p class="preview-login-note">Enter any non-empty username and password to return to the shell.</p>
+              <p class="login-footer">
+                Powered by <a href="https://openwrt.org" target="_blank" rel="noopener">OpenWrt</a>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span>MD3E local preview harness</span>
+      <ul class="breadcrumb" id="modemenu"><li class="active"><a href="/preview.html">Preview</a></li></ul>
+    </footer>
+  </body>
+</html>

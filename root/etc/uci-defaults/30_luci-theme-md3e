@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Register MD3E in the LuCI theme list.
+# Do NOT auto-select it as the active theme on install.
+#
+
+changed=0
+
+set_theme() {
+	local key="$1"
+	local val="$2"
+
+	if ! uci -q get "luci.themes.${key}" >/dev/null 2>&1; then
+		uci -q set "luci.themes.${key}=${val}"
+		changed=1
+	fi
+}
+
+if [ "$PKG_UPGRADE" != 1 ]; then
+	set_theme MD3E /luci-static/md3e
+fi
+
+if [ "$changed" = 1 ]; then
+	uci -q commit luci
+fi
+
+exit 0

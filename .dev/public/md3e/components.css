@@ -1,0 +1,721 @@
+/* Reusable MD3E component surfaces built on top of the theme token system. */
+
+:root {
+  --md3e-comp-duration: 0.22s;
+  --md3e-comp-ease: cubic-bezier(0.2, 0.82, 0.2, 1);
+  --md3e-comp-card-radius: clamp(1.1rem, 1rem + 0.35vw, 1.45rem);
+  --md3e-comp-card-padding: clamp(1rem, 0.95rem + 0.35vw, 1.3rem);
+  --md3e-comp-button-radius: var(--md-sys-shape-corner-full, 999px);
+  --md3e-comp-field-radius: var(--md-sys-shape-corner-large, 1.1rem);
+  --md3e-comp-card-bg: var(--md-comp-card-container-color, var(--md-sys-color-surface-container-low, #f1f1f7));
+  --md3e-comp-card-bg-high: var(--md-comp-card-container-color-high, var(--md-sys-color-surface-container, #ececf2));
+  --md3e-comp-card-border: var(--md-comp-card-outline-color, var(--md-sys-color-outline-variant, #c4c6d0));
+  --md3e-comp-field-bg: var(--md-comp-filled-field-container-color, var(--md-sys-color-surface-container-highest, #ececf2));
+  --md3e-comp-field-border: var(--md-comp-filled-field-outline-color, var(--md-sys-color-outline-variant, #c4c6d0));
+  --md3e-comp-field-focus: var(--md-comp-filled-field-focus-outline-color, var(--md-sys-color-primary, #445e91));
+  --md3e-comp-filled-bg: var(--md-comp-filled-button-container-color, var(--md-sys-color-primary, #445e91));
+  --md3e-comp-filled-fg: var(--md-comp-filled-button-label-text-color, var(--md-sys-color-on-primary, #fff));
+  --md3e-comp-tonal-bg: var(--md-comp-tonal-button-container-color, var(--md-sys-color-secondary-container, #dbe2f9));
+  --md3e-comp-tonal-fg: var(--md-comp-tonal-button-label-text-color, var(--md-sys-color-on-secondary-container, #3f4759));
+  --md3e-comp-outlined-bg: var(--md-comp-outlined-button-container-color, var(--md-sys-color-surface-container-high, #ececf2));
+  --md3e-comp-outlined-fg: var(--md-comp-outlined-button-label-text-color, var(--md-sys-color-primary, #445e91));
+  --md3e-comp-outlined-border: var(--md-comp-outlined-button-outline-color, var(--md-sys-color-outline-variant, #c4c6d0));
+}
+
+@supports (color: color-mix(in oklab, black, white)) {
+  :root {
+    --md3e-comp-card-bg: color-mix(in oklab, var(--md3e-comp-card-bg) 94%, transparent);
+    --md3e-comp-card-bg-high: color-mix(in oklab, var(--md3e-comp-card-bg-high) 96%, transparent);
+    --md3e-comp-card-border: color-mix(in oklab, var(--md3e-comp-card-border) 78%, transparent);
+    --md3e-comp-field-bg: color-mix(in oklab, var(--md3e-comp-field-bg) 94%, transparent);
+    --md3e-comp-field-border: color-mix(in oklab, var(--md3e-comp-field-border) 78%, transparent);
+    --md3e-comp-outlined-border: color-mix(in oklab, var(--md3e-comp-outlined-border) 72%, transparent);
+  }
+}
+
+.md3e-card,
+.cbi-section-node,
+#maincontent .cbi-page-actions {
+  border: 1px solid var(--md3e-comp-card-border);
+  background: var(--md3e-comp-card-bg);
+  box-shadow:
+    0 24px 40px -34px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.6));
+}
+
+.md3e-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: var(--md3e-comp-card-padding);
+  border-radius: var(--md3e-comp-card-radius);
+}
+
+.md3e-card--high,
+.cbi-section-node {
+  background: var(--md3e-comp-card-bg-high);
+}
+
+.md3e-card--interactive {
+  transition:
+    transform var(--md3e-comp-duration) var(--md3e-comp-ease),
+    border-color var(--md3e-comp-duration) ease,
+    background-color var(--md3e-comp-duration) ease,
+    box-shadow var(--md3e-comp-duration) var(--md3e-comp-ease);
+}
+
+@media (hover: hover) {
+  .md3e-card--interactive:hover {
+    transform: translateY(-1px);
+    border-color: var(--md-sys-color-outline, var(--md3e-comp-card-border));
+    box-shadow:
+      0 28px 46px -36px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65));
+  }
+
+  .cbi-section-node:hover {
+    border-color: var(--md-sys-color-outline, var(--md3e-comp-card-border));
+    box-shadow:
+      0 28px 46px -36px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65));
+  }
+}
+
+.md3e-card__eyebrow {
+  font-size: var(--md-sys-typescale-label-small-size, 0.72rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground, var(--md-sys-color-on-surface-variant, #5c6270));
+}
+
+.md3e-card__title {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: var(--md-sys-typescale-title-large-size, 1.15rem);
+  line-height: var(--md-sys-typescale-title-large-line-height, 1.35);
+  letter-spacing: -0.02em;
+  color: var(--foreground, var(--md-sys-color-on-surface, #1a1b20));
+}
+
+.md3e-card__body,
+.md3e-card__meta {
+  color: var(--muted-foreground, var(--md-sys-color-on-surface-variant, #5c6270));
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn) {
+  --_md3e-button-bg: var(--md3e-comp-tonal-bg);
+  --_md3e-button-fg: var(--md3e-comp-tonal-fg);
+  --_md3e-button-border: var(--md3e-comp-card-border);
+  --_md3e-button-shadow:
+    0 18px 30px -26px var(--expressive-shadow, rgb(0 0 0 / 0.2)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.6));
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.72rem 1.15rem;
+  border: 1px solid var(--_md3e-button-border);
+  border-radius: var(--md3e-comp-button-radius);
+  background: var(--_md3e-button-bg);
+  box-shadow: var(--_md3e-button-shadow);
+  color: var(--_md3e-button-fg);
+  font-family: var(--font-sans);
+  font-size: var(--md-sys-typescale-label-large-size, 0.92rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--md-sys-typescale-label-large-tracking, 0.01em);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform var(--md3e-comp-duration) var(--md3e-comp-ease),
+    border-color var(--md3e-comp-duration) ease,
+    background-color var(--md3e-comp-duration) ease,
+    box-shadow var(--md3e-comp-duration) var(--md3e-comp-ease),
+    color var(--md3e-comp-duration) ease;
+  cursor: pointer;
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn) svg {
+  flex: none;
+}
+
+.md3e-button--filled,
+.btn.primary,
+.cbi-button-apply,
+.cbi-button-reload {
+  --_md3e-button-bg: var(--md3e-comp-filled-bg);
+  --_md3e-button-fg: var(--md3e-comp-filled-fg);
+  --_md3e-button-border: var(--md3e-comp-filled-bg);
+  --_md3e-button-shadow:
+    0 18px 30px -24px color-mix(in oklab, var(--md3e-comp-filled-bg) 28%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 55%, transparent);
+}
+
+.md3e-button--tonal,
+a.btn,
+.cbi-button-neutral,
+.cbi-button-positive,
+.cbi-button-fieldadd,
+.cbi-button-save,
+.cbi-page-actions .btn:not(.primary) {
+  --_md3e-button-bg: var(--md3e-comp-tonal-bg);
+  --_md3e-button-fg: var(--md3e-comp-tonal-fg);
+  --_md3e-button-border: var(--md3e-comp-card-border);
+}
+
+.md3e-button--outlined {
+  --_md3e-button-bg: var(--md3e-comp-outlined-bg);
+  --_md3e-button-fg: var(--md3e-comp-outlined-fg);
+  --_md3e-button-border: var(--md3e-comp-outlined-border);
+}
+
+.md3e-button--danger,
+.cbi-button-negative,
+.cbi-section-remove .cbi-button,
+.cbi-button-reset,
+.cbi-button-remove {
+  --_md3e-button-bg: var(--md-sys-color-error-container, #ffd9d6);
+  --_md3e-button-fg: var(--md-sys-color-on-error-container, #5d120f);
+  --_md3e-button-border: color-mix(in oklab, var(--md-sys-color-error, #ba1a1a) 22%, var(--md3e-comp-card-border));
+}
+
+.md3e-button--text {
+  --_md3e-button-bg: transparent;
+  --_md3e-button-fg: var(--foreground, var(--md-sys-color-on-surface, #1a1b20));
+  --_md3e-button-border: transparent;
+  --_md3e-button-shadow: none;
+}
+
+@media (hover: hover) {
+  :where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn):hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 22px 34px -28px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65));
+  }
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn):active {
+  transform: translateY(0);
+  box-shadow:
+    0 12px 20px -20px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.55));
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn):focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--md3e-comp-field-focus) 32%, transparent);
+  outline-offset: 2px;
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn)[disabled],
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn).disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+#maincontent .cbi-page-actions {
+  --_md3e-action-shell-bg: color-mix(in oklab, var(--md-sys-color-surface-container) 88%, transparent);
+  --_md3e-action-shell-border: color-mix(in oklab, var(--md-sys-color-outline-variant) 48%, transparent);
+  --_md3e-action-divider: color-mix(in oklab, var(--md-sys-color-outline-variant) 62%, transparent);
+  --_md3e-action-subtle-bg: color-mix(in oklab, var(--md-sys-color-surface-container-high) 96%, transparent);
+  --_md3e-action-subtle-fg: color-mix(in oklab, var(--foreground) 84%, transparent);
+  width: fit-content;
+  max-width: min(100%, 30rem);
+  margin-inline: auto;
+  gap: 0.35rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 999px;
+  border-color: var(--_md3e-action-shell-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface-highlight) 70%, transparent),
+      var(--_md3e-action-shell-bg)
+    );
+  box-shadow:
+    0 18px 32px -28px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
+    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 84%, transparent);
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  min-width: clamp(11.5rem, 18vw, 14rem);
+  min-height: 2.9rem;
+  height: 2.9rem;
+  padding: 0;
+  overflow: visible;
+  border-radius: 1.45rem;
+  border: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, white 9%, var(--md3e-comp-filled-bg)),
+      color-mix(in oklab, var(--md3e-comp-filled-bg) 92%, black 3%)
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white 34%, transparent),
+    0 14px 26px -24px color-mix(in oklab, var(--md3e-comp-filled-bg) 34%, transparent);
+  color: var(--md3e-comp-filled-fg);
+  margin-left: 0 !important;
+  isolation: isolate;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > ul {
+  width: 100%;
+  min-width: 0;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display],
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+  padding: 0 1.25rem 0 1.5rem;
+  border-radius: 1.45rem 0 0 1.45rem;
+  text-align: center;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display],
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > label,
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > span,
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > a,
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display],
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] > label,
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] > span,
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] > a {
+  color: inherit !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > .open {
+  display: grid;
+  place-items: center;
+  width: 3rem !important;
+  min-width: 3rem;
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 0.92rem !important;
+  line-height: 1 !important;
+  color: inherit;
+  border: 0;
+  border-radius: 0 1.45rem 1.45rem 0;
+  background: transparent;
+  box-shadow: none !important;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > .open {
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > .open::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  width: 1px;
+  background: color-mix(in oklab, currentColor 38%, transparent);
+}
+
+@media (hover: hover) {
+  #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):hover {
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, white 34%, transparent),
+      0 16px 32px -20px color-mix(in oklab, var(--md3e-comp-filled-bg) 45%, transparent);
+  }
+
+  #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display]:hover {
+    background: color-mix(in oklab, currentColor 8%, transparent);
+  }
+
+  #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > .open:hover {
+    background: color-mix(in oklab, currentColor 8%, transparent);
+  }
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] {
+  z-index: 50;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview {
+  position: absolute;
+  inset: 0 3rem 0 0;
+  display: block !important;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown {
+  top: calc(100% + 0.32rem) !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: 0 !important;
+  margin: 0;
+  padding: 0.25rem !important;
+  z-index: 40;
+  transform-origin: top right;
+  min-width: 10.5rem;
+  width: max-content;
+  max-width: min(13rem, calc(100vw - 1rem));
+  background: color-mix(in oklab, var(--md-sys-color-surface-container-high, #ececf2) 98%, transparent) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0.85rem !important;
+  border: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 54%, transparent) !important;
+  box-shadow:
+    0 14px 28px -20px rgb(0 0 0 / 0.24),
+    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 18%, transparent) !important;
+  display: grid !important;
+  gap: 0.125rem;
+  overflow: hidden;
+  color: var(--foreground) !important;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  justify-content: stretch;
+  gap: 0.55rem;
+  width: auto;
+  margin: 0 !important;
+  padding: 0.125rem 0.25rem !important;
+  text-align: left;
+  white-space: normal;
+  min-height: 0;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--md-sys-color-on-surface) !important;
+  border-radius: 0 !important;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] {
+  width: 100%;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li::before {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-left: 0.45rem;
+  opacity: 0;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li[selected] {
+  color: var(--md-sys-color-on-secondary-container) !important;
+  background: transparent !important;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li[selected]::before {
+  opacity: 1;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li > * {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-height: 2rem;
+  padding: 0.42rem 0.75rem 0.42rem 0;
+  color: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.15 !important;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+  border-radius: 0.55rem;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li[selected] > * {
+  background: color-mix(in oklab, var(--md-sys-color-secondary-container) 52%, transparent);
+}
+
+@media (hover: hover) {
+  #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li:hover > * {
+    background: color-mix(in oklab, currentColor 10%, transparent) !important;
+  }
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 1px;
+  min-height: 2.9rem;
+  padding: 0;
+  margin-left: 0.25rem;
+  border: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 80%, transparent);
+  border-radius: 1.45rem;
+  background: color-mix(in oklab, var(--md-sys-color-outline-variant) 80%, transparent);
+  box-shadow: none;
+  flex: 0 0 auto;
+  margin-right: 0;
+  overflow: hidden;
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group > .cbi-button {
+  position: relative;
+  min-height: 100%;
+  height: auto;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--_md3e-action-shell-bg);
+  box-shadow: none;
+  color: var(--_md3e-action-subtle-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+  margin: 0;
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-save {
+  background: color-mix(in oklab, var(--md-sys-color-secondary-container) 60%, transparent);
+  color: var(--md-sys-color-on-secondary-container);
+  box-shadow: none;
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-reset {
+  background: color-mix(in oklab, var(--md-sys-color-tertiary-container) 40%, transparent);
+  color: var(--md-sys-color-on-tertiary-container);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button:hover {
+    background: color-mix(in oklab, currentColor 8%, var(--_md3e-action-shell-bg));
+    transform: none;
+  }
+
+  #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-save:hover {
+    background: color-mix(in oklab, currentColor 8%, var(--md-sys-color-secondary-container));
+  }
+
+  #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-reset:hover {
+    background: color-mix(in oklab, currentColor 8%, var(--md-sys-color-tertiary-container));
+  }
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group > .cbi-button:active,
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):active {
+  transform: translateY(0);
+}
+
+.md3e-action-group > .cbi-button:focus-visible,
+:is(.md3e-split-button, [data-md3e-split-button]):focus-within,
+:is(.md3e-split-button, [data-md3e-split-button]) > .open:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--md3e-comp-field-focus) 34%, transparent);
+  outline-offset: 2px;
+}
+
+:is(.md3e-split-button, [data-md3e-split-button]) > .open:focus-visible {
+  outline-offset: -2px;
+}
+
+@media not all and (min-width: 48rem) {
+  #maincontent .cbi-page-actions {
+    width: min(100%, 25rem);
+    padding: 0.45rem 0.5rem;
+    gap: 0.3rem;
+    border-radius: 1.5rem;
+  }
+
+  #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]),
+  #maincontent .cbi-page-actions > .md3e-action-group {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #maincontent .cbi-page-actions > .md3e-action-group {
+    justify-content: stretch;
+    padding: 0;
+    margin-left: 0;
+  }
+
+  #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+
+.md3e-button-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.md3e-field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.md3e-field__label,
+.cbi-value > .cbi-value-title {
+  color: var(--foreground, var(--md-sys-color-on-surface, #1a1b20));
+  letter-spacing: -0.01em;
+}
+
+.md3e-field__hint,
+.cbi-value .cbi-value-description {
+  color: var(--muted-foreground, var(--md-sys-color-on-surface-variant, #5c6270));
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .cbi-dropdown > .open,
+  .outline-select-trigger
+) {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.88rem 1rem;
+  border: 1px solid var(--md3e-comp-field-border);
+  border-radius: var(--md3e-comp-field-radius);
+  background: var(--md3e-comp-field-bg);
+  box-shadow:
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.55)),
+    0 14px 24px -24px var(--expressive-shadow, rgb(0 0 0 / 0.2));
+  color: var(--md-comp-filled-field-input-text-color, var(--md-sys-color-on-surface, #1a1b20));
+  font-family: var(--font-sans);
+  font-size: var(--md-sys-typescale-body-large-size, 0.98rem);
+  line-height: var(--md-sys-typescale-body-large-line-height, 1.45);
+  transition:
+    border-color var(--md3e-comp-duration) ease,
+    background-color var(--md3e-comp-duration) ease,
+    box-shadow var(--md3e-comp-duration) var(--md3e-comp-ease),
+    color var(--md3e-comp-duration) ease;
+}
+
+textarea.md3e-field__control,
+textarea {
+  min-height: 7.75rem;
+  resize: vertical;
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .cbi-dropdown > .open,
+  .outline-select-trigger
+)::placeholder {
+  color: color-mix(in oklab, currentColor 52%, transparent);
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .cbi-dropdown > .open
+):focus-visible,
+.outline-select:focus-within .outline-select-trigger,
+.cbi-dropdown[open] > .open {
+  border-color: var(--md3e-comp-field-focus);
+  background: color-mix(in oklab, var(--md3e-comp-field-bg) 82%, var(--md-sys-color-surface-container-high, white));
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--md3e-comp-field-focus) 16%, transparent),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.55));
+  outline: none;
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .cbi-dropdown > .open,
+  .outline-select-trigger
+)[disabled],
+.outline-select.disabled .outline-select-trigger {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.md3e-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+@media not all and (min-width: 48rem) {
+  .md3e-card {
+    padding: 1rem;
+  }
+
+  .md3e-button-set {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .md3e-button-set > *,
+  #maincontent .cbi-page-actions > *,
+  #maincontent .right > a.btn {
+    width: 100%;
+  }
+}

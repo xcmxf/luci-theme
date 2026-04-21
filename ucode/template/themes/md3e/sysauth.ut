@@ -1,0 +1,257 @@
+{#
+ luci-theme-md3e:
+ Copyright 2025 eamonxg
+ This theme is derived from luci-theme-bootstrap UT template.
+ luci-theme-bootstrap:
+ Copyright 2022 Jo-Philipp Wich <jo@mein.io>
+ Licensed to the public under the Apache License 2.0.
+-#}
+
+{%const boardinfo = ubus.call('system', 'board');-%}
+{% include('header', { blank_page: true }) %}
+
+<div class="login-screen" {% if (fuser): %}data-error="true"{% endif %}>
+	<canvas class="login-canvas"></canvas>
+	<div class="login-gradient-bottom"></div>
+	<div class="login-gradient-radial"></div>
+	<div class="login-gradient-top"></div>
+	<div class="login-shell">
+		<div class="login-stage">
+			<section class="login-story" aria-label="{{ _('Router overview') }}">
+				<div class="login-story-bar">
+					<button class="theme-toggle login-theme-toggle" aria-label="{{ _('Toggle dark mode') }}">
+						<svg class="theme-toggle-sun" height="16" stroke-linejoin="round" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.75 1V0.25H6.25V1V1.25V2H7.75V1.25V1ZM7 9C8.10457 9 9 8.10457 9 7C9 5.89543 8.10457 5 7 5C5.89543 5 5 5.89543 5 7C5 8.10457 5.89543 9 7 9ZM7 10.5C8.933 10.5 10.5 8.933 10.5 7C10.5 5.067 8.933 3.5 7 3.5C5.067 3.5 3.5 5.067 3.5 7C3.5 8.933 5.067 10.5 7 10.5ZM7.75 12V12.75V13V13.75H6.25V13V12.75V12H7.75ZM12 6.25H12.75H13H13.75V7.75H13H12.75H12V6.25ZM1 6.25H0.25V7.75H1H1.25H2V6.25H1.25H1ZM10.0052 2.93414L10.5355 2.40381L10.7123 2.22703L11.2426 1.6967L12.3033 2.75736L11.773 3.28769L11.5962 3.46447L11.0659 3.9948L10.0052 2.93414ZM2.22703 10.7123L1.6967 11.2426L2.75736 12.3033L3.28769 11.773L3.46447 11.5962L3.9948 11.0659L2.93414 10.0052L2.40381 10.5355L2.22703 10.7123ZM2.93414 3.9948L2.40381 3.46447L2.22703 3.28769L1.6967 2.75736L2.75736 1.6967L3.28769 2.22703L3.46447 2.40381L3.9948 2.93414L2.93414 3.9948ZM10.7123 11.773L11.2426 12.3033L12.3033 11.2426L11.773 10.7123L11.5962 10.5355L11.0659 10.0052L10.0052 11.0659L10.5355 11.5962L10.7123 11.773Z" fill="currentColor" transform="translate(1.25, 1.25)"></path></svg>
+						<svg class="theme-toggle-moon" height="16" stroke-linejoin="round" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 0.25V1V1.5H11L11.75 1.5V3H11H10.5V3.5V4.25H9V3.5V3H8.5H7.75V1.5H8.5H9V1V0.25H10.5ZM3.25514 2.75496C2.33413 3.53491 1.75 4.69972 1.75 6C1.75 8.34721 3.65279 10.25 6 10.25C7.30029 10.25 8.4651 9.66587 9.24505 8.74485C9.16377 8.74827 9.08207 8.74999 9 8.74999C5.82436 8.74999 3.25 6.17563 3.25 2.99999C3.25 2.91792 3.25172 2.83623 3.25514 2.75496ZM0.25 6C0.25 3.51072 1.83142 1.39271 4.042 0.592193L5.00256 1.55275C4.83933 2.00347 4.75 2.49047 4.75 2.99999C4.75 5.3472 6.65279 7.24999 9 7.24999C9.50953 7.24999 9.99653 7.16065 10.4473 6.99743L11.4078 7.95798C10.6073 10.1686 8.48929 11.75 6 11.75C2.82436 11.75 0.25 9.17564 0.25 6Z" fill="currentColor" transform="translate(2.25, 2.25)"></path></svg>
+					</button>
+				</div>
+
+				<div class="login-brandlock">
+					<div class="login-mark" aria-hidden="true">
+						<img src="{{ media }}/images/logo.svg" alt="" width="32" height="32">
+					</div>
+					<div class="login-brand-copy">
+						<p class="login-overline">{{ _('OpenWrt LuCI') }}</p>
+						<h1 class="login-hostname">{{ striptags(boardinfo?.hostname ?? '?') }}</h1>
+					</div>
+				</div>
+
+				<p class="login-lead">{{ _('A Material Design 3 Expressive-inspired LuCI theme for OpenWrt.') }}</p>
+			</section>
+
+			<form method="post" class="login-card">
+				<div class="login-card-head">
+					<p class="login-eyebrow">{{ _('Authorization Required') }}</p>
+					<h2 class="login-title">{{ _('Sign in to continue') }}</h2>
+					<p class="login-subtitle">{{ _('Use your router account to open LuCI and manage this device.') }}</p>
+				</div>
+
+				{% if (fuser): %}
+				<div class="alert-message error" role="alert">{{ _('Invalid username and/or password! Please try again.') }}</div>
+				{% endif %}
+
+				<div class="login-fields">
+					<label class="login-field" for="luci_username">
+						<span class="login-label">{{ _('Login') }}</span>
+						<input name="luci_username" id="luci_username" type="text" class="login-input" value="{{ entityencode(duser ?? '', true) }}" autocomplete="username" placeholder="{{ _('Username') }}">
+					</label>
+
+					<label class="login-field" for="luci_password">
+						<span class="login-label">{{ _('Password') }}</span>
+						<input name="luci_password" id="luci_password" type="password" class="login-input" autocomplete="current-password" placeholder="{{ _('Password') }}">
+					</label>
+				</div>
+
+				<button type="submit" class="login-submit">
+					<span>{{ _('Log in') }}</span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+				</button>
+
+				<p class="login-footer">
+					Powered by <a href="https://openwrt.org" target="_blank" rel="noopener">OpenWrt</a>
+				</p>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+document.getElementById('luci_username').value ? document.getElementById('luci_password').focus() : document.getElementById('luci_username').focus();
+
+(function() {
+	var c = document.querySelector('.login-canvas');
+	if (!c) return;
+	var gl = c.getContext('webgl2', { alpha: true, premultipliedAlpha: true });
+	if (!gl) return;
+
+	var vsSource = [
+		'#version 300 es',
+		'precision mediump float;',
+		'in vec2 a_pos;',
+		'uniform vec2 u_resolution;',
+		'out vec2 fragCoord;',
+		'void main() {',
+		'  gl_Position = vec4(a_pos, 0.0, 1.0);',
+		'  fragCoord = (a_pos + 1.0) * 0.5 * u_resolution;',
+		'  fragCoord.y = u_resolution.y - fragCoord.y;',
+		'}'
+	].join('\n');
+
+	var fsSource = [
+		'#version 300 es',
+		'precision mediump float;',
+		'in vec2 fragCoord;',
+		'uniform float u_time;',
+		'uniform float u_opacities[10];',
+		'uniform vec3 u_colors[6];',
+		'uniform float u_total_size;',
+		'uniform float u_dot_size;',
+		'uniform float u_speed;',
+		'uniform vec2 u_resolution;',
+		'out vec4 fragColor;',
+		'float PHI = 1.61803398874989484820459;',
+		'float random(vec2 xy) {',
+		'  return fract(tan(distance(xy * PHI, xy) * 0.5) * xy.x);',
+		'}',
+		'void main() {',
+		'  vec2 st = fragCoord.xy;',
+		'  st.x -= abs(floor((mod(u_resolution.x, u_total_size) - u_dot_size) * 0.5));',
+		'  st.y -= abs(floor((mod(u_resolution.y, u_total_size) - u_dot_size) * 0.5));',
+		'  float opacity = step(0.0, st.x) * step(0.0, st.y);',
+		'  vec2 st2 = vec2(int(st.x / u_total_size), int(st.y / u_total_size));',
+		'  float frequency = 5.0;',
+		'  float show_offset = random(st2);',
+		'  float rand = random(st2 * floor((u_time / frequency) + show_offset + frequency));',
+		'  opacity *= u_opacities[int(rand * 10.0)];',
+		'  opacity *= 1.0 - step(u_dot_size / u_total_size, fract(st.x / u_total_size));',
+		'  opacity *= 1.0 - step(u_dot_size / u_total_size, fract(st.y / u_total_size));',
+		'  vec3 color = u_colors[int(show_offset * 6.0)];',
+		'  vec2 cg = u_resolution / 2.0 / u_total_size;',
+		'  float d = distance(cg, st2);',
+		'  float t_off = d * 0.01 + (random(st2) * 0.15);',
+		'  opacity *= step(t_off, u_time * u_speed);',
+		'  opacity *= clamp((1.0 - step(t_off + 0.1, u_time * u_speed)) * 1.25, 1.0, 1.25);',
+		'  fragColor = vec4(color * opacity, opacity);',
+		'}'
+	].join('\n');
+
+	function mkShader(type, src) {
+		var s = gl.createShader(type);
+		gl.shaderSource(s, src);
+		gl.compileShader(s);
+		return s;
+	}
+
+	var pg = gl.createProgram();
+	gl.attachShader(pg, mkShader(gl.VERTEX_SHADER, vsSource));
+	gl.attachShader(pg, mkShader(gl.FRAGMENT_SHADER, fsSource));
+	gl.linkProgram(pg);
+	gl.useProgram(pg);
+
+	var buf = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+	var pl = gl.getAttribLocation(pg, 'a_pos');
+	gl.enableVertexAttribArray(pl);
+	gl.vertexAttribPointer(pl, 2, gl.FLOAT, false, 0, 0);
+
+	var tLoc = gl.getUniformLocation(pg, 'u_time');
+	var rLoc = gl.getUniformLocation(pg, 'u_resolution');
+	var speedLoc = gl.getUniformLocation(pg, 'u_speed');
+	var hasError = c.closest('.login-screen').hasAttribute('data-error');
+	var isDark = document.documentElement.getAttribute('data-darkmode') === 'true';
+	var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	var colorCtx = document.createElement('canvas').getContext('2d');
+
+	function parseColor(value, fallback) {
+		var fallbackValue = fallback || '#ffffff';
+		if (!colorCtx) return [1, 1, 1];
+		colorCtx.fillStyle = fallbackValue;
+		try {
+			colorCtx.fillStyle = value || fallbackValue;
+		} catch (e) {}
+		var normalized = colorCtx.fillStyle;
+		var match = normalized.match(/^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+		if (!match) return [1, 1, 1];
+		return [
+			parseFloat(match[1]) / 255,
+			parseFloat(match[2]) / 255,
+			parseFloat(match[3]) / 255
+		];
+	}
+
+	function mixColor(a, b, t) {
+		return [
+			a[0] * (1 - t) + b[0] * t,
+			a[1] * (1 - t) + b[1] * t,
+			a[2] * (1 - t) + b[2] * t
+		];
+	}
+
+	gl.enable(gl.BLEND);
+
+	function applyPalette() {
+		var styles = getComputedStyle(document.documentElement);
+		var currentDark = document.documentElement.getAttribute('data-darkmode') === 'true';
+		var accent = parseColor(styles.getPropertyValue('--accent').trim(), currentDark ? '#122231' : '#dbe8f6');
+		var accentStrong = parseColor(styles.getPropertyValue('--accent-foreground').trim(), currentDark ? '#c8ddf3' : '#004477');
+		var highlight = parseColor(styles.getPropertyValue('--surface-highlight').trim(), currentDark ? '#1e1f22' : '#ffffff');
+		var error = parseColor(styles.getPropertyValue('--error').trim(), '#ffdedb');
+		var errorStrong = parseColor(styles.getPropertyValue('--error-foreground').trim(), '#782a29');
+		var palette = hasError
+			? [
+				errorStrong,
+				mixColor(errorStrong, error, 0.25),
+				mixColor(errorStrong, highlight, 0.18),
+				mixColor(error, errorStrong, 0.35),
+				mixColor(errorStrong, error, 0.48),
+				mixColor(error, highlight, 0.2)
+			]
+			: currentDark
+				? [
+					mixColor(accent, highlight, 0.18),
+					mixColor(accentStrong, accent, 0.26),
+					mixColor(accentStrong, highlight, 0.32),
+					mixColor(accent, highlight, 0.08),
+					mixColor(accentStrong, highlight, 0.54),
+					mixColor(accentStrong, accent, 0.4)
+				]
+				: [
+					mixColor(accentStrong, accent, 0.32),
+					mixColor(accentStrong, highlight, 0.6),
+					mixColor(accent, highlight, 0.22),
+					mixColor(accentStrong, highlight, 0.46),
+					mixColor(accent, highlight, 0.14),
+					mixColor(accentStrong, accent, 0.5)
+				];
+
+		gl.uniform1fv(gl.getUniformLocation(pg, 'u_opacities'),
+			[0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.8, 0.8, 0.8, 1.0]);
+		gl.uniform3fv(gl.getUniformLocation(pg, 'u_colors'), palette.flat());
+		gl.uniform1f(gl.getUniformLocation(pg, 'u_total_size'), prefersReducedMotion ? 24.0 : 20.0);
+		gl.uniform1f(gl.getUniformLocation(pg, 'u_dot_size'), prefersReducedMotion ? 4.0 : 6.0);
+		gl.uniform1f(speedLoc, prefersReducedMotion ? 0.16 : currentDark ? 0.34 : 0.4);
+		gl.blendFunc(gl.SRC_ALPHA, currentDark ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA);
+	}
+
+	function resize() {
+		c.width = c.clientWidth * 2;
+		c.height = c.clientHeight * 2;
+		gl.viewport(0, 0, c.width, c.height);
+		gl.uniform2f(rLoc, c.width, c.height);
+	}
+	resize();
+	window.addEventListener('resize', resize);
+	window.addEventListener('md3e:themechange', applyPalette);
+	applyPalette();
+
+	var t0 = performance.now();
+	(function frame() {
+		gl.uniform1f(tLoc, (performance.now() - t0) / 1000);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+		requestAnimationFrame(frame);
+	})();
+})();
+</script>
+
+{% include('footer', { blank_page: true }) %}
