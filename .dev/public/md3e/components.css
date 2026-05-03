@@ -26,9 +26,9 @@
   :root {
     --md3e-comp-card-bg: color-mix(in oklab, var(--md3e-comp-card-bg) 94%, transparent);
     --md3e-comp-card-bg-high: color-mix(in oklab, var(--md3e-comp-card-bg-high) 96%, transparent);
-    --md3e-comp-card-border: color-mix(in oklab, var(--md3e-comp-card-border) 78%, transparent);
-    --md3e-comp-field-bg: color-mix(in oklab, var(--md3e-comp-field-bg) 94%, transparent);
-    --md3e-comp-field-border: color-mix(in oklab, var(--md3e-comp-field-border) 78%, transparent);
+    --md3e-comp-card-border: color-mix(in oklab, var(--md3e-comp-card-border) 54%, transparent);
+    --md3e-comp-field-bg: color-mix(in oklab, var(--md3e-comp-field-bg) 95%, transparent);
+    --md3e-comp-field-border: color-mix(in oklab, var(--md3e-comp-field-border) 60%, transparent);
     --md3e-comp-outlined-border: color-mix(in oklab, var(--md3e-comp-outlined-border) 72%, transparent);
   }
 }
@@ -36,11 +36,16 @@
 .md3e-card,
 .cbi-section-node,
 #maincontent .cbi-page-actions {
-  border: 1px solid var(--md3e-comp-card-border);
-  background: var(--md3e-comp-card-bg);
+  border: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface-highlight, white) 66%, transparent),
+    var(--md3e-comp-card-bg)
+  );
   box-shadow:
-    0 24px 40px -34px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
-    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.6));
+    0 22px 38px -34px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.6)),
+    inset 0 0 0 1px color-mix(in oklab, var(--md3e-comp-card-border) 54%, transparent);
 }
 
 .md3e-card {
@@ -66,17 +71,17 @@
 @media (hover: hover) {
   .md3e-card--interactive:hover {
     transform: translateY(-1px);
-    border-color: var(--md-sys-color-outline, var(--md3e-comp-card-border));
     box-shadow:
-      0 28px 46px -36px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
-      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65));
+      0 26px 44px -38px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65)),
+      inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline, var(--md3e-comp-card-border)) 56%, transparent);
   }
 
   .cbi-section-node:hover {
-    border-color: var(--md-sys-color-outline, var(--md3e-comp-card-border));
     box-shadow:
-      0 28px 46px -36px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
-      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65));
+      0 26px 44px -38px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65)),
+      inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline, var(--md3e-comp-card-border)) 56%, transparent);
   }
 }
 
@@ -217,7 +222,7 @@ a.btn,
 
 #maincontent .cbi-page-actions {
   --_md3e-action-shell-bg: color-mix(in oklab, var(--md-sys-color-surface-container) 88%, transparent);
-  --_md3e-action-shell-border: color-mix(in oklab, var(--md-sys-color-outline-variant) 48%, transparent);
+  --_md3e-action-shell-border: color-mix(in oklab, var(--md-sys-color-outline-variant) 28%, transparent);
   --_md3e-action-divider: color-mix(in oklab, var(--md-sys-color-outline-variant) 62%, transparent);
   --_md3e-action-subtle-bg: color-mix(in oklab, var(--md-sys-color-surface-container-high) 96%, transparent);
   --_md3e-action-subtle-fg: color-mix(in oklab, var(--foreground) 84%, transparent);
@@ -227,7 +232,6 @@ a.btn,
   gap: 0.35rem;
   padding: 0.35rem 0.45rem;
   border-radius: 999px;
-  border-color: var(--_md3e-action-shell-border);
   background:
     linear-gradient(
       180deg,
@@ -236,7 +240,8 @@ a.btn,
     );
   box-shadow:
     0 18px 32px -28px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
-    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 84%, transparent);
+    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 84%, transparent),
+    inset 0 0 0 1px var(--_md3e-action-shell-border);
 }
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) {

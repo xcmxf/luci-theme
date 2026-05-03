@@ -41,7 +41,12 @@
 				document.querySelectorAll('.theme-switcher .theme-option').forEach(opt => {
 					const active = opt.dataset.theme === current;
 					opt.classList.toggle('active', active);
-					opt.querySelector('input[type="radio"]')?.setAttribute('checked', active);
+					const input = opt.querySelector('input[type="radio"]');
+					if (input) {
+						input.checked = active;
+						if (active) input.setAttribute('checked', 'checked');
+						else input.removeAttribute('checked');
+					}
 				});
 
 			};
@@ -213,15 +218,6 @@
 				</svg>
 			</div>
 			<nav class="mobile-nav">
-				<div class="mobile-nav-header">
-					<div class="mobile-nav-brand-wrap">
-						<a class="brand" href="{{ home_url }}"><img class="brand-logo" src="{{ media }}/images/{{ logo_png }}?v={{ icon_cache_version }}" alt="" width="24" height="24"><span class="brand-text">{{ striptags(boardinfo.hostname ?? "?") }}</span></a>
-						<div class="mobile-nav-context">
-							<span class="mobile-nav-context-eyebrow">{{ _('Router workspace') }}</span>
-							<span class="mobile-nav-context-value">{{ striptags(boardinfo.model ?? _('OpenWrt control surface')) }}</span>
-						</div>
-					</div>
-				</div>
 				<div class="mobile-nav-list" id="mobile-nav-list"></div>
 				<div class="mobile-nav-footer">
 					<div class="mobile-nav-footer-indicators-slot" id="mobile-indicators-slot"></div>
@@ -241,9 +237,6 @@
 		<div id="maincontent">
 			<aside class="docs-sidebar" id="sidebar">
 				<div class="docs-sidebar-shell">
-					<div class="docs-sidebar-top">
-						<a class="sidebar-brand sidebar-brand-square" href="{{ home_url }}" aria-label="{{ striptags(boardinfo.hostname ?? '?') }}" title="{{ striptags(boardinfo.hostname ?? '?') }}"><img class="brand-logo" src="{{ media }}/images/{{ logo_png }}?v={{ icon_cache_version }}" alt="" width="24" height="24"></a>
-					</div>
 					<div class="docs-sidebar-nav" id="sidebar-nav-host"></div>
 					<div class="docs-sidebar-tools">
 						<div class="sidebar-indicators-slot" id="sidebar-indicators-slot">

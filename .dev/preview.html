@@ -32,13 +32,6 @@
         min-height: 100dvh;
       }
 
-      .preview-login-note {
-        margin: 0;
-        font-size: 0.82rem;
-        line-height: 1.6;
-        color: var(--muted-foreground);
-      }
-
       .docs-sidebar {
         margin-right: 0 !important;
       }
@@ -186,12 +179,15 @@
         overflow: hidden;
         padding: 1.8rem;
         border-radius: 2.25rem;
-        border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+        border: 0;
         background:
           radial-gradient(circle at top left, color-mix(in oklab, var(--md-sys-color-primary-container) 62%, transparent) 0%, transparent 48%),
           radial-gradient(circle at bottom right, color-mix(in oklab, var(--md-sys-color-secondary-container) 24%, transparent) 0%, transparent 42%),
           linear-gradient(155deg, color-mix(in oklab, var(--surface-highlight) 76%, transparent), color-mix(in oklab, var(--panel-bg) 98%, transparent));
-        box-shadow: 0 38px 72px -46px var(--expressive-shadow);
+        box-shadow:
+          0 38px 72px -46px var(--expressive-shadow),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 84%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 18%, transparent);
       }
 
       .preview-overview-story::after {
@@ -356,13 +352,16 @@
       .preview-overview-card {
         padding: 1.15rem;
         border-radius: 1.45rem;
-        border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+        border: 0;
         background: linear-gradient(
           180deg,
           color-mix(in oklab, var(--surface-highlight) 58%, transparent),
           color-mix(in oklab, var(--panel-bg) 96%, transparent)
         );
-        box-shadow: 0 20px 42px -36px var(--expressive-shadow);
+        box-shadow:
+          0 20px 42px -36px var(--expressive-shadow),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 78%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 14%, transparent);
       }
 
       .preview-overview-panel strong {
@@ -547,7 +546,7 @@
         padding: 0.8rem 0.9rem;
         border-radius: 1rem;
         background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 76%, transparent);
-        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 54%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 20%, transparent);
       }
 
       .preview-overview-timeline__item strong {
@@ -573,9 +572,9 @@
         align-items: start;
         justify-content: space-between;
         gap: 1.5rem;
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid color-mix(in oklab, var(--border) 42%, transparent);
+        margin-bottom: 1.65rem;
+        padding-bottom: 0;
+        border-bottom: 0;
       }
 
       .preview-section-head__content {
@@ -650,13 +649,16 @@
       .preview-device-stack {
         padding: 1.1rem;
         border-radius: 1.45rem;
-        border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+        border: 0;
         background: linear-gradient(
           180deg,
           color-mix(in oklab, var(--surface-highlight) 58%, transparent),
           color-mix(in oklab, var(--panel-bg) 96%, transparent)
         );
-        box-shadow: 0 22px 42px -36px var(--expressive-shadow);
+        box-shadow:
+          0 22px 42px -36px var(--expressive-shadow),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 80%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 14%, transparent);
       }
 
       .preview-insight-card {
@@ -698,7 +700,7 @@
         padding: 0.8rem 0.85rem;
         border-radius: 1rem;
         background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 78%, transparent);
-        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 54%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 20%, transparent);
       }
 
       .preview-insight-list__item strong {
@@ -719,13 +721,16 @@
         gap: 1.5rem;
         padding: 1.85rem;
         border-radius: 2.25rem;
-        border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+        border: 0;
         background: linear-gradient(
           165deg,
           color-mix(in oklab, var(--surface-highlight) 72%, transparent),
           color-mix(in oklab, var(--panel-bg) 98%, transparent)
         );
-        box-shadow: 0 32px 64px -42px var(--expressive-shadow);
+        box-shadow:
+          0 32px 64px -42px var(--expressive-shadow),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 84%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 18%, transparent);
       }
 
       .preview-tab-stage__head {
@@ -783,7 +788,7 @@
         font-weight: 700;
         color: var(--foreground);
         background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 82%, transparent);
-        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 48%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 18%, transparent);
       }
 
       .preview-tab-stage__meta span::before {
@@ -799,13 +804,13 @@
         border-radius: 1.5rem;
         background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 72%, transparent);
         box-shadow: 
-          inset 0 0 0 1px color-mix(in oklab, var(--border) 45%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 16%, transparent),
           0 16px 32px -28px var(--expressive-shadow);
       }
 
       .preview-tab-stage__panel .cbi-tabmenu {
         margin-bottom: 1.5rem;
-        border-bottom: 1px solid color-mix(in oklab, var(--border) 32%, transparent);
+        border-bottom: 0;
       }
 
       .preview-tab-stage__panel .cbi-tabmenu li {
@@ -826,11 +831,11 @@
         margin: 0 0 1.25rem;
         padding: 0.85rem 1.15rem;
         border-radius: 1rem;
-        background: color-mix(in oklab, var(--surface-highlight) 32%, transparent);
+        background: color-mix(in oklab, var(--surface-highlight) 36%, transparent);
         color: var(--muted-foreground);
         font-size: 0.84rem;
         line-height: 1.58;
-        border-left: 3px solid color-mix(in oklab, var(--md-sys-color-primary) 45%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 16%, transparent);
       }
 
       .preview-table-layout {
@@ -856,7 +861,7 @@
         padding: 0.85rem 0.9rem;
         border-radius: 1rem;
         background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 78%, transparent);
-        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 54%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 20%, transparent);
       }
 
       .preview-table-summary__item strong {
@@ -878,13 +883,16 @@
         align-content: start;
         padding: 1.5rem;
         border-radius: 2rem;
-        border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+        border: 0;
         background: linear-gradient(
           180deg,
           color-mix(in oklab, var(--surface-highlight) 54%, transparent),
           color-mix(in oklab, var(--panel-bg) 96%, transparent)
         );
-        box-shadow: 0 28px 56px -36px var(--expressive-shadow);
+        box-shadow:
+          0 28px 56px -36px var(--expressive-shadow),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 78%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 16%, transparent);
       }
 
       .preview-device-stack__head {
@@ -914,7 +922,7 @@
         border-radius: 1.35rem;
         background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 82%, transparent);
         box-shadow: 
-          inset 0 0 0 1px color-mix(in oklab, var(--border) 42%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--border) 18%, transparent),
           0 12px 24px -18px var(--expressive-shadow);
         transition: all 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
         cursor: default;
@@ -924,7 +932,7 @@
         transform: translateX(6px) scale(1.01);
         background: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 92%, transparent);
         box-shadow: 
-          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 15%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 12%, transparent),
           0 20px 42px -28px var(--expressive-shadow);
       }
 
@@ -962,7 +970,7 @@
         font-weight: 700;
         color: var(--foreground);
         background: color-mix(in oklab, var(--md-sys-color-secondary-container) 66%, transparent);
-        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 45%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 18%, transparent);
       }
 
       .preview-device-card__badge::before {
@@ -977,7 +985,7 @@
         display: grid;
         gap: 0.55rem;
         padding-top: 0.65rem;
-        border-top: 1px solid color-mix(in oklab, var(--border) 24%, transparent);
+        box-shadow: inset 0 1px 0 color-mix(in oklab, var(--border) 12%, transparent);
       }
 
       .preview-device-card__metrics div {
@@ -1406,9 +1414,6 @@
     <div id="maincontent">
       <aside class="docs-sidebar">
         <div class="docs-sidebar-shell">
-          <div class="docs-sidebar-top">
-            <a class="sidebar-brand sidebar-brand-square" href="/preview.html" aria-label="md3e.local" title="md3e.local"><img class="brand-logo" src="/luci-static/md3e/images/logo.svg" alt="" width="24" height="24" /></a>
-          </div>
           <div class="docs-sidebar-nav" id="sidebar-nav-host">
             <div class="md3e-nav-shell is-collapsed">
               <nav class="md3e-mode-rail" aria-label="Primary navigation">
@@ -1795,35 +1800,18 @@
     </div>
     <div class="preview-login-stage" id="preview-login">
       <div class="login-screen">
-        <canvas class="login-canvas" aria-hidden="true"></canvas>
-        <div class="login-gradient-bottom"></div>
-        <div class="login-gradient-radial"></div>
-        <div class="login-gradient-top"></div>
         <div class="login-shell">
           <div class="login-stage">
-            <section class="login-story" aria-label="Preview Router Overview">
-              <div class="login-story-bar">
-                <button class="theme-toggle login-theme-toggle" aria-label="Toggle dark mode"><svg class="theme-toggle-sun" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M7 1h2v2H7zM7 13h2v2H7zM13 7h2v2h-2zM1 7h2v2H1zM11.24 3.34l1.41 1.41-1.42 1.42-1.41-1.41zM3.34 11.24l1.41 1.41-1.41 1.41-1.42-1.41zM11.24 12.66l-1.41-1.41 1.41-1.42 1.42 1.42zM3.34 4.76 1.92 3.34l1.42-1.41 1.41 1.41zM8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><svg class="theme-toggle-moon" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.7 1.3A6 6 0 1 0 14.7 9a5.3 5.3 0 0 1-4.7-7.7Z"/></svg></button>
+            <div class="login-topbar">
+              <div class="login-mark" aria-hidden="true">
+                <img src="/luci-static/md3e/images/logo.svg" alt="" width="32" height="32" />
               </div>
-
-              <div class="login-brandlock">
-                <div class="login-mark" aria-hidden="true">
-                  <img src="/luci-static/md3e/images/logo.svg" alt="" width="32" height="32" />
-                </div>
-                <div class="login-brand-copy">
-                  <p class="login-overline">OpenWrt LuCI</p>
-                  <h1 class="login-hostname">md3e.local</h1>
-                </div>
-              </div>
-
-              <p class="login-lead">A Material Design 3 Expressive-inspired LuCI theme for OpenWrt.</p>
-            </section>
+              <button class="theme-toggle login-theme-toggle" aria-label="Toggle dark mode"><svg class="theme-toggle-sun" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M7 1h2v2H7zM7 13h2v2H7zM13 7h2v2h-2zM1 7h2v2H1zM11.24 3.34l1.41 1.41-1.42 1.42-1.41-1.41zM3.34 11.24l1.41 1.41-1.41 1.41-1.42-1.41zM11.24 12.66l-1.41-1.41 1.41-1.42 1.42 1.42zM3.34 4.76 1.92 3.34l1.42-1.41 1.41 1.41zM8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg><svg class="theme-toggle-moon" height="16" width="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.7 1.3A6 6 0 1 0 14.7 9a5.3 5.3 0 0 1-4.7-7.7Z"/></svg></button>
+            </div>
 
             <form method="post" class="login-card preview-login-form" novalidate>
               <div class="login-card-head">
-                <p class="login-eyebrow">Authorization Required</p>
-                <h2 class="login-title">Sign in to continue</h2>
-                <p class="login-subtitle">Preview-only auth flow for checking the local login shell and animation states.</p>
+                <h1 class="login-title">Log in</h1>
               </div>
               <div class="alert-message error preview-login-error" role="alert" hidden>Invalid username and/or password! Please try again.</div>
               <div class="login-fields">
@@ -1838,12 +1826,7 @@
               </div>
               <button type="submit" class="login-submit">
                 <span>Log in</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </button>
-              <p class="preview-login-note">Enter any non-empty username and password to return to the shell.</p>
-              <p class="login-footer">
-                Powered by <a href="https://openwrt.org" target="_blank" rel="noopener">OpenWrt</a>
-              </p>
             </form>
           </div>
         </div>

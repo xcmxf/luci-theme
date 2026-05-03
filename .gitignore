@@ -2,6 +2,7 @@
 node_modules
 package-lock.json
 yarn.lock
+.artifacts/
 
 # Env files
 .env
@@ -15,6 +16,7 @@ yarn.lock
 .dev/*collapsed*.png
 .dev/*preview-cdp*.png
 .dev/*profile*/
+.ssh-known-hosts-md3e
 preview/*.log
 /.codex/
 /.impeccable.md

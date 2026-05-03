@@ -121,7 +121,13 @@ function initMobileMenu() {
     document.body.style.overflow = open ? "hidden" : "";
     openButton.setAttribute("aria-expanded", String(open));
 
-    if (!open) window.__md3ePreviewMobileReset?.();
+    if (open) {
+      window.requestAnimationFrame(() =>
+        window.__md3ePreviewMobileExpandActive?.(),
+      );
+    } else {
+      window.__md3ePreviewMobileReset?.();
+    }
   };
 
   const close = () => {
@@ -191,6 +197,12 @@ function initPreviewMobileDrawerSections() {
 
     const mode = toggle.dataset.mode || "status";
     const links = Array.from(item.querySelectorAll(".md3e-mobile-secondary-link"));
+    const isActivePrimary =
+      toggle.classList.contains("active") || item.classList.contains("active");
+
+    if (isActivePrimary) {
+      toggle.setAttribute("aria-current", "page");
+    }
 
     item.querySelectorAll(".md3e-mobile-secondary-list, .md3e-mobile-secondary-copy").forEach((node) => {
       node.remove();
@@ -218,7 +230,11 @@ function initPreviewMobileDrawerSections() {
     links.forEach((link) => {
       const li = document.createElement("li");
       li.className = "md3e-mobile-secondary-item";
-      li.appendChild(link.cloneNode(true));
+      const clonedLink = link.cloneNode(true);
+      if (clonedLink instanceof HTMLElement && clonedLink.classList.contains("active")) {
+        clonedLink.setAttribute("aria-current", "page");
+      }
+      li.appendChild(clonedLink);
       list.appendChild(li);
     });
 
@@ -236,8 +252,16 @@ function initPreviewMobileDrawerSections() {
     });
   });
 
+  const activeToggle =
+    primaryList.querySelector(".md3e-mobile-primary-toggle.active") ||
+    primaryList.querySelector(
+      ".md3e-mobile-primary-item.active .md3e-mobile-primary-toggle",
+    );
+  const activeMode = activeToggle?.dataset.mode || "status";
+
   window.__md3ePreviewMobileReset = () => setExpandedMode(null);
-  window.__md3ePreviewMobileReset();
+  window.__md3ePreviewMobileExpandActive = () => setExpandedMode(activeMode);
+  window.__md3ePreviewMobileExpandActive();
 }
 
 const PREVIEW_NAV_PANELS = {
@@ -437,6 +461,69 @@ function initActionButtonGroups() {
   const target = document.getElementById("maincontent") || document.body;
   if (!target) return;
 
+  const syncSplitButtonLabel = (splitButton) => {
+    if (!(splitButton instanceof HTMLElement)) return;
+    const menu =
+      splitButton.querySelector(":scope > ul.dropdown") ||
+      splitButton.querySelector(":scope > ul:not(.preview)");
+    if (!(menu instanceof HTMLElement)) return;
+
+    const current =
+      menu.querySelector(":scope > li[display]") ||
+      menu.querySelector(":scope > li[selected]") ||
+      menu.querySelector(":scope > li");
+    const label = current?.textContent?.trim() || "Save & Apply";
+
+    splitButton.dataset.md3eSplitLabel = label;
+    splitButton.setAttribute("aria-label", label);
+
+    let labelNode = splitButton.querySelector(":scope > .md3e-split-button__label");
+    if (!(labelNode instanceof HTMLElement)) {
+      labelNode = document.createElement("span");
+      labelNode.className = "md3e-split-button__label";
+      labelNode.setAttribute("aria-hidden", "true");
+      splitButton.insertBefore(labelNode, splitButton.firstElementChild);
+    }
+    labelNode.textContent = label;
+
+    const more = splitButton.querySelector(":scope > .more");
+    if (more instanceof HTMLElement) {
+      more.textContent = "";
+      more.setAttribute("aria-hidden", "true");
+    }
+
+    const toggle = splitButton.querySelector(":scope > .open");
+    if (toggle instanceof HTMLElement) {
+      toggle.textContent = "";
+      toggle.setAttribute("role", "button");
+      toggle.setAttribute("aria-label", "Show more apply options");
+    }
+  };
+
+  const initSplitButton = (splitButton) => {
+    if (!(splitButton instanceof HTMLElement)) return;
+    splitButton.classList.add("md3e-split-button");
+    splitButton.dataset.md3eSplitButton = "true";
+    syncSplitButtonLabel(splitButton);
+
+    if (splitButton.dataset.md3eSplitButtonInit === "true") return;
+    splitButton.dataset.md3eSplitButtonInit = "true";
+
+    const menu =
+      splitButton.querySelector(":scope > ul.dropdown") ||
+      splitButton.querySelector(":scope > ul:not(.preview)");
+    if (menu instanceof HTMLElement) {
+      new MutationObserver(() => syncSplitButtonLabel(splitButton)).observe(
+        menu,
+        {
+          attributes: true,
+          childList: true,
+          subtree: true,
+        },
+      );
+    }
+  };
+
   const enhance = (actions) => {
     if (!(actions instanceof HTMLElement)) return;
     if (actions.dataset.md3eActionGroupInit === "true") return;
@@ -450,7 +537,7 @@ function initActionButtonGroups() {
     );
 
     if (splitButton) {
-      splitButton.classList.add("md3e-split-button");
+      initSplitButton(splitButton);
     }
 
     const secondaryButtons = directChildren.filter(
