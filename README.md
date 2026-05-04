@@ -6,6 +6,14 @@ Package: `luci-theme-md3e`
 
 The theme keeps the OpenWrt LuCI package layout from `tickcount/luci-theme`, with the UI rebuilt around a token-first Material-style system adapted for router workflows.
 
+## Preview
+
+![Desktop preview](previews/desktop.png)
+
+![Tablet preview](previews/tablet.png)
+
+![Phone preview](previews/phone.png)
+
 ## Font Licenses
 
 This repository redistributes the following third-party font files:
