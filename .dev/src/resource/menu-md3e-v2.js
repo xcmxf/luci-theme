@@ -253,6 +253,33 @@ return baseclass.extend({
     return svg;
   },
 
+  buildRailLogoButton() {
+    const source = document.querySelector(
+      "header .brand-logo, header .mobile-header-brand-logo",
+    );
+    const logoSrc = source?.getAttribute("src");
+    if (!logoSrc) return null;
+
+    const brand = document.querySelector(
+      "header .brand, header .mobile-header-brand",
+    );
+    const label =
+      document.querySelector("header .brand-text")?.textContent?.trim() ||
+      brand?.getAttribute("aria-label") ||
+      _("Home");
+
+    return E(
+      "a",
+      {
+        class: "md3e-rail-logo",
+        href: brand?.getAttribute("href") || L.url(),
+        "aria-label": label,
+        title: label,
+      },
+      [E("img", { src: logoSrc, alt: "", width: "28", height: "28" })],
+    );
+  },
+
   buildModeLink(mode, href, isActive, variant = "desktop") {
     const link = E("a", {
       class:
@@ -436,12 +463,190 @@ return baseclass.extend({
     return wrap;
   },
 
-  slugifyText(value) {
+  slugifyText(value, fallback = "section") {
     return String(value || "")
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "section";
+      .replace(/^-+|-+$/g, "") || fallback;
+  },
+
+  getPageOutlineSections(map) {
+    if (!(map instanceof HTMLElement)) return [];
+
+    const usedIds = new Set();
+
+    return Array.from(map.children)
+      .filter((node) => node.classList?.contains("cbi-section"))
+      .map((section, index) => {
+        const titleNode = section.querySelector(
+          ":scope > .cbi-title h3, :scope > .cbi-title h2, :scope > h3, :scope > h2",
+        );
+        const label = this.getPageOutlineLabel(titleNode);
+        if (label === "-") return null;
+        if (!label) return null;
+
+        if (!section.id || usedIds.has(section.id)) {
+          const slug = this.slugifyText(label, `section-${index + 1}`);
+          section.id = `md3e-${index + 1}-${slug}`;
+        }
+
+        usedIds.add(section.id);
+
+        return { id: section.id, label, element: section };
+      })
+      .filter(Boolean);
+  },
+
+  getPageOutlineLabel(titleNode) {
+    if (!(titleNode instanceof HTMLElement)) return "";
+
+    const clone = titleNode.cloneNode(true);
+    clone
+      .querySelectorAll("button, .cbi-section-hide, .cbi-button")
+      .forEach((node) => node.remove());
+
+    const rawText = clone.textContent || "";
+    const hideLabels = [_("Hide"), "Hide", "隐藏"].filter(Boolean);
+    const label = hideLabels.reduce(
+      (text, hideLabel) => text.split(hideLabel).join(""),
+      rawText,
+    );
+
+    return label.replace(/\s+/g, " ").trim();
+  },
+
+  syncPageOutlineScrollState(outline) {
+    if (!(outline instanceof HTMLElement)) return;
+    if (this._pageOutlineScrollStateInit) return;
+
+    this._pageOutlineScrollStateInit = true;
+    let timer = null;
+
+    const markScrolling = () => {
+      const current = document.querySelector(".md3e-on-this-page");
+      if (!(current instanceof HTMLElement)) return;
+
+      current.classList.add("is-scrolling");
+      if (timer) clearTimeout(timer);
+
+      timer = setTimeout(() => {
+        current.classList.remove("is-scrolling");
+      }, 220);
+    };
+
+    window.addEventListener("wheel", markScrolling, { passive: true });
+    window.addEventListener("scroll", markScrolling, { passive: true });
+  },
+
+  syncPageOutline(sections) {
+    const main = document.querySelector("#maincontent");
+    const content = document.querySelector(".docs-content");
+    if (!main || !content) return;
+
+    let outline = main.querySelector(":scope > .md3e-on-this-page");
+    if (!sections || sections.length < 2) {
+      outline?.remove();
+      document.body?.classList.remove("md3e-has-page-outline");
+      return;
+    }
+
+    if (!(outline instanceof HTMLElement)) {
+      outline = E("aside", {
+        class: "md3e-on-this-page",
+        "aria-label": _("On this page"),
+      });
+      main.insertBefore(outline, content.nextSibling);
+    }
+
+    document.body?.classList.add("md3e-has-page-outline");
+    outline.innerHTML = "";
+
+    const nav = E("nav", { class: "md3e-on-this-page__nav" });
+    nav.appendChild(
+      E("div", { class: "md3e-on-this-page__title" }, [_("On this page")]),
+    );
+
+    const list = E("ol", { class: "md3e-on-this-page__list" });
+    sections.slice(0, 8).forEach((section, index) => {
+      list.appendChild(
+        E("li", { class: "md3e-on-this-page__item" }, [
+          E(
+            "a",
+            {
+              class: "md3e-on-this-page__link" + (index === 0 ? " active" : ""),
+              href: "#" + section.id,
+            },
+            [section.label],
+          ),
+        ]),
+      );
+    });
+
+    nav.appendChild(list);
+    outline.appendChild(nav);
+    this.syncPageOutlineScrollState(outline);
+
+    if (this._pageOutlineObserver) {
+      this._pageOutlineObserver.disconnect();
+    }
+
+    const links = Array.from(
+      outline.querySelectorAll(".md3e-on-this-page__link"),
+    );
+    const setActive = (id) => {
+      links.forEach((link) => {
+        link.classList.toggle("active", link.getAttribute("href") === "#" + id);
+      });
+    };
+
+    links.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const targetId = link.getAttribute("href")?.slice(1);
+        if (!targetId) return;
+
+        const target = document.getElementById(targetId);
+        if (!(target instanceof HTMLElement)) return;
+
+        event.preventDefault();
+        this._pageOutlineManualActiveUntil = Date.now() + 1400;
+        setActive(targetId);
+        history.replaceState(null, "", "#" + targetId);
+        target.scrollIntoView({ block: "start", behavior: "smooth" });
+        target.classList.add("md3e-outline-target-focus");
+
+        if (target._md3eOutlineFocusTimer) {
+          clearTimeout(target._md3eOutlineFocusTimer);
+        }
+
+        target._md3eOutlineFocusTimer = setTimeout(() => {
+          target.classList.remove("md3e-outline-target-focus");
+          delete target._md3eOutlineFocusTimer;
+        }, 1400);
+      });
+    });
+
+    this._pageOutlineObserver = new IntersectionObserver(
+      (entries) => {
+        if (Date.now() < (this._pageOutlineManualActiveUntil || 0)) return;
+
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+        if (visible?.target?.id) {
+          setActive(visible.target.id);
+        }
+      },
+      {
+        rootMargin: "-18% 0px -64% 0px",
+        threshold: [0, 0.1, 0.4],
+      },
+    );
+
+    sections.forEach((section) =>
+      this._pageOutlineObserver.observe(section.element),
+    );
   },
 
   initPageChrome() {
@@ -449,97 +654,14 @@ return baseclass.extend({
     if (!content || content._md3ePageChromeInit) return;
 
     const decorate = () => {
-      if (content.querySelector(".md3e-page-hero")) return;
+      content.querySelector(".md3e-page-hero")?.remove();
 
-      const heading = Array.from(content.children).find((node) =>
-        /^(H1|H2)$/.test(node.tagName),
-      );
       const view = content.querySelector("#view");
-      const map = view?.querySelector(".cbi-map");
+      const map = view?.querySelector(".cbi-map") || view;
+      if (!view || !map) return;
 
-      if (!heading || !view || !map) return;
-
-      const title = heading.textContent?.trim();
-      if (!title) return;
-
-      const summaryNode =
-        Array.from(map.children).find((node) =>
-          node.classList?.contains("cbi-map-descr"),
-        ) || null;
-      const summary =
-        summaryNode?.textContent?.trim() ||
-        this.activeModeMeta?.description ||
-        "";
-      const breadcrumbCurrent = document
-        .querySelector(".header-breadcrumb .breadcrumb-current")
-        ?.textContent?.trim();
-
-      const hero = E("section", { class: "md3e-page-hero" });
-      const intro = E("div", { class: "md3e-page-hero__intro" });
-      const eyebrow = E("div", { class: "md3e-page-hero__eyebrow" });
-
-      if (this.activeModeMeta?.title) {
-        eyebrow.appendChild(
-          E("span", { class: "page-category-label" }, [this.activeModeMeta.title]),
-        );
-      }
-
-      if (breadcrumbCurrent && breadcrumbCurrent !== title) {
-        eyebrow.appendChild(
-          E("span", { class: "md3e-page-hero__path" }, [breadcrumbCurrent]),
-        );
-      }
-
-      intro.appendChild(eyebrow);
-      intro.appendChild(E("h1", { class: "md3e-page-hero__title" }, [title]));
-
-      if (summary) {
-        intro.appendChild(
-          E("p", { class: "md3e-page-hero__summary" }, [summary]),
-        );
-      }
-
-      hero.appendChild(intro);
-
-      const sections = Array.from(map.children)
-        .filter((node) => node.classList?.contains("cbi-section"))
-        .map((section) => {
-          const titleNode = section.querySelector(":scope > .cbi-title h3");
-          const label = titleNode?.textContent?.trim();
-          if (!label) return null;
-
-          if (!section.id) {
-            section.id = "md3e-" + this.slugifyText(label);
-          }
-
-          return { id: section.id, label };
-        })
-        .filter(Boolean)
-        .slice(0, 5);
-
-      if (sections.length) {
-        const chips = E("div", { class: "md3e-page-hero__sections" });
-        sections.forEach((section) => {
-          chips.appendChild(
-            E(
-              "a",
-              {
-                class: "md3e-page-chip",
-                href: "#" + section.id,
-              },
-              [section.label],
-            ),
-          );
-        });
-        hero.appendChild(chips);
-      }
-
-      content.insertBefore(hero, heading);
-      heading.remove();
-
-      if (summaryNode) {
-        summaryNode.remove();
-      }
+      const sections = this.getPageOutlineSections(map);
+      this.syncPageOutline(sections);
     };
 
     decorate();
@@ -1955,6 +2077,9 @@ return baseclass.extend({
       class: "md3e-mode-rail",
       "aria-label": _("Primary navigation"),
     });
+    const railLogo = this.buildRailLogoButton();
+    if (railLogo) rail.appendChild(railLogo);
+
     const panel = E("div", {
       class: "md3e-nav-panel",
       "aria-hidden": "true",

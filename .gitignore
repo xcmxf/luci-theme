@@ -13,6 +13,7 @@ yarn.lock
 !.dev/.env.example
 
 # Local OpenWrt / browser verification artifacts
+LOCAL_OPENWRT_WORKFLOW.md
 .openwrt-local.env
 .router-local.env
 /.tmp-*/
