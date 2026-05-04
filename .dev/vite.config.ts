@@ -48,31 +48,33 @@ function createLuciJsCompressPlugin(): Plugin {
 
     async buildStart() {
       const srcDir = resolve(CURRENT_DIR, "src/resource");
-      jsFiles = await scanFiles(srcDir, [".js"]);
+      jsFiles = (await scanFiles(srcDir, [".js"])).filter(
+        (filePath) => dirname(filePath) === srcDir,
+      );
     },
 
     async generateBundle() {
       for (const filePath of jsFiles) {
-        try {
-          const sourceCode = await readFile(filePath, "utf-8");
-          const compressed = await terserMinify(sourceCode, {
-            parse: { bare_returns: true },
-            compress: false,
-            mangle: false,
-            format: { comments: false, beautify: false },
-          });
+        const sourceCode = await readFile(filePath, "utf-8");
+        const compressed = await terserMinify(sourceCode, {
+          parse: { bare_returns: true },
+          compress: false,
+          mangle: false,
+          format: { comments: false, beautify: false },
+        });
 
-          const relativePath = relative(
-            resolve(CURRENT_DIR, "src/resource"),
-            filePath,
-          ).replace(/\\/g, "/");
-          const outputPath = join(outDir, "resources", relativePath);
-
-          await mkdir(dirname(outputPath), { recursive: true });
-          await writeFile(outputPath, compressed.code || sourceCode, "utf-8");
-        } catch (error: any) {
-          console.error(`JS compress failed: ${filePath}`, error?.message);
+        if (typeof compressed.code !== "string") {
+          throw new Error(`JS compress produced no output: ${filePath}`);
         }
+
+        const relativePath = relative(
+          resolve(CURRENT_DIR, "src/resource"),
+          filePath,
+        ).replace(/\\/g, "/");
+        const outputPath = join(outDir, "resources", relativePath);
+
+        await mkdir(dirname(outputPath), { recursive: true });
+        await writeFile(outputPath, compressed.code, "utf-8");
       }
     },
   };
@@ -125,7 +127,8 @@ function createLocalServePlugin(): Plugin {
     },
     js: {
       routes: {
-        "/luci-static/resources/menu-md3e-v2.js": "src/resource/menu-md3e-v2.js",
+        "/luci-static/resources/menu-md3e-v2.js":
+          "src/resource/menu-md3e-v2.js",
       },
       shouldRewrite: false,
       hmrMessage: "JS file changed",
@@ -226,7 +229,9 @@ function createLocalServePlugin(): Plugin {
       for (const { map, config } of resources) {
         const publicPath = map[normalizedFile];
         if (publicPath) {
-          console.log(`[HMR] ${config.hmrMessage}: ${publicPath} (tracked: ${normalizedFile})`);
+          console.log(
+            `[HMR] ${config.hmrMessage}: ${publicPath} (tracked: ${normalizedFile})`,
+          );
           server.ws.send({ type: "full-reload", path: "*" });
           return [];
         }
@@ -281,7 +286,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       tailwindcss(),
-      createRedirectPlugin(IS_LOCAL_PREVIEW ? "/preview.html" : "/cgi-bin/luci"),
+      createRedirectPlugin(
+        IS_LOCAL_PREVIEW ? "/preview.html" : "/cgi-bin/luci",
+      ),
       createLocalServePlugin(),
       createPublicAssetCopyPlugin(),
       createLuciJsCompressPlugin(),

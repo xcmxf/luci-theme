@@ -14,6 +14,7 @@ yarn.lock
 
 # Local OpenWrt / browser verification artifacts
 LOCAL_OPENWRT_WORKFLOW.md
+log.md
 .openwrt-local.env
 .router-local.env
 /.tmp-*/

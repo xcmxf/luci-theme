@@ -47,7 +47,7 @@ cd luci-theme-md3e/.dev/
 pnpm preview
 ```
 
-This starts a router-free local preview page at `http://127.0.0.1:4173/` and redirects root to `preview-luci-real.html` automatically. Use this real-route preview page for subsequent content-area iterations.
+This starts a router-free local preview page at `http://127.0.0.1:4173/` and redirects root to `preview.html` automatically. Use this route-shaped preview page for subsequent content-area iterations.
 
 ### Proxy Behavior
 
@@ -92,6 +92,31 @@ htdocs/luci-static/
 2. The custom PostCSS step removes `@layer` wrappers for LuCI compatibility
 3. Static assets are copied from `.dev/public/md3e/`
 4. JS resources are minified independently with Terser
+
+## Maintenance Checks
+
+```bash
+cd luci-theme-md3e/.dev/
+npm run verify
+```
+
+The verifier checks formatting, package/cache version alignment, the shared layout breakpoint used by the real LuCI shell and local preview, mirrored static assets/orphans, and whether `htdocs/luci-static/` matches a fresh `.dev` build.
+
+## Split Source Entries
+
+The build entry files are assembled from smaller source parts:
+
+- `src/media/main.css` is assembled from `src/media/main/*.css`.
+- `src/resource/menu-md3e-v2.js` is assembled from `src/resource/menu-md3e-v2/*.js`.
+
+After editing source parts, run:
+
+```bash
+cd luci-theme-md3e/.dev/
+npm run assemble
+```
+
+The `dev`, `preview`, `build`, and `verify` scripts run assembly automatically before they use the entry files.
 
 ## Package Compilation
 

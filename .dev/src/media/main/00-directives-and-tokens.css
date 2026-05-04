@@ -1,0 +1,580 @@
+/**
+ * Copyright (C) 2025 eamonxg
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));
+
+/* ── Fonts ── */
+@font-face {
+  font-family: "Geist Mono";
+  src: url("./fonts/geist-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("./fonts/geist-mono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@plugin "tailwind-scrollbar" {
+  nocompatible: true;
+}
+
+:root {
+  /* Material-style system tokens */
+  --md-sys-color-primary: rgb(68 94 145);
+  --md-sys-color-surface-tint: rgb(68 94 145);
+  --md-sys-color-on-primary: rgb(255 255 255);
+  --md-sys-color-primary-container: rgb(216 226 255);
+  --md-sys-color-on-primary-container: rgb(43 70 120);
+  --md-sys-color-secondary: rgb(87 94 113);
+  --md-sys-color-on-secondary: rgb(255 255 255);
+  --md-sys-color-secondary-container: rgb(219 226 249);
+  --md-sys-color-on-secondary-container: rgb(63 71 89);
+  --md-sys-color-tertiary: rgb(113 85 115);
+  --md-sys-color-on-tertiary: rgb(255 255 255);
+  --md-sys-color-tertiary-container: rgb(251 215 252);
+  --md-sys-color-on-tertiary-container: rgb(88 62 91);
+  --md-sys-color-error: rgb(186 26 26);
+  --md-sys-color-on-error: rgb(255 255 255);
+  --md-sys-color-error-container: rgb(255 218 214);
+  --md-sys-color-on-error-container: rgb(147 0 10);
+  --md-sys-color-background: rgb(249 249 255);
+  --md-sys-color-on-background: rgb(26 27 32);
+  --md-sys-color-surface: rgb(249 249 255);
+  --md-sys-color-on-surface: rgb(26 27 32);
+  --md-sys-color-surface-variant: rgb(225 226 236);
+  --md-sys-color-on-surface-variant: rgb(68 71 79);
+  --md-sys-color-outline: rgb(116 119 127);
+  --md-sys-color-outline-variant: rgb(196 198 208);
+  --md-sys-color-shadow: rgb(0 0 0);
+  --md-sys-color-scrim: rgb(0 0 0);
+  --md-sys-color-inverse-surface: rgb(47 48 54);
+  --md-sys-color-inverse-on-surface: rgb(240 240 247);
+  --md-sys-color-inverse-primary: rgb(173 198 255);
+  --md-sys-color-primary-fixed: rgb(216 226 255);
+  --md-sys-color-on-primary-fixed: rgb(0 26 65);
+  --md-sys-color-primary-fixed-dim: rgb(173 198 255);
+  --md-sys-color-on-primary-fixed-variant: rgb(43 70 120);
+  --md-sys-color-secondary-fixed: rgb(219 226 249);
+  --md-sys-color-on-secondary-fixed: rgb(20 27 44);
+  --md-sys-color-secondary-fixed-dim: rgb(191 198 220);
+  --md-sys-color-on-secondary-fixed-variant: rgb(63 71 89);
+  --md-sys-color-tertiary-fixed: rgb(251 215 252);
+  --md-sys-color-on-tertiary-fixed: rgb(41 19 45);
+  --md-sys-color-tertiary-fixed-dim: rgb(222 188 223);
+  --md-sys-color-on-tertiary-fixed-variant: rgb(88 62 91);
+  --md-sys-color-surface-dim: rgb(217 217 224);
+  --md-sys-color-surface-bright: rgb(249 249 255);
+  --md-sys-color-surface-container-lowest: rgb(255 255 255);
+  --md-sys-color-surface-container-low: rgb(243 243 250);
+  --md-sys-color-surface-container: rgb(237 237 244);
+  --md-sys-color-surface-container-high: rgb(232 231 238);
+  --md-sys-color-surface-container-highest: rgb(226 226 233);
+
+  --md-sys-color-surface-tint: var(--md-sys-color-primary);
+
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-large-increased: 20px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-extra-extra-large: 48px;
+  --md-sys-shape-corner-full: 9999px;
+
+  --md-sys-typescale-body-small-size: 0.75rem;
+  --md-sys-typescale-body-small-line-height: 1rem;
+  --md-sys-typescale-body-small-tracking: 0.025rem;
+  --md-sys-typescale-body-small-weight: 400;
+  --md-sys-typescale-body-medium-size: 0.875rem;
+  --md-sys-typescale-body-medium-line-height: 1.25rem;
+  --md-sys-typescale-body-medium-tracking: 0.015625rem;
+  --md-sys-typescale-body-medium-weight: 400;
+  --md-sys-typescale-body-large-size: 1rem;
+  --md-sys-typescale-body-large-line-height: 1.5rem;
+  --md-sys-typescale-body-large-tracking: 0.0125rem;
+  --md-sys-typescale-body-large-weight: 400;
+  --md-sys-typescale-label-small-size: 0.6875rem;
+  --md-sys-typescale-label-small-line-height: 1rem;
+  --md-sys-typescale-label-small-tracking: 0.045rem;
+  --md-sys-typescale-label-small-weight: 600;
+  --md-sys-typescale-label-medium-size: 0.75rem;
+  --md-sys-typescale-label-medium-line-height: 1rem;
+  --md-sys-typescale-label-medium-tracking: 0.04rem;
+  --md-sys-typescale-label-medium-weight: 600;
+  --md-sys-typescale-label-large-size: 0.875rem;
+  --md-sys-typescale-label-large-line-height: 1.25rem;
+  --md-sys-typescale-label-large-tracking: 0.02rem;
+  --md-sys-typescale-label-large-weight: 600;
+  --md-sys-typescale-title-small-size: 0.9375rem;
+  --md-sys-typescale-title-small-line-height: 1.25rem;
+  --md-sys-typescale-title-small-weight: 600;
+  --md-sys-typescale-title-medium-size: 1rem;
+  --md-sys-typescale-title-medium-line-height: 1.5rem;
+  --md-sys-typescale-title-medium-weight: 600;
+  --md-sys-typescale-title-large-size: 1.375rem;
+  --md-sys-typescale-title-large-line-height: 1.75rem;
+  --md-sys-typescale-title-large-weight: 500;
+  --md-sys-typescale-headline-small-size: 1.5rem;
+  --md-sys-typescale-headline-small-line-height: 2rem;
+  --md-sys-typescale-headline-medium-size: 1.75rem;
+  --md-sys-typescale-headline-medium-line-height: 2.2rem;
+  --md-sys-typescale-headline-large-size: 2rem;
+  --md-sys-typescale-headline-large-line-height: 2.5rem;
+  --md-sys-typescale-display-small-size: 2.25rem;
+  --md-sys-typescale-display-small-line-height: 2.75rem;
+  --md-sys-typescale-display-medium-size: 2.85rem;
+  --md-sys-typescale-display-medium-line-height: 3.15rem;
+
+  --md-sys-motion-duration-short-1: 120ms;
+  --md-sys-motion-duration-short-2: 180ms;
+  --md-sys-motion-duration-medium-1: 240ms;
+  --md-sys-motion-duration-medium-2: 320ms;
+  --md-sys-motion-duration-long-1: 480ms;
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --md-sys-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --md-sys-state-hover-state-layer-opacity: 0.08;
+  --md-sys-state-focus-state-layer-opacity: 0.12;
+  --md-sys-state-pressed-state-layer-opacity: 0.12;
+
+  --md-comp-filled-button-container-color: var(--md-sys-color-primary);
+  --md-comp-filled-button-label-text-color: var(--md-sys-color-on-primary);
+  --md-comp-tonal-button-container-color: var(--md-sys-color-secondary-container);
+  --md-comp-tonal-button-label-text-color: var(--md-sys-color-on-secondary-container);
+  --md-comp-outlined-button-outline-color: var(--md-sys-color-outline);
+  --md-comp-outlined-button-container-color: color-mix(in oklab, var(--md-sys-color-surface-container-low) 88%, transparent);
+  --md-comp-outlined-button-label-text-color: var(--md-sys-color-on-surface);
+  --md-comp-card-container-color: color-mix(in oklab, var(--md-sys-color-surface-container-low) 92%, transparent);
+  --md-comp-card-container-color-high: color-mix(in oklab, var(--md-sys-color-surface-container) 94%, transparent);
+  --md-comp-card-outline-color: color-mix(in oklab, var(--md-sys-color-outline-variant) 84%, transparent);
+  --md-comp-filled-field-container-color: color-mix(in oklab, var(--md-sys-color-surface-container-high) 94%, transparent);
+  --md-comp-filled-field-input-text-color: var(--md-sys-color-on-surface);
+  --md-comp-filled-field-outline-color: color-mix(in oklab, var(--md-sys-color-outline-variant) 92%, transparent);
+  --md-comp-filled-field-focus-outline-color: color-mix(in oklab, var(--md-sys-color-primary) 58%, var(--md-sys-color-outline));
+  --md-comp-nav-item-active-container-color: color-mix(in oklab, var(--md-sys-color-secondary-container) 76%, transparent);
+  --md-comp-nav-item-active-label-text-color: var(--md-sys-color-on-secondary-container);
+  --md-comp-nav-item-inactive-label-text-color: var(--md-sys-color-on-surface-variant);
+  --md-comp-nav-item-hover-container-color: color-mix(in oklab, var(--md-sys-color-surface-container-high) 88%, transparent);
+  --md-comp-switch-selected-track-color: color-mix(in oklab, var(--md-sys-color-secondary-container) 96%, var(--md-sys-color-surface-container));
+  --md-comp-switch-selected-handle-color: var(--md-sys-color-surface-container-lowest);
+  --md-comp-switch-unselected-track-color: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 92%, transparent);
+  --md-comp-switch-unselected-handle-color: var(--md-sys-color-outline);
+
+  /* Compatibility aliases for the existing selector graph */
+  --background: var(--md-sys-color-background);
+  --foreground: var(--md-sys-color-on-background);
+  --primary: var(--md-sys-color-primary);
+  --primary-foreground: var(--md-sys-color-on-primary);
+  --secondary: var(--md-sys-color-secondary);
+  --secondary-foreground: var(--md-sys-color-on-secondary);
+  --muted: var(--md-sys-color-surface-container);
+  --muted-foreground: var(--md-sys-color-on-surface-variant);
+  --sidebar-link: var(--md-comp-nav-item-inactive-label-text-color);
+  --sidebar-link-active: var(--md-comp-nav-item-active-label-text-color);
+  --sidebar-link-active-bg: var(--md-comp-nav-item-active-container-color);
+  --sidebar-hover-bg: var(--md-comp-nav-item-hover-container-color);
+  --eyebrow-color: color-mix(in oklab, var(--md-sys-color-primary) 38%, var(--md-sys-color-on-surface-variant));
+  --destructive: var(--md-sys-color-error-container);
+  --destructive-foreground: var(--md-sys-color-on-error-container);
+  --accent: var(--md-comp-tonal-button-container-color);
+  --accent-foreground: var(--md-comp-tonal-button-label-text-color);
+  --default: var(--md-sys-color-surface-container-high);
+  --default-foreground: var(--md-sys-color-on-surface);
+  --info: color-mix(in oklab, var(--md-sys-color-primary-container) 80%, var(--md-sys-color-surface));
+  --info-foreground: var(--md-sys-color-on-primary-container);
+  --warning: var(--md-sys-color-tertiary-container);
+  --warning-foreground: var(--md-sys-color-on-tertiary-container);
+  --success: color-mix(in oklab, var(--md-sys-color-secondary-container) 92%, var(--md-sys-color-surface));
+  --success-foreground: var(--md-sys-color-on-secondary-container);
+  --error: var(--md-sys-color-error-container);
+  --error-foreground: var(--md-sys-color-on-error-container);
+  --border: var(--md-sys-color-outline-variant);
+  --link: var(--md-sys-color-primary);
+  --input-checked: var(--md-sys-color-on-primary);
+  --card: var(--md-comp-card-container-color);
+  --input: var(--md-comp-filled-field-container-color);
+  --radius: 1.75rem;
+  --shape-panel: 2rem;
+  --shape-card: 1.5rem;
+  --shape-field: 1rem;
+  --label-surface: color-mix(in oklab, var(--md-sys-color-secondary-container) 46%, var(--md-sys-color-surface));
+  --terminal-bg: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 88%, black);
+  --terminal-foreground: var(--md-sys-color-surface-container-lowest);
+  --overlay-base: color-mix(in oklab, var(--md-sys-color-scrim) 90%, var(--md-sys-color-surface));
+  --progress-bar-start: color-mix(in oklab, var(--md-sys-color-primary) 88%, white 8%);
+  --progress-bar-end: color-mix(in oklab, var(--md-sys-color-tertiary) 56%, var(--md-sys-color-primary));
+  --header-bg: color-mix(in oklab, var(--md-sys-color-surface) 94%, transparent);
+  --header-interactive: var(--md-sys-color-surface-container-high);
+  --page-bg: var(--md-sys-color-surface);
+  --page-bg-image:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--md-sys-color-primary-container) 28%, transparent), transparent 34%),
+    radial-gradient(circle at top right, color-mix(in oklab, var(--md-sys-color-secondary-container) 22%, transparent), transparent 28%);
+  --panel-bg: color-mix(in oklab, var(--md-sys-color-surface-container-low) 96%, transparent);
+  --panel-raised: color-mix(in oklab, var(--md-sys-color-surface-container) 96%, transparent);
+  --panel-sunken: var(--md-sys-color-surface-container-lowest);
+  --tooltip-bg: color-mix(in oklab, var(--md-sys-color-inverse-surface) 92%, var(--md-sys-color-surface));
+  --expressive-gradient-start: color-mix(in oklab, var(--md-sys-color-primary-container) 44%, transparent);
+  --expressive-gradient-end: color-mix(in oklab, var(--md-sys-color-secondary-container) 34%, transparent);
+  --expressive-gradient-third: color-mix(in oklab, var(--md-sys-color-tertiary-container) 28%, transparent);
+  --expressive-shadow: rgb(16 24 40 / 0.16);
+  --surface-highlight: rgb(255 255 255 / 0.74);
+  --nav-rail-width: 5.5rem;
+  --nav-rail-inline-pad: 0.55rem;
+  --nav-panel-width: clamp(15.25rem, 17vw, 17rem);
+  --nav-shell-gap: 0.85rem;
+  --nav-shell-width: calc(var(--nav-rail-width) + var(--nav-panel-width) + var(--nav-shell-gap));
+
+  --font-sans:
+    "Inter",
+    "Segoe UI Variable Text",
+    "SF Pro Text",
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    sans-serif;
+  --font-display:
+    "Inter",
+    "Segoe UI Variable Display",
+    "SF Pro Display",
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    sans-serif;
+  --font-serif: var(--font-display);
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  --spacing: 0.25rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 2.5rem;
+  --container-max-width: 72rem;
+  --sidebar-pill-width: 13rem;
+}
+
+[data-darkmode="true"] {
+  --md-sys-color-primary: rgb(173 198 255);
+  --md-sys-color-surface-tint: rgb(173 198 255);
+  --md-sys-color-on-primary: rgb(16 47 96);
+  --md-sys-color-primary-container: rgb(43 70 120);
+  --md-sys-color-on-primary-container: rgb(216 226 255);
+  --md-sys-color-secondary: rgb(191 198 220);
+  --md-sys-color-on-secondary: rgb(41 48 65);
+  --md-sys-color-secondary-container: rgb(63 71 89);
+  --md-sys-color-on-secondary-container: rgb(219 226 249);
+  --md-sys-color-tertiary: rgb(222 188 223);
+  --md-sys-color-on-tertiary: rgb(64 40 67);
+  --md-sys-color-tertiary-container: rgb(88 62 91);
+  --md-sys-color-on-tertiary-container: rgb(251 215 252);
+  --md-sys-color-error: rgb(255 180 171);
+  --md-sys-color-on-error: rgb(105 0 5);
+  --md-sys-color-error-container: rgb(147 0 10);
+  --md-sys-color-on-error-container: rgb(255 218 214);
+  --md-sys-color-background: rgb(17 19 24);
+  --md-sys-color-on-background: rgb(226 226 233);
+  --md-sys-color-surface: rgb(17 19 24);
+  --md-sys-color-on-surface: rgb(226 226 233);
+  --md-sys-color-surface-variant: rgb(68 71 79);
+  --md-sys-color-on-surface-variant: rgb(196 198 208);
+  --md-sys-color-outline: rgb(142 144 153);
+  --md-sys-color-outline-variant: rgb(68 71 79);
+  --md-sys-color-shadow: rgb(0 0 0);
+  --md-sys-color-scrim: rgb(0 0 0);
+  --md-sys-color-inverse-surface: rgb(226 226 233);
+  --md-sys-color-inverse-on-surface: rgb(47 48 54);
+  --md-sys-color-inverse-primary: rgb(68 94 145);
+  --md-sys-color-primary-fixed: rgb(216 226 255);
+  --md-sys-color-on-primary-fixed: rgb(0 26 65);
+  --md-sys-color-primary-fixed-dim: rgb(173 198 255);
+  --md-sys-color-on-primary-fixed-variant: rgb(43 70 120);
+  --md-sys-color-secondary-fixed: rgb(219 226 249);
+  --md-sys-color-on-secondary-fixed: rgb(20 27 44);
+  --md-sys-color-secondary-fixed-dim: rgb(191 198 220);
+  --md-sys-color-on-secondary-fixed-variant: rgb(63 71 89);
+  --md-sys-color-tertiary-fixed: rgb(251 215 252);
+  --md-sys-color-on-tertiary-fixed: rgb(41 19 45);
+  --md-sys-color-tertiary-fixed-dim: rgb(222 188 223);
+  --md-sys-color-on-tertiary-fixed-variant: rgb(88 62 91);
+  --md-sys-color-surface-dim: rgb(17 19 24);
+  --md-sys-color-surface-bright: rgb(55 57 62);
+  --md-sys-color-surface-container-lowest: rgb(12 14 19);
+  --md-sys-color-surface-container-low: rgb(26 27 32);
+  --md-sys-color-surface-container: rgb(30 31 37);
+  --md-sys-color-surface-container-high: rgb(40 42 47);
+  --md-sys-color-surface-container-highest: rgb(51 53 58);
+
+  --md-sys-color-surface-tint: var(--md-sys-color-primary);
+  --md-comp-outlined-button-container-color: color-mix(in oklab, var(--md-sys-color-surface-container-high) 88%, transparent);
+  --md-comp-tonal-button-container-color: color-mix(in oklab, var(--md-sys-color-secondary-container) 92%, var(--md-sys-color-surface-container-high));
+  --md-comp-card-container-color: color-mix(in oklab, var(--md-sys-color-surface-container-low) 94%, transparent);
+  --md-comp-card-container-color-high: color-mix(in oklab, var(--md-sys-color-surface-container) 96%, transparent);
+  --md-comp-switch-selected-track-color: color-mix(in oklab, var(--md-sys-color-secondary-container) 94%, var(--md-sys-color-surface-container-high));
+  --md-comp-switch-selected-handle-color: var(--md-sys-color-surface-container-lowest);
+  --md-comp-switch-unselected-track-color: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 92%, transparent);
+  --md-comp-switch-unselected-handle-color: var(--md-sys-color-on-surface-variant);
+
+  --terminal-bg: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 86%, black);
+  --terminal-foreground: var(--md-sys-color-surface-container-lowest);
+  --overlay-base: color-mix(in oklab, var(--md-sys-color-scrim) 92%, var(--md-sys-color-surface));
+  --header-bg: color-mix(in oklab, var(--md-sys-color-surface) 92%, transparent);
+  --expressive-shadow: rgb(0 0 0 / 0.42);
+  --surface-highlight: rgb(46 49 56 / 0.92);
+}
+
+/* ========== View Transitions ========== */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 0.2s ease-out both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 0.3s ease-out 0.1s both fade-in;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sileo-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes sileo-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+    filter: blur(4px);
+  }
+}
+
+/* ========== Dots Background Pattern ========== */
+:root {
+  --bg-dots-fill: #b0b0b0;
+  --bg-dots-size: 20px;
+  --bg-dots-radius: 1.5px;
+}
+
+[data-darkmode="true"] {
+  --bg-dots-fill: rgba(150, 150, 150, 0.25);
+}
+
+.bg-dots {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(
+    circle,
+    var(--bg-dots-fill) var(--bg-dots-radius),
+    transparent var(--bg-dots-radius)
+  );
+  background-size: var(--bg-dots-size) var(--bg-dots-size);
+}
+
+.bg-dots--fade-edges {
+  mask-image: radial-gradient(
+      ellipse 60% 55% at center,
+      black 0%,
+      transparent 70%
+    ),
+    linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+  mask-composite: intersect;
+}
+
+.bg-dots--fade-center {
+  mask-image: radial-gradient(
+    ellipse at center,
+    transparent,
+    var(--background)
+  );
+}
+
+.bg-dots--fade-y {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    var(--background),
+    transparent
+  );
+}
+
+.bg-dots--fade-bottom {
+  mask-image: linear-gradient(to bottom, var(--background), transparent);
+}
+
+.bg-dots--fade-top {
+  mask-image: linear-gradient(to bottom, transparent, var(--background));
+}
+
+@theme inline {
+  /* Base Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-page-bg: var(--page-bg);
+
+  --color-panel-bg: var(--panel-bg);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-border: var(--border);
+
+  /* Component Colors */
+
+  --color-header-bg: var(--header-bg);
+  --color-header-interactive: var(--header-interactive);
+
+  --color-progress-bar-start: var(--progress-bar-start);
+  --color-progress-bar-end: var(--progress-bar-end);
+
+  --color-terminal-bg: var(--terminal-bg);
+  --color-terminal-foreground: var(--terminal-foreground);
+
+  --color-tooltip-bg: var(--tooltip-bg);
+
+  --color-overlay-base: var(--overlay-base);
+
+  --color-link: var(--link);
+
+  --color-input-checked: var(--input-checked);
+
+  --color-label-surface: var(--label-surface);
+
+  --color-card: var(--card);
+  --color-input: var(--input);
+
+  /* Semantic & Status Colors */
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-default: var(--default);
+  --color-default-foreground: var(--default-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --spacing: var(--spacing);
+  --container-max-width: var(--container-max-width);
+}
+
+/* ── Cross-document View Transitions (Chrome 126+) ── */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 150ms cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vt-fade-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* ── Theme transition — targeted elements only for performance ── */
+.theme-transition {
+  transition: background-color 0.35s ease !important;
+
+  & body,
+  & .header-blur-overlay,
+  & .header-content,
+  & .brand,
+  & a.header-logout-btn,
+  & .sidebar-nav,
+  & .sidebar-toggle,
+  & a.sidebar-link,
+  & .docs-content,
+  & .cbi-section,
+  & .cbi-value,
+  & .cbi-page-actions,
+  & .theme-toggle,
+  & .mobile-menu-toggle-row2,
+  & .header-breadcrumb,
+  & .alert-message {
+    transition: color 0.35s ease, background-color 0.35s ease, border-color 0.35s ease !important;
+  }
+}

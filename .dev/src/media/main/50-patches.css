@@ -1,0 +1,265 @@
+
+/*
+     PATCH LAYER (temporary)
+     - Purpose: Quick fixes and app-specific overrides that may be removed at any time.
+     - Scope: Keep selectors narrow and limited to known breakages only.
+     - Migration: Promote stable rules to appropriate layers (e.g., components/plugins) or delete once fixed upstream.
+   */
+@layer patches {
+  @layer admin-network-network {
+    [data-name="bridge-vlan"] > div {
+      @apply max-md:overflow-visible!;
+    }
+  }
+
+  @layer luci-app-openclash {
+    [data-page="admin-services-openclash-config"] {
+      .sub_div {
+        img {
+          @apply h-5 w-5;
+        }
+      }
+    }
+    [data-page="admin-services-openclash-settings"] {
+      .cbi-value-field {
+        & .cbi-input-select {
+          @apply max-md:w-full!;
+        }
+      }
+    }
+  }
+
+
+  @layer luci-mod-dashboard {
+    .Dashboard {
+      & > .section-content {
+        & .dashboard-bg {
+          @apply bg-panel-bg/95 max-md:bg-panel-bg/98 transition-all duration-300;
+          &.tr {
+            @apply rounded-none;
+          }
+          &:not(.tr) {
+            border: none;
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            box-shadow: 0 20px 48px -32px var(--expressive-shadow);
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 28px 64px -38px var(--expressive-shadow);
+            }
+          }
+        }
+
+        .title {
+          img {
+            &[src*=".svg"] {
+              @apply dark:invert;
+            }
+          }
+          h3 {
+            @apply text-foreground border-0 pb-4 max-md:mx-0 max-md:pb-2;
+          }
+        }
+
+        .router-status-wifi {
+          .wifi-info {
+            .devices-info {
+              .tr {
+                .td {
+                  @apply nth-3:relative nth-3:top-0 nth-3:w-full nth-3:px-0 max-md:flex-[1_1_50%];
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @layer mobile-overflow-guard {
+    @media (max-width: 920px) {
+      #maincontent,
+      #maincontent > .docs-content,
+      #view,
+      .cbi-map,
+      .cbi-section,
+      .cbi-section > div,
+      .cbi-value,
+      .cbi-value-title,
+      .cbi-value-field,
+      .cbi-value-field > *,
+      .cbi-value-field .control-group {
+        min-width: 0 !important;
+        max-width: 100%;
+      }
+
+      .cbi-input-text,
+      .cbi-input-password,
+      .cbi-input-select,
+      .cbi-dropdown,
+      input[type="text"],
+      input[type="password"],
+      input[type="search"],
+      input[type="number"],
+      input[type="url"],
+      input[type="email"],
+      textarea,
+      select,
+      #localtime,
+      .zonebadge.large,
+      .ifacebadge.large,
+      .cbi-dynlist .add-item > input {
+        min-width: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .cbi-value-field .cbi-dropdown,
+      .cbi-value-field .cbi-input-select,
+      .cbi-value-field .cbi-input-text,
+      .cbi-value-field .control-group > *,
+      .cbi-section-create > * {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .cbi-section-create,
+      .cbi-page-actions > div,
+      .cbi-value-field .control-group {
+        flex-wrap: wrap;
+      }
+    }
+  }
+}
+
+
+@media (width < 48rem) { body.mobile-page-actions-visible #maincontent { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); } }
+
+/* Reset #indicators after it is moved into the desktop rail or mobile drawer. */
+.sidebar-indicators,
+.mobile-nav-footer-indicators {
+  opacity: 1 !important;
+  visibility: visible !important;
+  overflow: visible !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.sidebar-indicators [data-indicator] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  border-radius: 999px !important;
+  color: var(--muted-foreground) !important;
+  background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 72%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 42%, transparent) !important;
+  text-decoration: none !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-indicators [data-indicator]::before,
+.mobile-nav-footer-indicators [data-indicator]::before {
+  content: "";
+  display: block;
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  background-color: currentColor;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: cover;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: cover;
+}
+
+.sidebar-indicators [data-indicator][data-indicator="poll-status"][data-style="active"]::before,
+.mobile-nav-footer-indicators [data-indicator][data-indicator="poll-status"][data-style="active"]::before {
+  mask-image: url("../assets/icons/refresh.svg");
+  -webkit-mask-image: url("../assets/icons/refresh.svg");
+}
+
+.sidebar-indicators [data-indicator][data-indicator="poll-status"][data-style="inactive"]::before,
+.mobile-nav-footer-indicators [data-indicator][data-indicator="poll-status"][data-style="inactive"]::before {
+  mask-image: url("../assets/icons/refresh-off.svg");
+  -webkit-mask-image: url("../assets/icons/refresh-off.svg");
+}
+
+.sidebar-indicators [data-indicator][data-indicator="media_error"]::before,
+.mobile-nav-footer-indicators [data-indicator][data-indicator="media_error"]::before {
+  mask-image: url("../assets/icons/error.svg");
+  -webkit-mask-image: url("../assets/icons/error.svg");
+}
+
+.sidebar-indicators [data-indicator][data-indicator="uci-changes"]::before,
+.mobile-nav-footer-indicators [data-indicator][data-indicator="uci-changes"]::before {
+  mask-image: url("../assets/icons/setting.svg");
+  -webkit-mask-image: url("../assets/icons/setting.svg");
+}
+
+.sidebar-indicators [data-indicator]:hover {
+  color: var(--foreground) !important;
+  background: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 90%, transparent) !important;
+  transform: translateY(-1px) !important;
+}
+
+.mobile-nav-footer-indicators {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  gap: 0.65rem !important;
+  margin-bottom: 0 !important;
+}
+
+.mobile-nav-footer-indicators [data-indicator] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  min-height: 3rem !important;
+  padding: 0 1.25rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: var(--muted-foreground) !important;
+  background: color-mix(
+    in oklab,
+    var(--md-sys-color-surface-container-high) 70%,
+    var(--md-sys-color-surface-container-low)
+  ) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  font-size: 0.86rem !important;
+  font-weight: 650 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease !important;
+}
+
+.mobile-nav-footer-indicators [data-indicator][data-style="active"] {
+  color: var(--md-sys-color-on-secondary-container) !important;
+  background: color-mix(
+    in oklab,
+    var(--md-sys-color-secondary-container) 68%,
+    transparent
+  ) !important;
+}
+
+.mobile-nav-footer-indicators [data-indicator]:hover {
+  color: var(--foreground) !important;
+  background: color-mix(
+    in oklab,
+    var(--sidebar-hover-bg) 48%,
+    color-mix(
+      in oklab,
+      var(--md-sys-color-surface-container-high) 70%,
+      var(--md-sys-color-surface-container-low)
+    )
+  ) !important;
+}

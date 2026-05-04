@@ -68,7 +68,6 @@ return baseclass.extend({
     apply();
     media.addEventListener("change", apply);
   },
-
   getModeMetadata(modeName) {
     const key = String(modeName || "").toLowerCase();
 
@@ -252,7 +251,6 @@ return baseclass.extend({
 
     return svg;
   },
-
   buildRailLogoButton() {
     const source = document.querySelector(
       "header .brand-logo, header .mobile-header-brand-logo",
@@ -462,7 +460,6 @@ return baseclass.extend({
 
     return wrap;
   },
-
   slugifyText(value, fallback = "section") {
     return String(value || "")
       .trim()
@@ -672,7 +669,6 @@ return baseclass.extend({
 
     content._md3ePageChromeInit = true;
   },
-
   initUciIndicator() {
     const original = ui.changes?.setIndicator;
     if (!original) return;
@@ -823,7 +819,6 @@ return baseclass.extend({
     parts.push(`</svg>`);
     return parts.join("");
   },
-
   initModalOverride() {
     const origShow = ui.showModal;
     const origHide = ui.hideModal;
@@ -1015,7 +1010,6 @@ return baseclass.extend({
       .querySelectorAll(":scope > .alert-message")
       .forEach(setupToast);
   },
-
   initVercelTabs() {
     const bindTabMenu = (tabMenu) => {
       const items = Array.from(tabMenu.querySelectorAll("li"));
@@ -1344,7 +1338,6 @@ return baseclass.extend({
       }
     }).observe(target, { childList: true, subtree: true });
   },
-
   initDescriptionPlacement() {
     const move = () => {
       document
@@ -1455,7 +1448,6 @@ return baseclass.extend({
       this.resetDropdownPanel(panel);
     });
   },
-
   resetDropdownPanel(panel) {
     if (!(panel instanceof HTMLElement)) return;
     panel.classList.remove("align-end");
@@ -1537,7 +1529,6 @@ return baseclass.extend({
       panel.style.bottom = "auto";
     }
   },
-
   initCustomSelects() {
     const syncCbiDropdownPanel = (dropdown) => {
       if (!(dropdown instanceof HTMLElement)) return;
@@ -1733,7 +1724,6 @@ return baseclass.extend({
       window.addEventListener("scroll", this._dropdownViewportHandler, true);
     }
   },
-
   initMobileMenu() {
     const overlay = document.querySelector("#mobile-menu-overlay");
     const menuToggle = document.querySelector("#mobile-menu-btn");
@@ -1794,7 +1784,6 @@ return baseclass.extend({
       document.addEventListener("keydown", this._mobileEscHandler);
     }
   },
-
   initActionButtonGroups() {
     const target = document.getElementById("maincontent") || document.body;
     if (!target) return;
@@ -1919,7 +1908,6 @@ return baseclass.extend({
 
     syncDirtyClass();
   },
-
   renderMobileMenu(tree, url) {
     const list = document.querySelector("#mobile-nav-list");
     const categories = this.getWorkspaceCategories(tree);
@@ -1999,7 +1987,6 @@ return baseclass.extend({
       setExpandedMode(activeCategory.name);
     this.expandActiveMobilePrimaryItem?.();
   },
-
   render(tree) {
     this.renderModeMenu(tree);
     this.initPageChrome();
