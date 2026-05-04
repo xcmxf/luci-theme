@@ -6,6 +6,27 @@ yarn.lock
 
 # Env files
 .env
+.env.*
+!.env.example
+.dev/.env
+.dev/.env.*
+!.dev/.env.example
+
+# Local OpenWrt / browser verification artifacts
+.openwrt-local.env
+.router-local.env
+/.tmp-*/
+/.tmp-*.css
+/.tmp-*.js
+/.tmp-*.json
+/.tmp-*.html
+/.tmp-*.log
+/.edge-profile-*/
+/md3e-edge-*/
+/playwright-report/
+/test-results/
+
+# Dev server artifacts
 .dev/preview.stdout.log
 .dev/preview.stderr.log
 .dev/*.stdout.log
@@ -16,6 +37,8 @@ yarn.lock
 .dev/*collapsed*.png
 .dev/*preview-cdp*.png
 .dev/*profile*/
+.dev/.vite/
+.dev/.vite-temp/
 .ssh-known-hosts-md3e
 preview/*.log
 /.codex/

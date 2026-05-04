@@ -5,7 +5,7 @@
 	const boardinfo = ubus.call('system', 'board');
 	const uci = cursor();
 	const tokens = uci.get_all('md3e', 'theme') || {};
-	const release_cache_version = '1.0.0-2';
+	const release_cache_version = '1.0.0-3';
 	const icon_cache_version = `${tokens.icon_cache_version || '0'}-${release_cache_version}`;
 	const asset_cache_version = `${tokens.asset_cache_version || '0'}-${release_cache_version}`;
 	const logo_png = tokens.logo_png || 'logo.svg';
@@ -20,14 +20,60 @@
 		<meta charset="utf-8">
 		<title>{{ striptags(`${dispatched?.title ?  `${_(dispatched.title)} - ` : ''}${boardinfo.hostname ?? '?'}`) }}</title>
 		<script>
-			const setTheme = (theme) => {
-				const current = ['light', 'dark', 'device'].includes(theme) ? theme : 'device';
-				const isDark = current === 'dark' || (current === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+			const themeStorageKey = 'md3e.theme';
+			const themeSourceStorageKey = 'md3e.theme.source';
+			const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+			const validThemes = ['light', 'dark', 'device'];
+
+			const readThemeStorage = (key) => {
+				try {
+					return localStorage.getItem(key);
+				}
+				catch (e) {
+					return null;
+				}
+			};
+
+			const writeThemeStorage = (key, value) => {
+				try {
+					localStorage.setItem(key, value);
+				}
+				catch (e) {}
+			};
+
+			const getThemePreference = (theme = readThemeStorage(themeStorageKey), trustExplicit = false) => {
+				if (!validThemes.includes(theme))
+					return 'device';
+
+				if (!trustExplicit && (theme === 'light' || theme === 'dark') && readThemeStorage(themeSourceStorageKey) !== 'manual')
+					return 'device';
+
+				return theme;
+			};
+
+			const getThemeSource = () => readThemeStorage(themeSourceStorageKey) === 'manual' ? 'manual' : 'device';
+
+			const syncThemeAttributes = (isDark, mode) => {
+				document.documentElement.setAttribute('data-darkmode', String(isDark));
+				document.documentElement.setAttribute('data-theme-mode', mode);
+
+				if (document.body) {
+					document.body.setAttribute('data-darkmode', String(isDark));
+					document.body.setAttribute('data-theme-mode', mode);
+				}
+			};
+
+			const setTheme = (theme, source = 'device') => {
+				const current = getThemePreference(theme, source === 'manual');
+				const isDark = current === 'dark' || (current === 'device' && themeMedia.matches);
 
 				document.documentElement.classList.add('theme-transition');
-				document.documentElement.setAttribute('data-darkmode', isDark);
-				localStorage.setItem('md3e.theme', current);
-				window.dispatchEvent(new CustomEvent('md3e:themechange'));
+				syncThemeAttributes(isDark, current);
+				writeThemeStorage(themeStorageKey, current);
+				writeThemeStorage(themeSourceStorageKey, source === 'manual' ? 'manual' : 'device');
+				window.dispatchEvent(new CustomEvent('md3e:themechange', {
+					detail: { theme: current, isDark: isDark }
+				}));
 				setTimeout(() => document.documentElement.classList.remove('theme-transition'), 500);
 			};
 
@@ -37,7 +83,7 @@
 					btn.classList.toggle('is-dark', isDark);
 				});
 
-				const current = localStorage.getItem('md3e.theme') || 'device';
+				const current = getThemePreference();
 				document.querySelectorAll('.theme-switcher .theme-option').forEach(opt => {
 					const active = opt.dataset.theme === current;
 					opt.classList.toggle('active', active);
@@ -51,26 +97,35 @@
 
 			};
 
-			setTheme(localStorage.getItem('md3e.theme'));
+			setTheme(getThemePreference(), getThemeSource());
 
-			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-				const theme = localStorage.getItem('md3e.theme') || 'device';
-				if (theme === 'device') setTheme('device'), syncToggle();
-			});
+			const syncDeviceTheme = () => {
+				if (getThemePreference() === 'device')
+					setTheme('device'), syncToggle();
+			};
+
+			if (themeMedia.addEventListener)
+				themeMedia.addEventListener('change', syncDeviceTheme);
+			else if (themeMedia.addListener)
+				themeMedia.addListener(syncDeviceTheme);
 
 			document.addEventListener('DOMContentLoaded', () => {
+				syncThemeAttributes(
+					document.documentElement.getAttribute('data-darkmode') === 'true',
+					getThemePreference()
+				);
 				syncToggle();
 
 				document.querySelectorAll('.theme-toggle').forEach(btn => {
 					btn.addEventListener('click', () => {
 						const isDark = document.documentElement.getAttribute('data-darkmode') === 'true';
-						setTheme(isDark ? 'light' : 'dark');
+						setTheme(isDark ? 'light' : 'dark', 'manual');
 						syncToggle();
 					});
 				});
 
 				document.querySelectorAll('.theme-switcher .theme-option').forEach(opt => {
-					opt.addEventListener('click', () => (setTheme(opt.dataset.theme), syncToggle()));
+					opt.addEventListener('click', () => (setTheme(opt.dataset.theme, 'manual'), syncToggle()));
 				});
 
 				const updateNavbarOpacity = () => {
