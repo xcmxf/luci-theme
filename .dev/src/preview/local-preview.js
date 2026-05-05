@@ -492,6 +492,11 @@ function initActionButtonGroups() {
       more.setAttribute("aria-hidden", "true");
     }
 
+    splitButton.querySelectorAll(":scope > ul.preview").forEach((preview) => {
+      preview.hidden = true;
+      preview.setAttribute("aria-hidden", "true");
+    });
+
     const toggle = splitButton.querySelector(":scope > .open");
     if (toggle instanceof HTMLElement) {
       toggle.textContent = "";

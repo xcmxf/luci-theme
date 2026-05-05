@@ -238,13 +238,28 @@ a.btn,
   transform: none;
   box-shadow: none;
 }
-
 #maincontent .cbi-page-actions {
   --_md3e-action-shell-bg: color-mix(in oklab, var(--md-sys-color-surface-container) 88%, transparent);
   --_md3e-action-shell-border: color-mix(in oklab, var(--md-sys-color-outline-variant) 28%, transparent);
-  --_md3e-action-divider: color-mix(in oklab, var(--md-sys-color-outline-variant) 62%, transparent);
+  --_md3e-action-divider: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 32%, transparent);
   --_md3e-action-subtle-bg: color-mix(in oklab, var(--md-sys-color-surface-container-high) 96%, transparent);
   --_md3e-action-subtle-fg: color-mix(in oklab, var(--foreground) 84%, transparent);
+  --_md3e-action-primary-bg: color-mix(
+    in oklab,
+    var(--md-comp-filled-button-container-color, var(--md3e-comp-filled-bg, var(--md-sys-color-primary))) 92%,
+    var(--md-sys-color-tertiary)
+  );
+  --_md3e-action-primary-fg: var(--md-comp-filled-button-label-text-color, var(--md3e-comp-filled-fg, var(--md-sys-color-on-primary)));
+  --_md3e-action-primary-hover: color-mix(in oklab, var(--_md3e-action-primary-bg) 90%, var(--_md3e-action-primary-fg));
+  --_md3e-action-primary-pressed: color-mix(in oklab, var(--_md3e-action-primary-bg) 82%, var(--_md3e-action-primary-fg));
+  --_md3e-action-save-bg: color-mix(in oklab, var(--md-sys-color-secondary-container) 74%, var(--md-sys-color-surface-container-high));
+  --_md3e-action-save-fg: var(--md-sys-color-on-secondary-container);
+  --_md3e-action-save-hover: color-mix(in oklab, var(--_md3e-action-save-bg) 82%, var(--md-sys-color-tertiary-container));
+  --_md3e-action-save-ring: transparent;
+  --_md3e-action-reset-bg: color-mix(in oklab, var(--md-sys-color-error-container) 34%, var(--md-sys-color-secondary-container));
+  --_md3e-action-reset-fg: color-mix(in oklab, var(--md-sys-color-on-error-container) 84%, var(--md-sys-color-on-secondary-container));
+  --_md3e-action-reset-hover: color-mix(in oklab, var(--md-sys-color-error-container) 46%, var(--md-sys-color-secondary-container));
+  --_md3e-action-reset-ring: transparent;
   width: fit-content;
   max-width: min(100%, 30rem);
   margin-inline: auto;
@@ -252,22 +267,32 @@ a.btn,
   gap: 0.35rem;
   padding: 0.35rem 0.45rem;
   border-radius: 999px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--surface-highlight) 70%, transparent),
-      var(--_md3e-action-shell-bg)
-    );
+  background: var(--_md3e-action-shell-bg);
   box-shadow:
-    0 18px 32px -28px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
-    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 84%, transparent),
+    0 14px 28px -26px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
     inset 0 0 0 1px var(--_md3e-action-shell-border);
   opacity: 1;
   backdrop-filter: blur(14px) saturate(1.05);
   -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition:
-    opacity 0.18s ease,
-    box-shadow 0.22s ease;
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+[data-darkmode="true"] #maincontent .cbi-page-actions {
+  --_md3e-action-shell-bg: color-mix(in oklab, var(--md-sys-color-surface-container-high) 82%, transparent);
+  --_md3e-action-primary-bg: color-mix(in oklab, var(--md-sys-color-primary) 86%, var(--md-sys-color-tertiary));
+  --_md3e-action-primary-fg: var(--md-sys-color-on-primary);
+  --_md3e-action-save-bg: color-mix(in oklab, var(--md-sys-color-secondary-container) 64%, var(--md-sys-color-surface-container-highest));
+  --_md3e-action-save-fg: var(--md-sys-color-on-secondary-container);
+  --_md3e-action-save-hover: color-mix(in oklab, var(--_md3e-action-save-bg) 72%, var(--md-sys-color-tertiary-container));
+  --_md3e-action-save-ring: transparent;
+  --_md3e-action-reset-bg: color-mix(in oklab, var(--md-sys-color-error-container) 38%, var(--md-sys-color-surface-container-high));
+  --_md3e-action-reset-fg: color-mix(in oklab, var(--md-sys-color-on-error-container) 88%, var(--md-sys-color-on-surface));
+  --_md3e-action-reset-hover: color-mix(in oklab, var(--md-sys-color-error-container) 48%, var(--md-sys-color-surface-container-highest));
+  --_md3e-action-reset-ring: transparent;
 }
 
 #maincontent .cbi-page-actions:hover,
@@ -278,8 +303,7 @@ a.btn,
 
 #maincontent .cbi-page-actions[data-dirty="true"] {
   box-shadow:
-    0 22px 40px -30px var(--expressive-shadow, rgb(0 0 0 / 0.24)),
-    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 88%, transparent),
+    0 18px 34px -28px var(--expressive-shadow, rgb(0 0 0 / 0.24)),
     inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary, #6750a4) 22%, var(--_md3e-action-shell-border));
 }
 
@@ -294,46 +318,37 @@ a.btn,
   overflow: visible;
   border-radius: 1.45rem;
   border: 0;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, white 9%, var(--md3e-comp-filled-bg)),
-      color-mix(in oklab, var(--md3e-comp-filled-bg) 92%, black 3%)
-    );
+  background: var(--_md3e-action-primary-bg);
   box-shadow:
-    inset 0 1px 0 color-mix(in oklab, white 34%, transparent),
-    0 14px 26px -24px color-mix(in oklab, var(--md3e-comp-filled-bg) 34%, transparent);
-  color: var(--md3e-comp-filled-fg);
+    0 14px 26px -24px color-mix(in oklab, var(--_md3e-action-primary-bg) 34%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--_md3e-action-primary-fg) 12%, transparent);
+  color: var(--_md3e-action-primary-fg);
   margin-left: 0 !important;
   isolation: isolate;
   position: relative;
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 #maincontent .cbi-page-actions:not([data-dirty="true"]) > :is(.md3e-split-button, [data-md3e-split-button]) {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--surface-highlight, white) 36%, transparent),
-      color-mix(in oklab, var(--md-sys-color-secondary-container, #e8def8) 58%, var(--md-sys-color-surface-container, #f1f1f8))
-    );
+  background: var(--_md3e-action-primary-bg);
   box-shadow:
-    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 42%, transparent),
-    0 12px 22px -22px color-mix(in oklab, var(--md-sys-color-secondary, #625b71) 22%, transparent);
-  color: var(--md-sys-color-on-secondary-container, #1d192b);
+    0 12px 22px -22px color-mix(in oklab, var(--_md3e-action-primary-bg) 32%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--_md3e-action-primary-fg) 10%, transparent);
+  color: var(--_md3e-action-primary-fg);
 }
 
 #maincontent .cbi-page-actions[data-dirty="true"] > :is(.md3e-split-button, [data-md3e-split-button]) {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, white 10%, var(--md3e-comp-filled-bg)),
-      color-mix(in oklab, var(--md3e-comp-filled-bg) 92%, black 3%)
-    );
+  background: var(--_md3e-action-primary-bg);
   box-shadow:
-    inset 0 1px 0 color-mix(in oklab, white 34%, transparent),
-    0 16px 30px -22px color-mix(in oklab, var(--md3e-comp-filled-bg) 42%, transparent);
-  color: var(--md3e-comp-filled-fg);
+    0 16px 30px -22px color-mix(in oklab, var(--_md3e-action-primary-bg) 42%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--_md3e-action-primary-fg) 12%, transparent);
+  color: var(--_md3e-action-primary-fg);
 }
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > ul {
@@ -341,8 +356,7 @@ a.btn,
   min-width: 0;
 }
 
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display],
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] {
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] {
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -359,11 +373,7 @@ a.btn,
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display],
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > label,
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > span,
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > a,
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display],
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] > label,
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] > span,
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] > a {
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display] > a {
   color: inherit !important;
   font-size: 0.95rem !important;
   font-weight: 700 !important;
@@ -384,14 +394,17 @@ a.btn,
   color: inherit;
   border: 0;
   border-radius: 0 1.45rem 1.45rem 0;
-  background: transparent;
+  background: color-mix(in oklab, currentColor 8%, transparent);
   box-shadow: none !important;
   position: relative;
-  transition: background 0.2s ease;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  transition: background-color 0.16s ease;
 }
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > .open {
-  background: color-mix(in oklab, currentColor 12%, transparent);
+  background: color-mix(in oklab, currentColor 14%, transparent);
 }
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > .open::before {
@@ -406,9 +419,13 @@ a.btn,
 
 @media (hover: hover) {
   #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):hover {
+    background: var(--_md3e-action-primary-hover);
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 34%, transparent),
-      0 16px 32px -20px color-mix(in oklab, var(--md3e-comp-filled-bg) 45%, transparent);
+      0 16px 32px -22px color-mix(in oklab, var(--_md3e-action-primary-bg) 42%, transparent),
+      inset 0 0 0 1px color-mix(in oklab, var(--_md3e-action-primary-fg) 16%, transparent);
+    transform: none !important;
+    translate: none !important;
+    scale: none !important;
   }
 
   #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):not([open]) > ul > li[display]:hover {
@@ -416,7 +433,7 @@ a.btn,
   }
 
   #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]) > .open:hover {
-    background: color-mix(in oklab, currentColor 8%, transparent);
+    background: color-mix(in oklab, currentColor 16%, transparent);
   }
 }
 
@@ -426,18 +443,22 @@ a.btn,
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview {
   position: absolute;
-  inset: 0 3rem 0 0;
-  display: block !important;
-  width: auto;
-  min-width: 0;
-  max-width: none;
+  inset: auto;
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  height: 0 !important;
   margin: 0;
   padding: 0;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
   z-index: 1;
 }
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown {
-  top: calc(100% + 0.32rem) !important;
+  top: calc(100% + 0.6rem) !important;
   bottom: auto !important;
   left: auto !important;
   right: 0 !important;
@@ -464,7 +485,7 @@ a.btn,
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown.above {
   top: auto !important;
-  bottom: calc(100% + 0.32rem) !important;
+  bottom: calc(100% + 0.6rem) !important;
   transform-origin: bottom right;
 }
 
@@ -485,10 +506,6 @@ a.btn,
   box-shadow: none !important;
   color: var(--md-sys-color-on-surface) !important;
   border-radius: 0 !important;
-}
-
-#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.preview > li[display] {
-  width: 100%;
 }
 
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button])[open] > ul.dropdown > li::before {
@@ -542,17 +559,21 @@ a.btn,
 #maincontent .cbi-page-actions > .md3e-action-group {
   display: inline-flex;
   align-items: stretch;
-  gap: 1px;
+  gap: 0;
   min-height: 2.9rem;
   padding: 0;
   margin-left: 0.25rem;
-  border: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 80%, transparent);
+  border: 0;
   border-radius: 1.45rem;
-  background: color-mix(in oklab, var(--md-sys-color-outline-variant) 80%, transparent);
-  box-shadow: none;
+  background: transparent;
+  box-shadow: 0 12px 22px -24px var(--expressive-shadow, rgb(0 0 0 / 0.22));
   flex: 0 0 auto;
   margin-right: 0;
   overflow: hidden;
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group:only-child {
+  margin-left: 0;
 }
 
 #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button {
@@ -570,39 +591,79 @@ a.btn,
   justify-content: center;
   font-weight: 600;
   transition: background 0.2s ease, color 0.2s ease;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+}
+
+#maincontent .cbi-page-actions > .md3e-action-group:only-child > .cbi-button,
+#maincontent .cbi-page-actions > .cbi-button-save:only-child {
+  min-height: 2.9rem;
+  padding-inline: 1.5rem;
+  border-radius: 1.45rem;
   margin: 0;
 }
 
 #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-save {
-  background: color-mix(in oklab, var(--md-sys-color-secondary-container) 48%, transparent);
-  color: var(--md-sys-color-on-secondary-container);
+  background: var(--_md3e-action-save-bg);
+  color: var(--_md3e-action-save-fg);
   box-shadow: none;
 }
 
+#maincontent .cbi-page-actions > .cbi-button-save:only-child {
+  background: var(--_md3e-action-save-bg);
+  color: var(--_md3e-action-save-fg);
+  box-shadow: none;
+}
+
+#maincontent .cbi-page-actions > .cbi-button-reset,
 #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-reset {
-  background: transparent;
-  color: color-mix(in oklab, var(--md-sys-color-on-surface-variant, #49454f) 78%, transparent);
+  background: var(--_md3e-action-reset-bg);
+  color: var(--_md3e-action-reset-fg);
   box-shadow: none;
 }
 
 @media (hover: hover) {
   #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button:hover {
     background: color-mix(in oklab, currentColor 8%, var(--_md3e-action-shell-bg));
-    transform: none;
+    transform: none !important;
+    translate: none !important;
+    scale: none !important;
   }
 
   #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-save:hover {
-    background: color-mix(in oklab, currentColor 8%, var(--md-sys-color-secondary-container));
+    background: var(--_md3e-action-save-hover);
   }
 
+  #maincontent .cbi-page-actions > .cbi-button-reset:hover,
   #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button-reset:hover {
-    background: color-mix(in oklab, currentColor 7%, transparent);
+    background: var(--_md3e-action-reset-hover);
   }
 }
 
 #maincontent .cbi-page-actions > .md3e-action-group > .cbi-button:active,
 #maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):active {
-  transform: translateY(0);
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+}
+
+#maincontent .cbi-page-actions > :is(.md3e-split-button, [data-md3e-split-button]):active {
+  background: var(--_md3e-action-primary-pressed);
+}
+
+#maincontent .cbi-page-actions > :is(.cbi-button, .btn, button, a.btn, input.btn),
+#maincontent .cbi-page-actions > :is(.cbi-button, .btn, button, a.btn, input.btn):hover,
+#maincontent .cbi-page-actions > :is(.cbi-button, .btn, button, a.btn, input.btn):active,
+#maincontent .cbi-page-actions > .md3e-action-group > :is(.cbi-button, .btn, button, a.btn, input.btn),
+#maincontent .cbi-page-actions > .md3e-action-group > :is(.cbi-button, .btn, button, a.btn, input.btn):hover,
+#maincontent .cbi-page-actions > .md3e-action-group > :is(.cbi-button, .btn, button, a.btn, input.btn):active {
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .md3e-action-group > .cbi-button:focus-visible,
@@ -642,7 +703,6 @@ a.btn,
     justify-content: center;
   }
 }
-
 .md3e-button-set {
   display: flex;
   flex-wrap: wrap;
@@ -678,7 +738,6 @@ a.btn,
   .cbi-input-password,
   .cbi-input-user,
   .cbi-input-select,
-  .cbi-dropdown > .open,
   .outline-select-trigger
 ) {
   width: 100%;
@@ -720,7 +779,6 @@ textarea {
   .cbi-input-password,
   .cbi-input-user,
   .cbi-input-select,
-  .cbi-dropdown > .open,
   .outline-select-trigger
 )::placeholder {
   color: color-mix(in oklab, currentColor 52%, transparent);
@@ -738,11 +796,10 @@ textarea {
   .cbi-input-text,
   .cbi-input-password,
   .cbi-input-user,
-  .cbi-input-select,
-  .cbi-dropdown > .open
+  .cbi-input-select
 ):focus-visible,
 .outline-select:focus-within .outline-select-trigger,
-.cbi-dropdown[open] > .open {
+.cbi-dropdown[open] {
   border-color: var(--md3e-comp-field-focus);
   background: color-mix(in oklab, var(--md3e-comp-field-bg) 82%, var(--md-sys-color-surface-container-high, white));
   box-shadow:
@@ -764,7 +821,6 @@ textarea {
   .cbi-input-password,
   .cbi-input-user,
   .cbi-input-select,
-  .cbi-dropdown > .open,
   .outline-select-trigger
 )[disabled],
 .outline-select.disabled .outline-select-trigger {
@@ -864,7 +920,6 @@ textarea {
     width: 100%;
   }
 }
-
 /* Content rows: no borders, stronger row surface, no corner artifacts. */
 #maincontent :is(table, .table, .cbi-section-table) {
   width: 100%;
@@ -965,6 +1020,9 @@ textarea {
 }
 
 #maincontent .cbi-dynlist > .add-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -978,19 +1036,43 @@ textarea {
   width: auto;
 }
 
+#maincontent .cbi-dynlist > .add-item > .cbi-button,
 #maincontent .cbi-dynlist > .add-item > .cbi-button-add {
   flex: 0 0 auto;
+  width: auto !important;
+  min-width: max-content;
+  min-height: 2.65rem;
+  height: 2.65rem !important;
+  padding-inline: 1rem !important;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  line-height: 1;
+  text-indent: 0;
 }
 
+@media not all and (min-width: 36rem) {
+  #maincontent .cbi-dynlist > .add-item {
+    flex-wrap: wrap;
+  }
+
+  #maincontent .cbi-dynlist > .add-item > .cbi-input-text {
+    flex-basis: 100%;
+  }
+
+  #maincontent .cbi-dynlist > .add-item > .cbi-button,
+  #maincontent .cbi-dynlist > .add-item > .cbi-button-add {
+    width: 100% !important;
+    justify-content: center;
+  }
+}
 /* Dark mode: reduce bright layer contrast and keep surfaces separated by tone. */
 [data-darkmode="true"] #maincontent .cbi-page-actions {
   --_md3e-action-shell-bg: color-mix(in oklab, var(--md-sys-color-surface-container, #211f26) 84%, transparent);
-  --_md3e-action-shell-border: color-mix(in oklab, var(--md-sys-color-outline-variant, #49454f) 34%, transparent);
-  --_md3e-action-divider: color-mix(in oklab, var(--md-sys-color-outline-variant, #49454f) 44%, transparent);
+  --_md3e-action-shell-border: color-mix(in oklab, var(--md-sys-color-surface-container-highest, #36343b) 26%, transparent);
+  --_md3e-action-divider: color-mix(in oklab, var(--md-sys-color-surface-container-highest, #36343b) 24%, transparent);
   box-shadow:
-    0 18px 34px -30px rgb(0 0 0 / 0.54),
-    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 14%, transparent),
-    inset 0 0 0 1px var(--_md3e-action-shell-border);
+    0 18px 34px -30px rgb(0 0 0 / 0.54);
 }
 
 [data-darkmode="true"] #maincontent :is(table, .table, .cbi-section-table) :is(tr, .tr, .cbi-section-table-row),
@@ -1017,7 +1099,14 @@ textarea {
     inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 10%, transparent) !important;
 }
 
-[data-darkmode="true"] #maincontent #tabmenu,
+[data-darkmode="true"] #maincontent #tabmenu {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+[data-darkmode="true"] #maincontent #tabmenu > .tabs,
 [data-darkmode="true"] #maincontent .cbi-tabmenu {
   box-shadow:
     inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant, #49454f) 30%, transparent),
@@ -1059,13 +1148,18 @@ body[data-layout-mode="desktop"] .md3e-rail-logo {
   min-height: 3.375rem;
   margin: 0.75rem auto 1rem;
   border-radius: 1.125rem;
-  background: var(--md-sys-color-surface-container-low, #f3f3fa);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline, #79747e) 28%, transparent);
+  background: color-mix(in oklab, var(--md-sys-color-surface-container-highest, #ececf4) 42%, transparent);
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
   line-height: 0;
+  position: relative;
+  text-decoration: none;
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 body[data-layout-mode="desktop"] .md3e-rail-logo img {
@@ -1076,13 +1170,18 @@ body[data-layout-mode="desktop"] .md3e-rail-logo img {
   margin: auto;
 }
 
-@media (hover: hover) {
-  body[data-layout-mode="desktop"] .md3e-rail-logo:hover {
-    background: var(--md-sys-color-surface-container-low, #f3f3fa);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline, #79747e) 36%, transparent);
-  }
+body[data-layout-mode="desktop"] .md3e-rail-logo:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--md-sys-color-primary, #6750a4) 42%, transparent);
+  outline-offset: 2px;
 }
 
+@media (hover: hover) {
+  body[data-layout-mode="desktop"] .md3e-rail-logo:hover {
+    background: color-mix(in oklab, var(--md-sys-color-surface-container-highest, #ececf4) 52%, transparent);
+    box-shadow: none;
+    text-decoration: none;
+  }
+}
 /* Content tabs: immersive M3-style pill navigation. */
 #maincontent #tabmenu,
 #maincontent .cbi-tabmenu {
@@ -1092,6 +1191,13 @@ body[data-layout-mode="desktop"] .md3e-rail-logo img {
   overflow-y: hidden;
   scrollbar-width: thin;
   text-align: center;
+}
+
+#maincontent #tabmenu {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
 }
 
 #maincontent #tabmenu::-webkit-scrollbar,
@@ -1318,7 +1424,6 @@ body[data-layout-mode="desktop"] .md3e-rail-logo img {
     justify-self: start;
   }
 }
-
 /* Ultra-wide supporting pane: page-local section outline. */
 .md3e-on-this-page {
   display: none;

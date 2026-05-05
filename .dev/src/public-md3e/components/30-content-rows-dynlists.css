@@ -1,0 +1,146 @@
+/* Content rows: no borders, stronger row surface, no corner artifacts. */
+#maincontent :is(table, .table, .cbi-section-table) {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate !important;
+  border-spacing: 0 0.55rem !important;
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(th, td, .th, .td, .cbi-section-table-cell) {
+  word-break: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(tr, .tr, .cbi-section-table-row),
+#maincontent .cbi-value {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: color-mix(in oklab, var(--md-sys-color-surface-container-low, #f7f7fc) 88%, transparent);
+  box-shadow: none !important;
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(tbody tr:nth-child(even), .tr:nth-child(even), .cbi-section-table-row:nth-child(even)) {
+  background: color-mix(in oklab, var(--md-sys-color-surface-container, #f1f1f8) 92%, transparent);
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(tbody tr:hover, .tr:hover, .cbi-section-table-row:hover),
+#maincontent .cbi-value:hover {
+  background: color-mix(in oklab, var(--md-sys-color-surface-container-high, #ececf4) 94%, transparent);
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(th, td, .th, .td, .cbi-section-table-cell),
+#maincontent :is(.cbi-value-title, .cbi-value-field) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(th, td, .th, .td, .cbi-section-table-cell) {
+  padding-block: 0.62rem !important;
+  padding-inline: 1rem !important;
+  color: color-mix(in oklab, var(--md-sys-color-on-surface, #1d1b20) 88%, transparent);
+  line-height: 1.35;
+}
+
+#maincontent .cbi-value {
+  padding-block: 0.62rem !important;
+  padding-inline: 1rem !important;
+  column-gap: 0.8rem;
+  align-items: center;
+}
+
+#maincontent .cbi-value:has(.cbi-value-description, textarea, select, .cbi-dropdown, .outline-select, .cbi-button) {
+  padding-block: 0.85rem !important;
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(th:first-child, td:first-child, .th:first-child, .td:first-child, .cbi-section-table-cell:first-child),
+#maincontent .cbi-value-title {
+  color: color-mix(in oklab, var(--md-sys-color-on-surface-variant, #49454f) 82%, transparent) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+#maincontent :is(table, .table, .cbi-section-table) :is(th:not(:first-child), td:not(:first-child), .th:not(:first-child), .td:not(:first-child), .cbi-section-table-cell:not(:first-child)),
+#maincontent .cbi-value-field {
+  color: var(--md-sys-color-on-surface, #1d1b20) !important;
+  font-weight: 500;
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* LuCI dynamic lists must shrink inside form rows instead of sizing from their contents. */
+#maincontent .cbi-dynlist,
+#maincontent .cbi-value-field > .cbi-dynlist {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  gap: 0.45rem 0.5rem;
+}
+
+#maincontent .cbi-dynlist > .item {
+  flex: 1 1 min(15.5rem, 100%);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+#maincontent .cbi-dynlist > .item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#maincontent .cbi-dynlist > .add-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  gap: 0.5rem;
+}
+
+#maincontent .cbi-dynlist > .add-item > .cbi-input-text {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+#maincontent .cbi-dynlist > .add-item > .cbi-button,
+#maincontent .cbi-dynlist > .add-item > .cbi-button-add {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: max-content;
+  min-height: 2.65rem;
+  height: 2.65rem !important;
+  padding-inline: 1rem !important;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  line-height: 1;
+  text-indent: 0;
+}
+
+@media not all and (min-width: 36rem) {
+  #maincontent .cbi-dynlist > .add-item {
+    flex-wrap: wrap;
+  }
+
+  #maincontent .cbi-dynlist > .add-item > .cbi-input-text {
+    flex-basis: 100%;
+  }
+
+  #maincontent .cbi-dynlist > .add-item > .cbi-button,
+  #maincontent .cbi-dynlist > .add-item > .cbi-button-add {
+    width: 100% !important;
+    justify-content: center;
+  }
+}

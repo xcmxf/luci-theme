@@ -1,0 +1,242 @@
+/* Content tabs: immersive M3-style pill navigation. */
+#maincontent #tabmenu,
+#maincontent .cbi-tabmenu {
+  max-width: 100%;
+  margin: 0 auto 1.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  text-align: center;
+}
+
+#maincontent #tabmenu {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+#maincontent #tabmenu::-webkit-scrollbar,
+#maincontent .cbi-tabmenu::-webkit-scrollbar {
+  height: 0.42rem;
+}
+
+#maincontent #tabmenu::-webkit-scrollbar-thumb,
+#maincontent .cbi-tabmenu::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--md-sys-color-outline, #79747e) 34%, transparent);
+}
+
+#maincontent #tabmenu::-webkit-scrollbar-track,
+#maincontent .cbi-tabmenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#maincontent #tabmenu > .tabs,
+#maincontent .cbi-tabmenu {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap !important;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 0 !important;
+  border-radius: 1.8rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--md-sys-color-surface-container-high, #ece6f0) 78%, transparent),
+      color-mix(in oklab, var(--md-sys-color-surface-container, #f3edf7) 92%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--md-sys-color-on-surface, #1d1b20) 6%, white 22%),
+    0 18px 36px -32px var(--expressive-shadow, rgb(0 0 0 / 0.24));
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+#maincontent #tabmenu > .tabs {
+  width: max-content;
+  max-width: none;
+  margin-inline: auto;
+}
+
+#maincontent .cbi-tabmenu {
+  display: flex !important;
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+/* Hidden LuCI tab panes must not reserve their old section spacing. */
+#maincontent :is(.cbi-section, .cbi-tabcontainer)[data-tab-active="false"],
+#maincontent :is(.cbi-section, .cbi-tabcontainer)[style*="visibility: hidden"],
+#maincontent :is(.cbi-section, .cbi-tabcontainer)[style*="display: none"] {
+  margin-block: 0 !important;
+  padding-block: 0 !important;
+  overflow: hidden !important;
+}
+
+#maincontent #tabmenu > .tabs > li,
+#maincontent .cbi-tabmenu > li {
+  display: flex;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+#maincontent #tabmenu > .tabs > li > a,
+#maincontent .cbi-tabmenu > li > a {
+  display: inline-flex;
+  min-height: 2.45rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.85rem;
+  border: 0 !important;
+  border-radius: 999px;
+  color: color-mix(in oklab, var(--md-sys-color-on-surface, #1d1b20) 78%, transparent);
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: var(--md-sys-typescale-title-small-size, 0.875rem);
+  font-weight: 520;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+#maincontent #tabmenu > .tabs > li.active > a,
+#maincontent .cbi-tabmenu > li.cbi-tab > a,
+#maincontent .cbi-tabmenu > li.active > a {
+  color: var(--md-sys-color-on-secondary-container, #1d192b);
+  background: color-mix(in oklab, var(--md-sys-color-secondary-container, #e8def8) 86%, transparent) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary, #6750a4) 14%, transparent),
+    0 10px 22px -18px var(--expressive-shadow, rgb(0 0 0 / 0.24)) !important;
+  font-weight: 650;
+}
+
+@media (hover: hover) {
+  #maincontent #tabmenu > .tabs > li:not(.active) > a:hover,
+  #maincontent .cbi-tabmenu > li:not(.cbi-tab):not(.active) > a:hover {
+    color: var(--md-sys-color-on-surface, #1d1b20);
+    background: color-mix(in oklab, currentColor 7%, transparent) !important;
+  }
+}
+
+@media (max-width: 920px) {
+  #maincontent #tabmenu,
+  #maincontent .cbi-tabmenu {
+    margin-inline: auto;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none;
+    padding-bottom: 0;
+    text-align: center;
+  }
+
+  #maincontent #tabmenu::-webkit-scrollbar,
+  #maincontent .cbi-tabmenu::-webkit-scrollbar {
+    display: none;
+  }
+
+  #maincontent #tabmenu > .tabs,
+  #maincontent .cbi-tabmenu {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start;
+  }
+
+  #maincontent #tabmenu > .tabs {
+    width: max-content;
+    max-width: none;
+    min-width: max-content;
+  }
+
+  #maincontent .cbi-tabmenu {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  #maincontent #tabmenu > .tabs > li > a,
+  #maincontent .cbi-tabmenu > li > a {
+    min-height: 2.35rem;
+    padding-inline: 0.72rem;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) :is(thead, tbody) {
+    display: block;
+    width: 100%;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) :is(tr, .tr, .cbi-section-table-row) {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+    gap: 0.35rem 0.75rem;
+    align-items: center;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) :is(th, td, .th, .td, .cbi-section-table-cell) {
+    width: auto !important;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    hyphens: none;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) :is(th, td, .th, .td, .cbi-section-table-cell):has(:is(.cbi-button, .btn, button, input[type="button"], input[type="submit"])) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table):has(td[data-title]) :is(tr.table-titles, .tr.table-titles) {
+    display: none !important;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) :is(tr, .tr, .cbi-section-table-row):has(td[data-title]) {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) td[data-title] {
+    display: grid !important;
+    grid-template-columns: minmax(7rem, 34%) minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: start;
+    padding-block: 0.42rem !important;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) td[data-title]::before {
+    content: attr(data-title);
+    display: block !important;
+    color: color-mix(in oklab, var(--md-sys-color-on-surface-variant, #49454f) 82%, transparent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  #maincontent :is(table, .table, .cbi-section-table) td[data-title] > * {
+    min-width: 0;
+    grid-column: 2;
+    justify-self: start;
+  }
+}

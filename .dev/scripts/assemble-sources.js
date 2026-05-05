@@ -22,6 +22,19 @@ const assemblies = [
     ],
   },
   {
+    label: "Public MD3E components",
+    output: path.join(devRoot, "public", "md3e", "components.css"),
+    parts: [
+      "src/public-md3e/components/00-tokens-surfaces-buttons.css",
+      "src/public-md3e/components/10-action-areas.css",
+      "src/public-md3e/components/20-forms-dropdowns.css",
+      "src/public-md3e/components/30-content-rows-dynlists.css",
+      "src/public-md3e/components/40-dark-rail.css",
+      "src/public-md3e/components/50-tabs.css",
+      "src/public-md3e/components/60-page-outline.css",
+    ],
+  },
+  {
     label: "LuCI menu resource",
     output: path.join(devRoot, "src", "resource", "menu-md3e-v2.js"),
     parts: [

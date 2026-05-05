@@ -1,0 +1,240 @@
+/* Reusable MD3E component surfaces built on top of the theme token system. */
+
+:root {
+  --md3e-comp-duration: 0.22s;
+  --md3e-comp-ease: cubic-bezier(0.2, 0.82, 0.2, 1);
+  --md3e-comp-card-radius: clamp(1.1rem, 1rem + 0.35vw, 1.45rem);
+  --md3e-comp-card-padding: clamp(1rem, 0.95rem + 0.35vw, 1.3rem);
+  --md3e-comp-button-radius: var(--md-sys-shape-corner-full, 999px);
+  --md3e-comp-field-radius: var(--md-sys-shape-corner-large, 1.1rem);
+  --md3e-comp-card-bg: var(--md-comp-card-container-color, var(--md-sys-color-surface-container-low, #f1f1f7));
+  --md3e-comp-card-bg-high: var(--md-comp-card-container-color-high, var(--md-sys-color-surface-container, #ececf2));
+  --md3e-comp-card-border: var(--md-comp-card-outline-color, var(--md-sys-color-outline-variant, #c4c6d0));
+  --md3e-comp-field-bg: var(--md-comp-filled-field-container-color, var(--md-sys-color-surface-container-highest, #ececf2));
+  --md3e-comp-field-border: var(--md-comp-filled-field-outline-color, var(--md-sys-color-outline-variant, #c4c6d0));
+  --md3e-comp-field-focus: var(--md-comp-filled-field-focus-outline-color, var(--md-sys-color-primary, #445e91));
+  --md3e-comp-filled-bg: var(--md-comp-filled-button-container-color, var(--md-sys-color-primary, #445e91));
+  --md3e-comp-filled-fg: var(--md-comp-filled-button-label-text-color, var(--md-sys-color-on-primary, #fff));
+  --md3e-comp-tonal-bg: var(--md-comp-tonal-button-container-color, var(--md-sys-color-secondary-container, #dbe2f9));
+  --md3e-comp-tonal-fg: var(--md-comp-tonal-button-label-text-color, var(--md-sys-color-on-secondary-container, #3f4759));
+  --md3e-comp-outlined-bg: var(--md-comp-outlined-button-container-color, var(--md-sys-color-surface-container-high, #ececf2));
+  --md3e-comp-outlined-fg: var(--md-comp-outlined-button-label-text-color, var(--md-sys-color-primary, #445e91));
+  --md3e-comp-outlined-border: var(--md-comp-outlined-button-outline-color, var(--md-sys-color-outline-variant, #c4c6d0));
+}
+
+@supports (color: color-mix(in oklab, black, white)) {
+  :root {
+    --md3e-comp-card-bg: color-mix(in oklab, var(--md3e-comp-card-bg) 94%, transparent);
+    --md3e-comp-card-bg-high: color-mix(in oklab, var(--md3e-comp-card-bg-high) 96%, transparent);
+    --md3e-comp-card-border: color-mix(in oklab, var(--md3e-comp-card-border) 54%, transparent);
+    --md3e-comp-field-bg: color-mix(in oklab, var(--md3e-comp-field-bg) 95%, transparent);
+    --md3e-comp-field-border: color-mix(in oklab, var(--md3e-comp-field-border) 60%, transparent);
+    --md3e-comp-outlined-border: color-mix(in oklab, var(--md3e-comp-outlined-border) 72%, transparent);
+  }
+}
+
+/* Dark mode page background: solid M3 surface, no ambient gradient. */
+html[data-darkmode="true"],
+html[data-darkmode="true"] body,
+[data-darkmode="true"] #maincontent {
+  --page-bg: #111318;
+  --page-bg-image: none;
+  background-color: #111318 !important;
+  background-image: none !important;
+}
+
+html[data-darkmode="true"] #maincontent > .docs-content {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+html[data-darkmode="true"] #maincontent :is(.md3e-card, .cbi-section-node) {
+  background-image: none !important;
+}
+
+.md3e-card,
+.cbi-section-node,
+#maincontent .cbi-page-actions {
+  border: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface-highlight, white) 66%, transparent),
+    var(--md3e-comp-card-bg)
+  );
+  box-shadow:
+    0 22px 38px -34px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.6)),
+    inset 0 0 0 1px color-mix(in oklab, var(--md3e-comp-card-border) 54%, transparent);
+}
+
+.md3e-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: var(--md3e-comp-card-padding);
+  border-radius: var(--md3e-comp-card-radius);
+}
+
+.md3e-card--high,
+.cbi-section-node {
+  background: var(--md3e-comp-card-bg-high);
+}
+
+.md3e-card--interactive {
+  transition:
+    transform var(--md3e-comp-duration) var(--md3e-comp-ease),
+    border-color var(--md3e-comp-duration) ease,
+    background-color var(--md3e-comp-duration) ease,
+    box-shadow var(--md3e-comp-duration) var(--md3e-comp-ease);
+}
+
+@media (hover: hover) {
+  .md3e-card--interactive:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 26px 44px -38px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65)),
+      inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline, var(--md3e-comp-card-border)) 56%, transparent);
+  }
+
+  .cbi-section-node:hover {
+    box-shadow:
+      0 26px 44px -38px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65)),
+      inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline, var(--md3e-comp-card-border)) 56%, transparent);
+  }
+}
+
+.md3e-card__eyebrow {
+  font-size: var(--md-sys-typescale-label-small-size, 0.72rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground, var(--md-sys-color-on-surface-variant, #5c6270));
+}
+
+.md3e-card__title {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: var(--md-sys-typescale-title-large-size, 1.15rem);
+  line-height: var(--md-sys-typescale-title-large-line-height, 1.35);
+  letter-spacing: 0;
+  color: var(--foreground, var(--md-sys-color-on-surface, #1a1b20));
+}
+
+.md3e-card__body,
+.md3e-card__meta {
+  color: var(--muted-foreground, var(--md-sys-color-on-surface-variant, #5c6270));
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn) {
+  --_md3e-button-bg: var(--md3e-comp-tonal-bg);
+  --_md3e-button-fg: var(--md3e-comp-tonal-fg);
+  --_md3e-button-border: var(--md3e-comp-card-border);
+  --_md3e-button-shadow:
+    0 18px 30px -26px var(--expressive-shadow, rgb(0 0 0 / 0.2)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.6));
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.72rem 1.15rem;
+  border: 1px solid var(--_md3e-button-border);
+  border-radius: var(--md3e-comp-button-radius);
+  background: var(--_md3e-button-bg);
+  box-shadow: var(--_md3e-button-shadow);
+  color: var(--_md3e-button-fg);
+  font-family: var(--font-sans);
+  font-size: var(--md-sys-typescale-label-large-size, 0.92rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--md-sys-typescale-label-large-tracking, 0.01em);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform var(--md3e-comp-duration) var(--md3e-comp-ease),
+    border-color var(--md3e-comp-duration) ease,
+    background-color var(--md3e-comp-duration) ease,
+    box-shadow var(--md3e-comp-duration) var(--md3e-comp-ease),
+    color var(--md3e-comp-duration) ease;
+  cursor: pointer;
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn) svg {
+  flex: none;
+}
+
+.md3e-button--filled,
+.btn.primary,
+.cbi-button-apply,
+.cbi-button-reload {
+  --_md3e-button-bg: var(--md3e-comp-filled-bg);
+  --_md3e-button-fg: var(--md3e-comp-filled-fg);
+  --_md3e-button-border: var(--md3e-comp-filled-bg);
+  --_md3e-button-shadow:
+    0 18px 30px -24px color-mix(in oklab, var(--md3e-comp-filled-bg) 28%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 55%, transparent);
+}
+
+.md3e-button--tonal,
+a.btn,
+.cbi-button-neutral,
+.cbi-button-positive,
+.cbi-button-fieldadd,
+.cbi-button-save,
+.cbi-page-actions .btn:not(.primary) {
+  --_md3e-button-bg: var(--md3e-comp-tonal-bg);
+  --_md3e-button-fg: var(--md3e-comp-tonal-fg);
+  --_md3e-button-border: var(--md3e-comp-card-border);
+}
+
+.md3e-button--outlined {
+  --_md3e-button-bg: var(--md3e-comp-outlined-bg);
+  --_md3e-button-fg: var(--md3e-comp-outlined-fg);
+  --_md3e-button-border: var(--md3e-comp-outlined-border);
+}
+
+.md3e-button--danger,
+.cbi-button-negative,
+.cbi-section-remove .cbi-button,
+.cbi-button-reset,
+.cbi-button-remove {
+  --_md3e-button-bg: var(--md-sys-color-error-container, #ffd9d6);
+  --_md3e-button-fg: var(--md-sys-color-on-error-container, #5d120f);
+  --_md3e-button-border: color-mix(in oklab, var(--md-sys-color-error, #ba1a1a) 22%, var(--md3e-comp-card-border));
+}
+
+.md3e-button--text {
+  --_md3e-button-bg: transparent;
+  --_md3e-button-fg: var(--foreground, var(--md-sys-color-on-surface, #1a1b20));
+  --_md3e-button-border: transparent;
+  --_md3e-button-shadow: none;
+}
+
+@media (hover: hover) {
+  :where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn):hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 22px 34px -28px var(--expressive-shadow, rgb(0 0 0 / 0.22)),
+      inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.65));
+  }
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn):active {
+  transform: translateY(0);
+  box-shadow:
+    0 12px 20px -20px var(--expressive-shadow, rgb(0 0 0 / 0.18)),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.55));
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn):focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--md3e-comp-field-focus) 32%, transparent);
+  outline-offset: 2px;
+}
+
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn)[disabled],
+:where(.md3e-button, a.btn, input.btn, .cbi-button, .cbi-page-actions .btn).disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

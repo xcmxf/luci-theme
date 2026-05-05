@@ -1,0 +1,217 @@
+.md3e-button-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.md3e-field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.md3e-field__label,
+.cbi-value > .cbi-value-title {
+  color: var(--foreground, var(--md-sys-color-on-surface, #1a1b20));
+  letter-spacing: 0;
+}
+
+.md3e-field__hint,
+.cbi-value .cbi-value-description {
+  color: var(--muted-foreground, var(--md-sys-color-on-surface-variant, #5c6270));
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .outline-select-trigger
+) {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.88rem 1rem;
+  border: 1px solid var(--md3e-comp-field-border);
+  border-radius: var(--md3e-comp-field-radius);
+  background: var(--md3e-comp-field-bg);
+  box-shadow:
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.55)),
+    0 14px 24px -24px var(--expressive-shadow, rgb(0 0 0 / 0.2));
+  color: var(--md-comp-filled-field-input-text-color, var(--md-sys-color-on-surface, #1a1b20));
+  font-family: var(--font-sans);
+  font-size: var(--md-sys-typescale-body-large-size, 0.98rem);
+  line-height: var(--md-sys-typescale-body-large-line-height, 1.45);
+  transition:
+    border-color var(--md3e-comp-duration) ease,
+    background-color var(--md3e-comp-duration) ease,
+    box-shadow var(--md3e-comp-duration) var(--md3e-comp-ease),
+    color var(--md3e-comp-duration) ease;
+}
+
+textarea.md3e-field__control,
+textarea {
+  min-height: 7.75rem;
+  resize: vertical;
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .outline-select-trigger
+)::placeholder {
+  color: color-mix(in oklab, currentColor 52%, transparent);
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select
+):focus-visible,
+.outline-select:focus-within .outline-select-trigger,
+.cbi-dropdown[open] {
+  border-color: var(--md3e-comp-field-focus);
+  background: color-mix(in oklab, var(--md3e-comp-field-bg) 82%, var(--md-sys-color-surface-container-high, white));
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--md3e-comp-field-focus) 16%, transparent),
+    inset 0 1px 0 var(--surface-highlight, rgb(255 255 255 / 0.55));
+  outline: none;
+}
+
+:where(
+  .md3e-field__control,
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  textarea,
+  .cbi-input-text,
+  .cbi-input-password,
+  .cbi-input-user,
+  .cbi-input-select,
+  .outline-select-trigger
+)[disabled],
+.outline-select.disabled .outline-select-trigger {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#maincontent .outline-select,
+#maincontent .cbi-dropdown {
+  position: relative;
+}
+
+#maincontent .outline-select.open,
+#maincontent .cbi-dropdown[open] {
+  z-index: 120;
+}
+
+#maincontent .cbi-section:has(.outline-select.open, .cbi-dropdown[open]),
+#maincontent .cbi-section-node:has(.outline-select.open, .cbi-dropdown[open]),
+#maincontent .cbi-value:has(.outline-select.open, .cbi-dropdown[open]),
+#maincontent .cbi-value-field:has(.outline-select.open, .cbi-dropdown[open]) {
+  position: relative;
+  z-index: 160;
+}
+
+#maincontent .outline-select-panel,
+#maincontent .cbi-dropdown[open] > ul.dropdown,
+#maincontent .cbi-dropdown[open] > ul:not(.preview) {
+  z-index: 121;
+  padding: 0.25rem !important;
+  border: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 38%, transparent) !important;
+  border-radius: 0.85rem !important;
+  background: var(--md-sys-color-surface-container-high, #ececf2) !important;
+  box-shadow:
+    0 14px 26px -22px rgb(0 0 0 / 0.2),
+    inset 0 1px 0 color-mix(in oklab, var(--surface-highlight, white) 14%, transparent) !important;
+  overflow: auto;
+  color: var(--foreground) !important;
+}
+
+#maincontent .outline-select-panel.above,
+#maincontent .cbi-dropdown[open] > ul.dropdown.above,
+#maincontent .cbi-dropdown[open] > ul:not(.preview).above {
+  transform-origin: bottom center;
+}
+
+#maincontent .outline-select-panel.align-end,
+#maincontent .cbi-dropdown[open] > ul.dropdown.align-end,
+#maincontent .cbi-dropdown[open] > ul:not(.preview).align-end {
+  transform-origin: top right;
+}
+
+#maincontent .outline-select-option {
+  min-height: 2.2rem;
+  display: flex;
+  align-items: center;
+  padding: 0.45rem 0.72rem;
+  border-radius: 0.4rem;
+  background: transparent !important;
+  color: var(--md-sys-color-on-surface, #1d1b20);
+  font-size: 0.875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+#maincontent .outline-select-option.selected {
+  color: var(--md-sys-color-on-secondary-container, #1d192b);
+  background: color-mix(in oklab, var(--md-sys-color-secondary-container, #e8def8) 46%, transparent) !important;
+}
+
+@media (hover: hover) {
+  #maincontent .outline-select-option:hover {
+    background: color-mix(in oklab, currentColor 7%, transparent) !important;
+  }
+}
+
+.md3e-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+@media not all and (min-width: 48rem) {
+  .md3e-card {
+    padding: 1rem;
+  }
+
+  .md3e-button-set {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .md3e-button-set > *,
+  #maincontent .cbi-page-actions > *,
+  #maincontent .right > a.btn {
+    width: 100%;
+  }
+}

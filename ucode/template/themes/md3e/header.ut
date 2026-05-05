@@ -5,7 +5,7 @@
 	const boardinfo = ubus.call('system', 'board');
 	const uci = cursor();
 	const tokens = uci.get_all('md3e', 'theme') || {};
-	const release_cache_version = '1.0.0-3';
+	const release_cache_version = '1.0.0-4';
 	const icon_cache_version = `${tokens.icon_cache_version || '0'}-${release_cache_version}`;
 	const asset_cache_version = `${tokens.asset_cache_version || '0'}-${release_cache_version}`;
 	const logo_png = tokens.logo_png || 'logo.svg';
