@@ -1,13 +1,12 @@
 import "../media/main.css";
 import "../../public/md3e/components.css";
+import { mobileLayoutQuery } from "../shared/layout-breakpoints.js";
 
 const THEME_KEY = "md3e.theme";
 const PREVIEW_AUTH_KEY = "md3e.preview.auth";
-const MOBILE_LAYOUT_MAX_WIDTH = 920;
-const MOBILE_LAYOUT_QUERY = `(max-width: ${MOBILE_LAYOUT_MAX_WIDTH}px)`;
 
 function isMobileViewport() {
-  return window.matchMedia(MOBILE_LAYOUT_QUERY).matches;
+  return window.matchMedia(mobileLayoutQuery).matches;
 }
 
 function syncLayoutMode() {
@@ -161,7 +160,7 @@ function initMobileMenu() {
     document.addEventListener("keydown", window.__md3ePreviewMobileEscHandler);
   }
 
-  const media = window.matchMedia(MOBILE_LAYOUT_QUERY);
+  const media = window.matchMedia(mobileLayoutQuery);
   media.addEventListener("change", () => {
     syncLayoutMode();
     if (!media.matches && overlay.classList.contains("mobile-menu-open")) {

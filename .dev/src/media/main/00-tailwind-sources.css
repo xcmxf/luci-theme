@@ -1,0 +1,11 @@
+/**
+ * Copyright (C) 2025 eamonxg
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+@import "tailwindcss" source(none);
+@source "../../../ucode/template/themes/md3e";
+@source "../../src/media";
+@source "../../src/resource";
+
+@custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));

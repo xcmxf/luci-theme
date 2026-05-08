@@ -1,11 +1,44 @@
   initCustomSelects() {
+    if (this._customSelectsInitialized) return;
+
+    const target = document.getElementById("maincontent") || document.body;
+    if (!target.querySelector("select, .cbi-dropdown")) {
+      this.watchForAddedElement(
+        "_customSelectBootstrapObserver",
+        target,
+        "select, .cbi-dropdown",
+        () => this.initCustomSelects(),
+      );
+      return;
+    }
+
+    this._customSelectsInitialized = true;
+
+    const schedulePanelPosition = (anchor, panel) => {
+      if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
+        return;
+      }
+
+      if (panel._md3ePositionFrame) {
+        cancelAnimationFrame(panel._md3ePositionFrame);
+      }
+
+      panel._md3ePositionFrame = requestAnimationFrame(() => {
+        panel._md3ePositionFrame = null;
+        this.positionDropdownPanel(anchor, panel);
+        panel
+          .querySelector(":scope > .outline-select-option.selected")
+          ?.scrollIntoView({ block: "nearest" });
+      });
+    };
+
     const syncCbiDropdownPanel = (dropdown) => {
       if (!(dropdown instanceof HTMLElement)) return;
       const panel = this.getCbiDropdownPanel(dropdown);
       if (!(panel instanceof HTMLElement)) return;
 
       if (dropdown.hasAttribute("open")) {
-        this.positionDropdownPanel(dropdown, panel);
+        schedulePanelPosition(dropdown, panel);
       } else {
         this.resetDropdownPanel(panel);
       }
@@ -79,12 +112,7 @@
         this.closeAllDropdowns(wrap);
         isOpen = true;
         wrap.classList.add("open");
-        const rect = wrap.getBoundingClientRect();
-        const below = window.innerHeight - rect.bottom;
-        panel.classList.toggle("above", below < 200 && rect.top > 200);
-        this.positionDropdownPanel(wrap, panel);
-        const cur = panel.querySelector(".selected");
-        if (cur) cur.scrollIntoView({ block: "nearest" });
+        schedulePanelPosition(wrap, panel);
       };
 
       const close = () => {
@@ -99,9 +127,7 @@
         isOpen ? close() : open();
       });
 
-      document.addEventListener("click", (e) => {
-        if (!wrap.contains(e.target)) close();
-      });
+      wrap._md3eCloseOutlineSelect = close;
 
       wrap.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -131,32 +157,48 @@
       }).observe(sel, { attributes: true, childList: true, subtree: true });
     };
 
-    const replaceAll = () => {
-      document.querySelectorAll("select").forEach(replace);
+    const replaceAll = (scope = document) => {
+      if (scope instanceof HTMLSelectElement) {
+        replace(scope);
+        return;
+      }
+
+      scope.querySelectorAll?.("select").forEach(replace);
     };
 
     replaceAll();
 
-    // Close outline-selects when cbi-dropdown opens
-    document.addEventListener("click", (e) => {
-      const openBtn = e.target.closest(".cbi-dropdown > .open");
-      if (openBtn) {
+    if (!this._customSelectClickHandler) {
+      this._customSelectClickHandler = (e) => {
+        document.querySelectorAll(".outline-select.open").forEach((wrap) => {
+          if (!wrap.contains(e.target)) wrap._md3eCloseOutlineSelect?.();
+        });
+
+        const openBtn = e.target.closest(".cbi-dropdown > .open");
+        if (!openBtn) return;
+
         const dropdown = openBtn.closest(".cbi-dropdown");
         if (!dropdown) return;
         this.closeAllDropdowns(dropdown);
         requestAnimationFrame(() => syncCbiDropdownPanel(dropdown));
-      }
-    });
+      };
+      document.addEventListener("click", this._customSelectClickHandler);
+    }
 
-    const target = document.getElementById("maincontent") || document.body;
-    new MutationObserver(() => {
-      requestAnimationFrame(replaceAll);
-    }).observe(target, { childList: true, subtree: true });
-
-    new MutationObserver((mutations) => {
+    this._customSelectObserver = new MutationObserver((mutations) => {
+      const replaceScopes = new Set();
       const dropdowns = new Set();
+
       mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) replaceScopes.add(node);
+          });
+          return;
+        }
+
         if (
+          mutation.type === "attributes" &&
           mutation.target instanceof HTMLElement &&
           mutation.target.matches(".cbi-dropdown")
         ) {
@@ -164,12 +206,19 @@
         }
       });
 
+      if (replaceScopes.size) {
+        requestAnimationFrame(() => {
+          replaceScopes.forEach((scope) => replaceAll(scope));
+        });
+      }
+
       if (!dropdowns.size) return;
 
       requestAnimationFrame(() => {
         dropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
       });
     }).observe(target, {
+      childList: true,
       attributes: true,
       attributeFilter: ["open"],
       subtree: true,
@@ -178,15 +227,17 @@
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
         requestAnimationFrame(() => {
-          document.querySelectorAll(".outline-select.open").forEach((wrap) => {
-            this.positionDropdownPanel(
+          const openSelects = document.querySelectorAll(".outline-select.open");
+          const openDropdowns = document.querySelectorAll(".cbi-dropdown[open]");
+          if (!openSelects.length && !openDropdowns.length) return;
+
+          openSelects.forEach((wrap) => {
+            schedulePanelPosition(
               wrap,
               wrap.querySelector(":scope > .outline-select-panel"),
             );
           });
-          document
-            .querySelectorAll(".cbi-dropdown[open]")
-            .forEach((dropdown) => syncCbiDropdownPanel(dropdown));
+          openDropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
         });
       };
       window.addEventListener("resize", this._dropdownViewportHandler);

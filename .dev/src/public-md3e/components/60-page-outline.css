@@ -77,7 +77,7 @@
   transition: box-shadow 0.18s ease;
 }
 
-@media (min-width: 921px) and (min-height: 36rem) {
+@media (min-width: __MD3E_DESKTOP_LAYOUT_MIN_WIDTH__px) and (min-height: 36rem) {
   body[data-layout-mode="desktop"] #maincontent {
     --md3e-rail-left: max(0.9rem, calc(50vw - 51rem));
     --md3e-rail-right: calc(var(--md3e-rail-left) + var(--nav-rail-width, 5.5rem));
@@ -165,7 +165,7 @@
   }
 }
 
-@media (min-width: 921px) and (min-height: 36rem) {
+@media (min-width: __MD3E_DESKTOP_LAYOUT_MIN_WIDTH__px) and (min-height: 36rem) {
   body[data-layout-mode="desktop"]:has(.md3e-nav-shell.is-expanded) #maincontent {
     --md3e-layout-extra: 0px;
     --md3e-content-left: calc(var(--nav-rail-width, 5.5rem) + var(--nav-panel-width, 16rem) + 0.9rem + var(--md3e-content-min-gap));

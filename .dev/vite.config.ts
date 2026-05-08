@@ -58,8 +58,15 @@ function createLuciJsCompressPlugin(): Plugin {
         const sourceCode = await readFile(filePath, "utf-8");
         const compressed = await terserMinify(sourceCode, {
           parse: { bare_returns: true },
-          compress: false,
-          mangle: false,
+          compress: {
+            defaults: true,
+            directives: false,
+            passes: 2,
+            unsafe: false,
+          },
+          mangle: {
+            keep_fnames: true,
+          },
           format: { comments: false, beautify: false },
         });
 

@@ -68,6 +68,84 @@ return baseclass.extend({
     apply();
     media.addEventListener("change", apply);
   },
+
+  watchForAddedElement(watchKey, target, selector, callback, timeout = 4000) {
+    if (!target || this[watchKey]) return;
+
+    const watchers = target._md3eLazyInitWatchers || new Map();
+    target._md3eLazyInitWatchers = watchers;
+
+    const syncSelector = () => {
+      target._md3eLazyInitSelector = Array.from(watchers.values())
+        .map((watcher) => watcher.selector)
+        .filter(Boolean)
+        .join(", ");
+    };
+
+    const stop = () => {
+      const watcher = watchers.get(watchKey);
+      if (watcher?.timeoutId) clearTimeout(watcher.timeoutId);
+      watchers.delete(watchKey);
+      this[watchKey] = null;
+
+      if (!watchers.size && target._md3eLazyInitObserver) {
+        target._md3eLazyInitObserver.disconnect();
+        target._md3eLazyInitObserver = null;
+        target._md3eLazyInitSelector = "";
+      } else {
+        syncSelector();
+      }
+    };
+
+    const watcher = {
+      selector,
+      timeoutId: setTimeout(stop, timeout),
+      run: () => {
+        stop();
+        callback();
+      },
+    };
+
+    watchers.set(watchKey, watcher);
+    this[watchKey] = watcher;
+    syncSelector();
+
+    if (!target._md3eLazyInitObserver) {
+      target._md3eLazyInitObserver = new MutationObserver((mutations) => {
+        const matched = new Set();
+        const combinedSelector = target._md3eLazyInitSelector;
+        if (!combinedSelector) return;
+
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType !== 1) continue;
+            if (
+              !node.matches?.(combinedSelector) &&
+              !node.querySelector?.(combinedSelector)
+            ) {
+              continue;
+            }
+
+            for (const [key, activeWatcher] of watchers) {
+              if (
+                node.matches?.(activeWatcher.selector) ||
+                node.querySelector?.(activeWatcher.selector)
+              ) {
+                matched.add(key);
+              }
+            }
+          }
+        }
+
+        matched.forEach((key) => watchers.get(key)?.run());
+      });
+
+      target._md3eLazyInitObserver.observe(target, {
+        childList: true,
+        subtree: true,
+      });
+    }
+  },
   getModeMetadata(modeName) {
     const key = String(modeName || "").toLowerCase();
 
@@ -482,6 +560,7 @@ return baseclass.extend({
         const label = this.getPageOutlineLabel(titleNode);
         if (label === "-") return null;
         if (!label) return null;
+        if (!this.hasPageOutlineBodyContent(section, titleNode)) return null;
 
         if (!section.id || usedIds.has(section.id)) {
           const slug = this.slugifyText(label, `section-${index + 1}`);
@@ -493,6 +572,71 @@ return baseclass.extend({
         return { id: section.id, label, element: section };
       })
       .filter(Boolean);
+  },
+
+  isPageOutlineOmittedNode(node) {
+    if (!(node instanceof HTMLElement)) return false;
+    const hiddenState = ["hid", "den"].join("");
+    if (node[hiddenState] || node.getAttribute("aria-" + hiddenState) === "true") {
+      return true;
+    }
+
+    const style = window.getComputedStyle?.(node);
+    const displayName = ["dis", "play"].join("");
+    const displayNone = ["no", "ne"].join("");
+    const visibilityName = ["vis", "ibility"].join("");
+    const visibilityHidden = hiddenState;
+    const visibilityCollapsed = ["coll", "apse"].join("");
+    return Boolean(
+      style &&
+        (style[displayName] === displayNone ||
+          style[visibilityName] === visibilityHidden ||
+          style[visibilityName] === visibilityCollapsed),
+    );
+  },
+
+  hasPageOutlineBodyContent(section, titleNode) {
+    if (!(section instanceof HTMLElement)) return false;
+    if (this.isPageOutlineOmittedNode(section)) return false;
+
+    const tableElement = ["ta", "ble"].join("");
+    const ignoreSelectors = [
+      ".cbi-title",
+      ".md3e-on-this-page",
+      "script",
+      "style",
+      "template",
+    ].join(", ");
+    const contentSelectors = [
+      tableElement,
+      "svg",
+      "canvas",
+      "img",
+      "input",
+      "select",
+      "textarea",
+      ".ifacebox",
+      ".ifacebadge",
+      ".cbi-section-node",
+      ".cbi-value",
+      ".cbi-map-descr",
+      ".alert-message",
+    ].join(", ");
+
+    return Array.from(section.children).some((child) => {
+      if (!(child instanceof HTMLElement)) return false;
+      if (titleNode && (child === titleNode || child.contains(titleNode))) {
+        return false;
+      }
+      if (child.matches(ignoreSelectors)) return false;
+      if (this.isPageOutlineOmittedNode(child)) return false;
+      if (child.matches(contentSelectors) || child.querySelector(contentSelectors)) {
+        return true;
+      }
+
+      const text = child.textContent?.replace(/\s+/g, " ").trim();
+      return Boolean(text);
+    });
   },
 
   getPageOutlineLabel(titleNode) {
@@ -543,10 +687,20 @@ return baseclass.extend({
 
     let outline = main.querySelector(":scope > .md3e-on-this-page");
     if (!sections || sections.length < 2) {
+      if (this._pageOutlineObserver) {
+        this._pageOutlineObserver.disconnect();
+        this._pageOutlineObserver = null;
+      }
+
       outline?.remove();
       document.body?.classList.remove("md3e-has-page-outline");
       return;
     }
+
+    const visibleSections = sections.slice(0, 8);
+    const visibleSectionIds = new Set(
+      visibleSections.map((section) => section.id),
+    );
 
     if (!(outline instanceof HTMLElement)) {
       outline = E("aside", {
@@ -556,7 +710,25 @@ return baseclass.extend({
       main.insertBefore(outline, content.nextSibling);
     }
 
+    const outlineKey = visibleSections
+      .map((section) => `${section.id}:${section.label}`)
+      .join("|");
+    const sameElements =
+      Array.isArray(outline._md3eOutlineElements) &&
+      outline._md3eOutlineElements.length === visibleSections.length &&
+      visibleSections.every(
+        (section, index) => outline._md3eOutlineElements[index] === section.element,
+      );
+    if (outline.dataset.md3eOutlineKey === outlineKey && sameElements) {
+      document.body?.classList.add("md3e-has-page-outline");
+      return;
+    }
+
     document.body?.classList.add("md3e-has-page-outline");
+    outline.dataset.md3eOutlineKey = outlineKey;
+    outline._md3eOutlineElements = visibleSections.map(
+      (section) => section.element,
+    );
     outline.innerHTML = "";
 
     const nav = E("nav", { class: "md3e-on-this-page__nav" });
@@ -565,7 +737,7 @@ return baseclass.extend({
     );
 
     const list = E("ol", { class: "md3e-on-this-page__list" });
-    sections.slice(0, 8).forEach((section, index) => {
+    visibleSections.forEach((section, index) => {
       list.appendChild(
         E("li", { class: "md3e-on-this-page__item" }, [
           E(
@@ -592,15 +764,20 @@ return baseclass.extend({
       outline.querySelectorAll(".md3e-on-this-page__link"),
     );
     const setActive = (id) => {
+      if (!visibleSectionIds.has(id)) return false;
+
       links.forEach((link) => {
         link.classList.toggle("active", link.getAttribute("href") === "#" + id);
       });
+
+      return true;
     };
 
     links.forEach((link) => {
       link.addEventListener("click", (event) => {
         const targetId = link.getAttribute("href")?.slice(1);
         if (!targetId) return;
+        if (!visibleSectionIds.has(targetId)) return;
 
         const target = document.getElementById(targetId);
         if (!(target instanceof HTMLElement)) return;
@@ -641,7 +818,7 @@ return baseclass.extend({
       },
     );
 
-    sections.forEach((section) =>
+    visibleSections.forEach((section) =>
       this._pageOutlineObserver.observe(section.element),
     );
   },
@@ -649,6 +826,22 @@ return baseclass.extend({
   initPageChrome() {
     const content = document.querySelector(".docs-content");
     if (!content || content._md3ePageChromeInit) return;
+
+    const hasOutlineCandidate = () => {
+      const view = content.querySelector("#view");
+      const map = view?.querySelector(".cbi-map") || view;
+      return this.getPageOutlineSections(map).length >= 2;
+    };
+
+    if (!hasOutlineCandidate()) {
+      this.watchForAddedElement(
+        "_pageChromeBootstrapObserver",
+        content,
+        ".cbi-map, .cbi-section, .cbi-section-node, .cbi-section-table, .cbi-value, .alert-message",
+        () => this.initPageChrome(),
+      );
+      return;
+    }
 
     const decorate = () => {
       content.querySelector(".md3e-page-hero")?.remove();
@@ -663,8 +856,13 @@ return baseclass.extend({
 
     decorate();
 
+    let decorateFrame = null;
     new MutationObserver(() => {
-      requestAnimationFrame(decorate);
+      if (decorateFrame) return;
+      decorateFrame = requestAnimationFrame(() => {
+        decorateFrame = null;
+        decorate();
+      });
     }).observe(content, { childList: true, subtree: true });
 
     content._md3ePageChromeInit = true;
@@ -683,8 +881,19 @@ return baseclass.extend({
 
   initProgressRings() {
     if (this._progressRingsInitialized) return;
-    this._progressRingsInitialized = true;
 
+    const target = document.getElementById("maincontent") || document.body;
+    if (!target.querySelector(".cbi-progressbar")) {
+      this.watchForAddedElement(
+        "_progressRingBootstrapObserver",
+        target,
+        ".cbi-progressbar",
+        () => this.initProgressRings(),
+      );
+      return;
+    }
+
+    this._progressRingsInitialized = true;
     const syncBar = (bar) => {
       if (!(bar instanceof HTMLElement)) return;
 
@@ -713,7 +922,6 @@ return baseclass.extend({
       scope.querySelectorAll?.(".cbi-progressbar").forEach(syncBar);
     };
 
-    const target = document.getElementById("maincontent") || document.body;
     syncAll(document);
 
     this._progressRingThemeHandler = () => syncAll(document);
@@ -743,6 +951,47 @@ return baseclass.extend({
       bar.insertBefore(ring, bar.firstChild);
     }
 
+    if (!ring._md3eProgressArc) {
+      ring.textContent = "";
+
+      const radius = 14.5;
+      const circumference = 2 * Math.PI * radius;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      const track = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+      const arc = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+
+      svg.setAttribute("viewBox", "0 0 40 40");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+
+      track.setAttribute("cx", "20");
+      track.setAttribute("cy", "20");
+      track.setAttribute("r", radius);
+      track.setAttribute("fill", "none");
+      track.setAttribute("stroke-width", "2.85");
+
+      arc.setAttribute("cx", "20");
+      arc.setAttribute("cy", "20");
+      arc.setAttribute("r", radius);
+      arc.setAttribute("fill", "none");
+      arc.setAttribute("stroke-width", "3.3");
+      arc.setAttribute("stroke-linecap", "round");
+      arc.setAttribute("transform", "rotate(-90 20 20)");
+      arc.setAttribute("stroke-dasharray", circumference.toFixed(2));
+
+      svg.append(track, arc);
+      ring.appendChild(svg);
+      ring._md3eProgressTrack = track;
+      ring._md3eProgressArc = arc;
+      ring._md3eProgressCircumference = circumference;
+    }
+
     return ring;
   },
 
@@ -753,7 +1002,8 @@ return baseclass.extend({
     );
 
     bar.style.setProperty("--progress", `${percent}%`);
-    ring.innerHTML = this.buildProgressRingSvg(
+    this.updateProgressRingSvg(
+      ring,
       percent / 100,
       this.getProgressRingPalette(bar),
     );
@@ -796,28 +1046,21 @@ return baseclass.extend({
     return ctx.fillStyle || fallback;
   },
 
-  escapeProgressRingValue(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/"/g, "&quot;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  },
+  updateProgressRingSvg(ring, progress, palette) {
+    if (!ring?._md3eProgressTrack || !ring?._md3eProgressArc) return;
 
-  buildProgressRingSvg(progress, palette) {
     const clamped = Math.max(0, Math.min(1, progress || 0));
-    const radius = 14.5;
-    const circumference = 2 * Math.PI * radius;
+    const circumference = ring._md3eProgressCircumference;
     const dashOffset = circumference * (1 - clamped);
     const trackOpacity = palette.isDark ? 0.34 : 0.72;
-    const parts = [
-      `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">`,
-      `<circle cx="20" cy="20" r="${radius}" fill="none" stroke="${this.escapeProgressRingValue(palette.track)}" stroke-opacity="${trackOpacity}" stroke-width="2.85"/>`,
-      `<circle cx="20" cy="20" r="${radius}" fill="none" stroke="${this.escapeProgressRingValue(palette.progress)}" stroke-width="3.3" stroke-linecap="round" transform="rotate(-90 20 20)" stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}"/>`,
-    ];
 
-    parts.push(`</svg>`);
-    return parts.join("");
+    ring._md3eProgressTrack.setAttribute("stroke", palette.track);
+    ring._md3eProgressTrack.setAttribute("stroke-opacity", trackOpacity);
+    ring._md3eProgressArc.setAttribute("stroke", palette.progress);
+    ring._md3eProgressArc.setAttribute(
+      "stroke-dashoffset",
+      dashOffset.toFixed(2),
+    );
   },
   initModalOverride() {
     const origShow = ui.showModal;
@@ -1011,46 +1254,92 @@ return baseclass.extend({
       .forEach(setupToast);
   },
   initVercelTabs() {
+    if (this._vercelTabsInitialized) return;
+
+    const target = document.getElementById("maincontent") || document.body;
+    if (!target.querySelector(".cbi-tabmenu")) {
+      this.watchForAddedElement(
+        "_vercelTabsBootstrapObserver",
+        target,
+        ".cbi-tabmenu",
+        () => this.initVercelTabs(),
+      );
+      return;
+    }
+
+    this._vercelTabsInitialized = true;
+    this._vercelTabMenus = this._vercelTabMenus || new Set();
+
+    const scheduleResizeSync = () => {
+      clearTimeout(this._vercelTabsResizeTimer);
+      this._vercelTabsResizeTimer = setTimeout(() => {
+        this._vercelTabMenus?.forEach((menu) => {
+          menu._md3eUpdateActiveIndicator?.();
+        });
+      }, 100);
+    };
+
+    if (!this._vercelTabsResizeHandler) {
+      this._vercelTabsResizeHandler = scheduleResizeSync;
+      window.addEventListener("resize", this._vercelTabsResizeHandler);
+    }
+
     const bindTabMenu = (tabMenu) => {
+      if (tabMenu.dataset.vercelInit) return;
+      tabMenu.dataset.vercelInit = "1";
+
       const items = Array.from(tabMenu.querySelectorAll("li"));
       if (!items.length) return;
 
       let activeReady = false;
+      let activeFrame = null;
 
       const updateActiveIndicator = () => {
-        const active = tabMenu.querySelector("li.cbi-tab");
-        if (!active) return;
-        const menuRect = tabMenu.getBoundingClientRect();
-        const activeRect = active.getBoundingClientRect();
+        if (activeFrame) return;
 
-        /* Skip transition on first placement so the underline appears instantly */
-        if (!activeReady) {
-          tabMenu.classList.add("tab-active-jump");
-          void tabMenu.offsetWidth;
-        }
+        activeFrame = requestAnimationFrame(() => {
+          activeFrame = null;
 
-        tabMenu.style.setProperty(
-          "--tab-active-left",
-          `${activeRect.left - menuRect.left}px`,
-        );
-        tabMenu.style.setProperty(
-          "--tab-active-width",
-          `${activeRect.width}px`,
-        );
-        tabMenu.style.setProperty(
-          "--tab-active-top",
-          `${activeRect.bottom - menuRect.top}px`,
-        );
+          const active = tabMenu.querySelector("li.cbi-tab");
+          if (!active) return;
 
-        if (!activeReady) {
-          void tabMenu.offsetWidth;
-          tabMenu.classList.remove("tab-active-jump");
-          activeReady = true;
-        }
+          const menuRect = tabMenu.getBoundingClientRect();
+          const activeRect = active.getBoundingClientRect();
+          const needsJump = !activeReady;
+
+          requestAnimationFrame(() => {
+            if (needsJump) tabMenu.classList.add("tab-active-jump");
+
+            tabMenu.style.setProperty(
+              "--tab-active-left",
+              `${activeRect.left - menuRect.left}px`,
+            );
+            tabMenu.style.setProperty(
+              "--tab-active-width",
+              `${activeRect.width}px`,
+            );
+            tabMenu.style.setProperty(
+              "--tab-active-top",
+              `${activeRect.bottom - menuRect.top}px`,
+            );
+
+            if (needsJump) {
+              activeReady = true;
+              requestAnimationFrame(() =>
+                tabMenu.classList.remove("tab-active-jump"),
+              );
+            }
+          });
+        });
       };
+
+      tabMenu._md3eUpdateActiveIndicator = updateActiveIndicator;
+      this._vercelTabMenus.add(tabMenu);
 
       let lastHoverTop = null;
       let hoverHideTimer = null;
+      let hoverFrame = null;
+      let hoverTarget = null;
 
       const updateHoverIndicator = (li) => {
         if (!li) {
@@ -1064,34 +1353,43 @@ return baseclass.extend({
           clearTimeout(hoverHideTimer);
           hoverHideTimer = null;
         }
-        const menuRect = tabMenu.getBoundingClientRect();
-        const liRect = li.getBoundingClientRect();
-        const newTop = liRect.top - menuRect.top;
 
-        /* First hover (no previous position) or row jump — skip transition */
-        const needsJump =
-          lastHoverTop === null ||
-          (lastHoverTop !== null && Math.abs(newTop - lastHoverTop) > 2);
+        hoverTarget = li;
+        if (hoverFrame) return;
 
-        if (needsJump) {
-          tabMenu.classList.add("tab-hover-jump");
-          void tabMenu.offsetWidth;
-        }
+        hoverFrame = requestAnimationFrame(() => {
+          hoverFrame = null;
+          const current = hoverTarget;
+          if (!current) return;
 
-        tabMenu.style.setProperty(
-          "--tab-hover-left",
-          `${liRect.left - menuRect.left}px`,
-        );
-        tabMenu.style.setProperty("--tab-hover-width", `${liRect.width}px`);
-        tabMenu.style.setProperty("--tab-hover-top", `${newTop}px`);
-        tabMenu.classList.add("tab-hovering");
+          const menuRect = tabMenu.getBoundingClientRect();
+          const liRect = current.getBoundingClientRect();
+          const newTop = liRect.top - menuRect.top;
 
-        if (needsJump) {
-          void tabMenu.offsetWidth;
-          tabMenu.classList.remove("tab-hover-jump");
-        }
+          /* First hover (no previous position) or row jump: skip transition. */
+          const needsJump =
+            lastHoverTop === null ||
+            (lastHoverTop !== null && Math.abs(newTop - lastHoverTop) > 2);
 
-        lastHoverTop = newTop;
+          requestAnimationFrame(() => {
+            if (needsJump) tabMenu.classList.add("tab-hover-jump");
+
+            tabMenu.style.setProperty(
+              "--tab-hover-left",
+              `${liRect.left - menuRect.left}px`,
+            );
+            tabMenu.style.setProperty("--tab-hover-width", `${liRect.width}px`);
+            tabMenu.style.setProperty("--tab-hover-top", `${newTop}px`);
+            tabMenu.classList.add("tab-hovering");
+            lastHoverTop = newTop;
+
+            if (needsJump) {
+              requestAnimationFrame(() =>
+                tabMenu.classList.remove("tab-hover-jump"),
+              );
+            }
+          });
+        });
       };
 
       items.forEach((li) => {
@@ -1105,31 +1403,28 @@ return baseclass.extend({
       );
 
       requestAnimationFrame(updateActiveIndicator);
-
-      let resizeTimer;
-      window.addEventListener("resize", () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(updateActiveIndicator, 100);
-      });
     };
 
-    const waitForTabs = new MutationObserver(() => {
-      document.querySelectorAll(".cbi-tabmenu").forEach((menu) => {
-        if (menu.dataset.vercelInit) return;
-        menu.dataset.vercelInit = "1";
-        bindTabMenu(menu);
-      });
-    });
+    const bindExistingTabs = (scope = document) => {
+      if (scope instanceof HTMLElement && scope.matches(".cbi-tabmenu")) {
+        bindTabMenu(scope);
+      }
 
-    const target = document.getElementById("maincontent") || document.body;
-    waitForTabs.observe(target, { childList: true, subtree: true });
+      scope.querySelectorAll?.(".cbi-tabmenu").forEach(bindTabMenu);
+    };
 
-    document.querySelectorAll(".cbi-tabmenu").forEach((menu) => {
-      menu.dataset.vercelInit = "1";
-      bindTabMenu(menu);
+    bindExistingTabs(document);
+
+    this._vercelTabsObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          bindExistingTabs(node);
+        }
+      }
     });
+    this._vercelTabsObserver.observe(target, { childList: true, subtree: true });
   },
-
   initNavHover() {
     const nav = document.querySelector("#topmenu");
     if (!nav) return;
@@ -1139,35 +1434,52 @@ return baseclass.extend({
 
     let hideTimer = null;
     let hasHovered = false;
+    let hoverFrame = null;
+    let hoverTarget = null;
 
     const show = (li) => {
       if (hideTimer) {
         clearTimeout(hideTimer);
         hideTimer = null;
       }
-      const navRect = nav.getBoundingClientRect();
-      const liRect = li.getBoundingClientRect();
 
-      if (!hasHovered) {
-        nav.classList.add("nav-hover-jump");
-        void nav.offsetWidth;
-      }
+      hoverTarget = li;
+      if (hoverFrame) return;
 
-      nav.style.setProperty(
-        "--nav-hover-left",
-        `${liRect.left - navRect.left}px`,
-      );
-      nav.style.setProperty("--nav-hover-width", `${liRect.width}px`);
-      nav.classList.add("nav-hovering");
+      hoverFrame = requestAnimationFrame(() => {
+        hoverFrame = null;
+        const current = hoverTarget;
+        if (!current) return;
 
-      if (!hasHovered) {
-        void nav.offsetWidth;
-        nav.classList.remove("nav-hover-jump");
-        hasHovered = true;
-      }
+        const navRect = nav.getBoundingClientRect();
+        const liRect = current.getBoundingClientRect();
+        const needsJump = !hasHovered;
+
+        requestAnimationFrame(() => {
+          if (needsJump) nav.classList.add("nav-hover-jump");
+
+          nav.style.setProperty(
+            "--nav-hover-left",
+            `${liRect.left - navRect.left}px`,
+          );
+          nav.style.setProperty("--nav-hover-width", `${liRect.width}px`);
+          nav.classList.add("nav-hovering");
+
+          if (needsJump) {
+            hasHovered = true;
+            requestAnimationFrame(() => nav.classList.remove("nav-hover-jump"));
+          }
+        });
+      });
     };
 
     const hide = () => {
+      hoverTarget = null;
+      if (hoverFrame) {
+        cancelAnimationFrame(hoverFrame);
+        hoverFrame = null;
+      }
+
       hideTimer = setTimeout(() => {
         nav.classList.remove("nav-hovering");
         hasHovered = false;
@@ -1179,10 +1491,49 @@ return baseclass.extend({
     });
     nav.addEventListener("mouseleave", hide);
   },
-
   initTabContentAnimation() {
     const target = document.getElementById("maincontent") || document.body;
+    if (this._tabContentAnimationInitialized) return;
+
+    if (
+      !target.querySelector(
+        ".cbi-tabmenu, .cbi-section-node-tabbed, .cbi-map-tabbed",
+      )
+    ) {
+      this.watchForAddedElement(
+        "_tabContentBootstrapObserver",
+        target,
+        ".cbi-tabmenu, .cbi-section-node-tabbed, .cbi-map-tabbed",
+        () => this.initTabContentAnimation(),
+      );
+      return;
+    }
+
+    this._tabContentAnimationInitialized = true;
     let animating = false;
+
+    const replayAnimation = (el, className) => {
+      if (!(el instanceof HTMLElement)) return;
+
+      if (el._md3eReplayFrame) cancelAnimationFrame(el._md3eReplayFrame);
+      if (el._md3eReplayWriteFrame) {
+        cancelAnimationFrame(el._md3eReplayWriteFrame);
+      }
+
+      el.classList.remove(className);
+      el._md3eReplayFrame = requestAnimationFrame(() => {
+        el._md3eReplayFrame = null;
+        el._md3eReplayWriteFrame = requestAnimationFrame(() => {
+          el._md3eReplayWriteFrame = null;
+          el.classList.add(className);
+          el.addEventListener(
+            "animationend",
+            () => el.classList.remove(className),
+            { once: true },
+          );
+        });
+      });
+    };
 
     /* ── Content blur animation (fade in / out) ── */
 
@@ -1224,30 +1575,6 @@ return baseclass.extend({
       true,
     );
 
-    new MutationObserver((mutations) => {
-      mutations.forEach((m) => {
-        if (
-          m.type === "attributes" &&
-          m.attributeName === "data-tab-active" &&
-          m.target.getAttribute("data-tab-active") === "true" &&
-          m.target.hasAttribute("data-tab-title")
-        ) {
-          m.target.classList.remove("tab-content-enter");
-          void m.target.offsetWidth;
-          m.target.classList.add("tab-content-enter");
-          m.target.addEventListener(
-            "animationend",
-            () => m.target.classList.remove("tab-content-enter"),
-            { once: true },
-          );
-        }
-      });
-    }).observe(target, {
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["data-tab-active"],
-    });
-
     /* ── Container height animation (independent via ResizeObserver) ── */
 
     const ro = new ResizeObserver((entries) => {
@@ -1264,8 +1591,9 @@ return baseclass.extend({
         el._htLock = true;
         el.classList.add("tab-height-anim");
         el.style.height = oldH + "px";
-        void el.offsetWidth;
-        el.style.height = newH + "px";
+        requestAnimationFrame(() => {
+          el.style.height = newH + "px";
+        });
 
         const done = () => {
           el.classList.remove("tab-height-anim");
@@ -1308,14 +1636,7 @@ return baseclass.extend({
         for (const m of muts) {
           for (const n of m.removedNodes) {
             if (!n.classList?.contains("spinning")) continue;
-            v.classList.remove("tab-content-enter");
-            void v.offsetWidth;
-            v.classList.add("tab-content-enter");
-            v.addEventListener(
-              "animationend",
-              () => v.classList.remove("tab-content-enter"),
-              { once: true },
-            );
+            replayAnimation(v, "tab-content-enter");
             return;
           }
         }
@@ -1327,6 +1648,18 @@ return baseclass.extend({
 
     new MutationObserver((muts) => {
       for (const m of muts) {
+        if (
+          m.type === "attributes" &&
+          m.attributeName === "data-tab-active" &&
+          m.target.getAttribute("data-tab-active") === "true" &&
+          m.target.hasAttribute("data-tab-title")
+        ) {
+          replayAnimation(m.target, "tab-content-enter");
+          continue;
+        }
+
+        if (m.type !== "childList") continue;
+
         for (const n of m.addedNodes) {
           if (n.nodeType !== 1) continue;
           if (n.matches?.(".cbi-section-node-tabbed, .cbi-map-tabbed"))
@@ -1336,7 +1669,12 @@ return baseclass.extend({
           if (n.id === "view") watchView(n);
         }
       }
-    }).observe(target, { childList: true, subtree: true });
+    }).observe(target, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-tab-active"],
+    });
   },
   initDescriptionPlacement() {
     const move = () => {
@@ -1440,9 +1778,11 @@ return baseclass.extend({
     // Close all outline-selects
     document.querySelectorAll(".outline-select.open").forEach((s) => {
       if (s === except) return;
-      this.resetDropdownPanel(
-        s.querySelector(":scope > .outline-select-panel"),
-      );
+      if (s._md3eCloseOutlineSelect) {
+        s._md3eCloseOutlineSelect();
+        return;
+      }
+      this.resetDropdownPanel(s.querySelector(":scope > .outline-select-panel"));
       s.classList.remove("open");
     });
     // Close all cbi-dropdowns
@@ -1455,6 +1795,11 @@ return baseclass.extend({
   },
   resetDropdownPanel(panel) {
     if (!(panel instanceof HTMLElement)) return;
+    if (panel._md3ePositionFrame) {
+      cancelAnimationFrame(panel._md3ePositionFrame);
+      panel._md3ePositionFrame = null;
+    }
+
     panel.classList.remove("align-end");
     panel.classList.remove("above");
     panel.style.removeProperty("position");
@@ -1467,6 +1812,22 @@ return baseclass.extend({
     panel.style.removeProperty("max-width");
   },
 
+  measureDropdownPanel(anchor, panel) {
+    if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
+      return null;
+    }
+
+    const anchorRect = anchor.getBoundingClientRect();
+    return {
+      anchorRect,
+      anchorWidth: Math.ceil(anchorRect.width),
+      naturalWidth: Math.max(panel.scrollWidth, Math.ceil(anchorRect.width)),
+      naturalHeight: Math.max(panel.scrollHeight, 0),
+      viewportWidth: window.visualViewport?.width || window.innerWidth,
+      viewportHeight: window.visualViewport?.height || window.innerHeight,
+    };
+  },
+
   positionDropdownPanel(anchor, panel) {
     if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
       return;
@@ -1474,16 +1835,17 @@ return baseclass.extend({
 
     const viewportPadding = 16;
     const panelGap = 8;
-    const anchorRect = anchor.getBoundingClientRect();
-    const viewportWidth = window.visualViewport?.width || window.innerWidth;
-    const viewportHeight =
-      window.visualViewport?.height || window.innerHeight;
-    const anchorWidth = Math.ceil(anchorRect.width);
+    const metrics = this.measureDropdownPanel(anchor, panel);
+    if (!metrics) return;
 
-    this.resetDropdownPanel(panel);
-
-    const naturalWidth = Math.max(panel.scrollWidth, anchorWidth);
-    const naturalHeight = Math.max(panel.scrollHeight, 0);
+    const {
+      anchorRect,
+      anchorWidth,
+      naturalWidth,
+      naturalHeight,
+      viewportWidth,
+      viewportHeight,
+    } = metrics;
     const availableRight = Math.max(
       anchorWidth,
       Math.floor(viewportWidth - anchorRect.left - viewportPadding),
@@ -1535,13 +1897,46 @@ return baseclass.extend({
     }
   },
   initCustomSelects() {
+    if (this._customSelectsInitialized) return;
+
+    const target = document.getElementById("maincontent") || document.body;
+    if (!target.querySelector("select, .cbi-dropdown")) {
+      this.watchForAddedElement(
+        "_customSelectBootstrapObserver",
+        target,
+        "select, .cbi-dropdown",
+        () => this.initCustomSelects(),
+      );
+      return;
+    }
+
+    this._customSelectsInitialized = true;
+
+    const schedulePanelPosition = (anchor, panel) => {
+      if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
+        return;
+      }
+
+      if (panel._md3ePositionFrame) {
+        cancelAnimationFrame(panel._md3ePositionFrame);
+      }
+
+      panel._md3ePositionFrame = requestAnimationFrame(() => {
+        panel._md3ePositionFrame = null;
+        this.positionDropdownPanel(anchor, panel);
+        panel
+          .querySelector(":scope > .outline-select-option.selected")
+          ?.scrollIntoView({ block: "nearest" });
+      });
+    };
+
     const syncCbiDropdownPanel = (dropdown) => {
       if (!(dropdown instanceof HTMLElement)) return;
       const panel = this.getCbiDropdownPanel(dropdown);
       if (!(panel instanceof HTMLElement)) return;
 
       if (dropdown.hasAttribute("open")) {
-        this.positionDropdownPanel(dropdown, panel);
+        schedulePanelPosition(dropdown, panel);
       } else {
         this.resetDropdownPanel(panel);
       }
@@ -1615,12 +2010,7 @@ return baseclass.extend({
         this.closeAllDropdowns(wrap);
         isOpen = true;
         wrap.classList.add("open");
-        const rect = wrap.getBoundingClientRect();
-        const below = window.innerHeight - rect.bottom;
-        panel.classList.toggle("above", below < 200 && rect.top > 200);
-        this.positionDropdownPanel(wrap, panel);
-        const cur = panel.querySelector(".selected");
-        if (cur) cur.scrollIntoView({ block: "nearest" });
+        schedulePanelPosition(wrap, panel);
       };
 
       const close = () => {
@@ -1635,9 +2025,7 @@ return baseclass.extend({
         isOpen ? close() : open();
       });
 
-      document.addEventListener("click", (e) => {
-        if (!wrap.contains(e.target)) close();
-      });
+      wrap._md3eCloseOutlineSelect = close;
 
       wrap.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -1667,32 +2055,48 @@ return baseclass.extend({
       }).observe(sel, { attributes: true, childList: true, subtree: true });
     };
 
-    const replaceAll = () => {
-      document.querySelectorAll("select").forEach(replace);
+    const replaceAll = (scope = document) => {
+      if (scope instanceof HTMLSelectElement) {
+        replace(scope);
+        return;
+      }
+
+      scope.querySelectorAll?.("select").forEach(replace);
     };
 
     replaceAll();
 
-    // Close outline-selects when cbi-dropdown opens
-    document.addEventListener("click", (e) => {
-      const openBtn = e.target.closest(".cbi-dropdown > .open");
-      if (openBtn) {
+    if (!this._customSelectClickHandler) {
+      this._customSelectClickHandler = (e) => {
+        document.querySelectorAll(".outline-select.open").forEach((wrap) => {
+          if (!wrap.contains(e.target)) wrap._md3eCloseOutlineSelect?.();
+        });
+
+        const openBtn = e.target.closest(".cbi-dropdown > .open");
+        if (!openBtn) return;
+
         const dropdown = openBtn.closest(".cbi-dropdown");
         if (!dropdown) return;
         this.closeAllDropdowns(dropdown);
         requestAnimationFrame(() => syncCbiDropdownPanel(dropdown));
-      }
-    });
+      };
+      document.addEventListener("click", this._customSelectClickHandler);
+    }
 
-    const target = document.getElementById("maincontent") || document.body;
-    new MutationObserver(() => {
-      requestAnimationFrame(replaceAll);
-    }).observe(target, { childList: true, subtree: true });
-
-    new MutationObserver((mutations) => {
+    this._customSelectObserver = new MutationObserver((mutations) => {
+      const replaceScopes = new Set();
       const dropdowns = new Set();
+
       mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) replaceScopes.add(node);
+          });
+          return;
+        }
+
         if (
+          mutation.type === "attributes" &&
           mutation.target instanceof HTMLElement &&
           mutation.target.matches(".cbi-dropdown")
         ) {
@@ -1700,12 +2104,19 @@ return baseclass.extend({
         }
       });
 
+      if (replaceScopes.size) {
+        requestAnimationFrame(() => {
+          replaceScopes.forEach((scope) => replaceAll(scope));
+        });
+      }
+
       if (!dropdowns.size) return;
 
       requestAnimationFrame(() => {
         dropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
       });
     }).observe(target, {
+      childList: true,
       attributes: true,
       attributeFilter: ["open"],
       subtree: true,
@@ -1714,15 +2125,17 @@ return baseclass.extend({
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
         requestAnimationFrame(() => {
-          document.querySelectorAll(".outline-select.open").forEach((wrap) => {
-            this.positionDropdownPanel(
+          const openSelects = document.querySelectorAll(".outline-select.open");
+          const openDropdowns = document.querySelectorAll(".cbi-dropdown[open]");
+          if (!openSelects.length && !openDropdowns.length) return;
+
+          openSelects.forEach((wrap) => {
+            schedulePanelPosition(
               wrap,
               wrap.querySelector(":scope > .outline-select-panel"),
             );
           });
-          document
-            .querySelectorAll(".cbi-dropdown[open]")
-            .forEach((dropdown) => syncCbiDropdownPanel(dropdown));
+          openDropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
         });
       };
       window.addEventListener("resize", this._dropdownViewportHandler);

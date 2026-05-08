@@ -1,5 +1,10 @@
   resetDropdownPanel(panel) {
     if (!(panel instanceof HTMLElement)) return;
+    if (panel._md3ePositionFrame) {
+      cancelAnimationFrame(panel._md3ePositionFrame);
+      panel._md3ePositionFrame = null;
+    }
+
     panel.classList.remove("align-end");
     panel.classList.remove("above");
     panel.style.removeProperty("position");
@@ -12,6 +17,22 @@
     panel.style.removeProperty("max-width");
   },
 
+  measureDropdownPanel(anchor, panel) {
+    if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
+      return null;
+    }
+
+    const anchorRect = anchor.getBoundingClientRect();
+    return {
+      anchorRect,
+      anchorWidth: Math.ceil(anchorRect.width),
+      naturalWidth: Math.max(panel.scrollWidth, Math.ceil(anchorRect.width)),
+      naturalHeight: Math.max(panel.scrollHeight, 0),
+      viewportWidth: window.visualViewport?.width || window.innerWidth,
+      viewportHeight: window.visualViewport?.height || window.innerHeight,
+    };
+  },
+
   positionDropdownPanel(anchor, panel) {
     if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
       return;
@@ -19,16 +40,17 @@
 
     const viewportPadding = 16;
     const panelGap = 8;
-    const anchorRect = anchor.getBoundingClientRect();
-    const viewportWidth = window.visualViewport?.width || window.innerWidth;
-    const viewportHeight =
-      window.visualViewport?.height || window.innerHeight;
-    const anchorWidth = Math.ceil(anchorRect.width);
+    const metrics = this.measureDropdownPanel(anchor, panel);
+    if (!metrics) return;
 
-    this.resetDropdownPanel(panel);
-
-    const naturalWidth = Math.max(panel.scrollWidth, anchorWidth);
-    const naturalHeight = Math.max(panel.scrollHeight, 0);
+    const {
+      anchorRect,
+      anchorWidth,
+      naturalWidth,
+      naturalHeight,
+      viewportWidth,
+      viewportHeight,
+    } = metrics;
     const availableRight = Math.max(
       anchorWidth,
       Math.floor(viewportWidth - anchorRect.left - viewportPadding),

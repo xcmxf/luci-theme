@@ -128,7 +128,7 @@
   }
 }
 
-@media (max-width: 920px) {
+@media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
   #maincontent #tabmenu,
   #maincontent .cbi-tabmenu {
     margin-inline: auto;

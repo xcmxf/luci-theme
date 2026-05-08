@@ -15,8 +15,27 @@ yarn.lock
 # Local OpenWrt / browser verification artifacts
 LOCAL_OPENWRT_WORKFLOW.md
 log.md
+todo.md
 .openwrt-local.env
 .router-local.env
+*.local.env
+*.private.env
+*.secret
+*.secrets
+*.har
+*.trace
+*.webm
+*.mp4
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.ipk
+*.apk
+*.pem
+*.key
+*.p12
+*.pfx
 /.tmp-*/
 /.tmp-*.css
 /.tmp-*.js
@@ -27,6 +46,10 @@ log.md
 /md3e-edge-*/
 /playwright-report/
 /test-results/
+/previews/*.png
+!/previews/desktop.png
+!/previews/tablet.png
+!/previews/phone.png
 
 # Dev server artifacts
 .dev/preview.stdout.log

@@ -59,3 +59,81 @@
     apply();
     media.addEventListener("change", apply);
   },
+
+  watchForAddedElement(watchKey, target, selector, callback, timeout = 4000) {
+    if (!target || this[watchKey]) return;
+
+    const watchers = target._md3eLazyInitWatchers || new Map();
+    target._md3eLazyInitWatchers = watchers;
+
+    const syncSelector = () => {
+      target._md3eLazyInitSelector = Array.from(watchers.values())
+        .map((watcher) => watcher.selector)
+        .filter(Boolean)
+        .join(", ");
+    };
+
+    const stop = () => {
+      const watcher = watchers.get(watchKey);
+      if (watcher?.timeoutId) clearTimeout(watcher.timeoutId);
+      watchers.delete(watchKey);
+      this[watchKey] = null;
+
+      if (!watchers.size && target._md3eLazyInitObserver) {
+        target._md3eLazyInitObserver.disconnect();
+        target._md3eLazyInitObserver = null;
+        target._md3eLazyInitSelector = "";
+      } else {
+        syncSelector();
+      }
+    };
+
+    const watcher = {
+      selector,
+      timeoutId: setTimeout(stop, timeout),
+      run: () => {
+        stop();
+        callback();
+      },
+    };
+
+    watchers.set(watchKey, watcher);
+    this[watchKey] = watcher;
+    syncSelector();
+
+    if (!target._md3eLazyInitObserver) {
+      target._md3eLazyInitObserver = new MutationObserver((mutations) => {
+        const matched = new Set();
+        const combinedSelector = target._md3eLazyInitSelector;
+        if (!combinedSelector) return;
+
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType !== 1) continue;
+            if (
+              !node.matches?.(combinedSelector) &&
+              !node.querySelector?.(combinedSelector)
+            ) {
+              continue;
+            }
+
+            for (const [key, activeWatcher] of watchers) {
+              if (
+                node.matches?.(activeWatcher.selector) ||
+                node.querySelector?.(activeWatcher.selector)
+              ) {
+                matched.add(key);
+              }
+            }
+          }
+        }
+
+        matched.forEach((key) => watchers.get(key)?.run());
+      });
+
+      target._md3eLazyInitObserver.observe(target, {
+        childList: true,
+        subtree: true,
+      });
+    }
+  },

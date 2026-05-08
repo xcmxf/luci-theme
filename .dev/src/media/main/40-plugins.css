@@ -6,7 +6,55 @@
         @apply flex flex-col items-center gap-2 max-md:w-full! max-md:gap-1;
       }
     }
+
+    [data-page="admin-services-openclash-config"] .sub_div img {
+      @apply h-5 w-5;
+    }
+
+    [data-page="admin-services-openclash-settings"]
+      .cbi-value-field
+      .cbi-input-select {
+      @apply max-md:w-full!;
+    }
   }
+
+  @layer luci-mod-dashboard {
+    .Dashboard > .section-content {
+      .dashboard-bg {
+        @apply bg-panel-bg/95 max-md:bg-panel-bg/98 transition-[background-color,box-shadow,transform] duration-300;
+
+        &.tr {
+          @apply rounded-none;
+        }
+
+        &:not(.tr) {
+          border: none;
+          border-radius: var(--md-sys-shape-corner-extra-large);
+          box-shadow: 0 20px 48px -32px var(--expressive-shadow);
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 28px 64px -38px var(--expressive-shadow);
+          }
+        }
+      }
+
+      .title {
+        img[src*=".svg"] {
+          @apply dark:invert;
+        }
+
+        h3 {
+          @apply text-foreground border-0 pb-4 max-md:mx-0 max-md:pb-2;
+        }
+      }
+
+      .router-status-wifi .wifi-info .devices-info .tr .td {
+        @apply nth-3:relative nth-3:top-0 nth-3:w-full nth-3:px-0 max-md:flex-[1_1_50%];
+      }
+    }
+  }
+
   @layer luci-app-filemanager {
     #file-manager-container {
       @apply overflow-auto;

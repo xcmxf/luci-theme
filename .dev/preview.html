@@ -6,11 +6,9 @@
     <title>MD3E Local Preview</title>
     <script type="module" src="/src/preview/local-preview.js"></script>
     <style>
-      @media (min-width: 921px) {
-        .mobile-menu-overlay,
-        .header-row-2 {
-          display: none !important;
-        }
+      html[data-layout-mode="desktop"] .mobile-menu-overlay,
+      html[data-layout-mode="desktop"] .header-row-2 {
+        display: none !important;
       }
 
       .preview-login-stage {
@@ -1038,34 +1036,32 @@
         content: none !important;
       }
 
-      @media (max-width: 920px) {
-        .docs-sidebar {
-          display: none !important;
-        }
-
-        #maincontent {
-          display: flex !important;
-          flex-direction: column !important;
-          gap: 0 !important;
-        }
-
-        .docs-content {
-          max-width: none !important;
-        }
-
-        .header-row-2 {
-          display: flex !important;
-          opacity: 1 !important;
-          overflow: visible !important;
-        }
-
-        .mobile-menu-overlay {
-          display: block !important;
-        }
+      html[data-layout-mode="mobile"] .docs-sidebar {
+        display: none !important;
       }
 
-      @media (min-width: 921px) and (max-width: 1180px) {
-        .docs-content {
+      html[data-layout-mode="mobile"] #maincontent {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+      }
+
+      html[data-layout-mode="mobile"] .docs-content {
+        max-width: none !important;
+      }
+
+      html[data-layout-mode="mobile"] .header-row-2 {
+        display: flex !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+      }
+
+      html[data-layout-mode="mobile"] .mobile-menu-overlay {
+        display: block !important;
+      }
+
+      @media (max-width: 1180px) {
+        html[data-layout-mode="desktop"] .docs-content {
           max-width: none !important;
         }
       }

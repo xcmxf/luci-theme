@@ -63,6 +63,31 @@ This starts a router-free local preview page at `http://127.0.0.1:4173/` and red
 - **JS changes**: full page reload
 - **Template changes** (`.ut`): copy to the router and restart `uhttpd`
 
+### Device-First Visual Verification
+
+For visual changes that target real LuCI pages, verify on the local OpenWrt
+device before calling the task done. Local preview and headless fixtures are
+useful for quick checks, but they do not replace the device pass.
+
+Default flow:
+
+1. Build or verify so `htdocs/luci-static/` is current.
+2. Copy only the changed generated assets into the device `/www` tree, for
+   example `htdocs/luci-static/md3e/main.css` to
+   `/www/luci-static/md3e/main.css`.
+3. Clear LuCI runtime cache after template or JS changes.
+4. For direct `/www` CSS replacement, ensure the served page uses a fresh
+   asset cache key. The theme header appends `asset_cache_version` to
+   `main.css`; bump the device-side UCI value for local visual checks when
+   the package release version is unchanged.
+5. Confirm the deployed static asset with an HTTP fetch and hash comparison
+   from the workstation.
+6. Open the affected LuCI page on the device and check desktop/mobile and
+   light/dark rendering when the change can affect layout or contrast.
+
+Keep local device addresses, credentials, screenshots, and ad hoc logs out of
+the tracked repository.
+
 ## Building for Production
 
 ### Build Command
@@ -93,6 +118,10 @@ htdocs/luci-static/
 3. Static assets are copied from `.dev/public/md3e/`
 4. JS resources are minified independently with Terser
 
+### Tailwind Source Scope
+
+Production Tailwind scanning is allowlisted from `src/media/main/00-tailwind-sources.css` with `source(none)`. Only `ucode/template/themes/md3e`, `.dev/src/media`, and `.dev/src/resource` are scanned. Local docs and `preview.html` remain outside the production source set so preview text cannot create accidental utility output.
+
 ## Maintenance Checks
 
 ```bash
@@ -100,14 +129,19 @@ cd luci-theme-md3e/.dev/
 npm run verify
 ```
 
-The verifier checks formatting, package/cache version alignment, the shared layout breakpoint used by the real LuCI shell and local preview, mirrored static assets/orphans, and whether `htdocs/luci-static/` matches a fresh `.dev` build.
+The verifier checks formatting, package/cache version alignment, the shared layout breakpoint used by the real LuCI shell and local preview, mirrored static assets/orphans, whether `htdocs/luci-static/` matches a fresh `.dev` build, Terser output safety, Tailwind source scope, and CSS size budgets.
+
+The shared mobile/desktop shell breakpoint is maintained in `src/shared/layout-breakpoints.js`. CSS part files and assembled LuCI JS use the documented `__MD3E_MOBILE_LAYOUT_MAX_WIDTH__` / `__MD3E_DESKTOP_LAYOUT_MIN_WIDTH__` tokens, which `scripts/assemble-sources.js` resolves into browser-compatible media query values. The LuCI `header.ut` template keeps one server-side `mobile_layout_max_width` constant for template-local CSS, and `verify-breakpoints` enforces that it matches the shared source and derives the desktop threshold.
 
 ## Split Source Entries
 
 The build entry files are assembled from smaller source parts:
 
 - `src/media/main.css` is assembled from `src/media/main/*.css`.
+- `public/md3e/components.css` is assembled from `src/public-md3e/components/*.css`.
 - `src/resource/menu-md3e-v2.js` is assembled from `src/resource/menu-md3e-v2/*.js`.
+
+Source part files use two-digit numeric prefixes to make cascade and execution order explicit. Keep names scoped to the responsibility they own, for example `20-layout-shell.css`, `23-tables-forms-segmented.css`, `22-tabs.js`, and `50-root-and-desktop-rendering.js`. When adding or renaming a part, update `scripts/source-assemblies.js`; `verify:source-parts` fails if a numbered part is left out of the manifest.
 
 After editing source parts, run:
 

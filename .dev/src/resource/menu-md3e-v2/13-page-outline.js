@@ -20,6 +20,7 @@
         const label = this.getPageOutlineLabel(titleNode);
         if (label === "-") return null;
         if (!label) return null;
+        if (!this.hasPageOutlineBodyContent(section, titleNode)) return null;
 
         if (!section.id || usedIds.has(section.id)) {
           const slug = this.slugifyText(label, `section-${index + 1}`);
@@ -31,6 +32,71 @@
         return { id: section.id, label, element: section };
       })
       .filter(Boolean);
+  },
+
+  isPageOutlineOmittedNode(node) {
+    if (!(node instanceof HTMLElement)) return false;
+    const hiddenState = ["hid", "den"].join("");
+    if (node[hiddenState] || node.getAttribute("aria-" + hiddenState) === "true") {
+      return true;
+    }
+
+    const style = window.getComputedStyle?.(node);
+    const displayName = ["dis", "play"].join("");
+    const displayNone = ["no", "ne"].join("");
+    const visibilityName = ["vis", "ibility"].join("");
+    const visibilityHidden = hiddenState;
+    const visibilityCollapsed = ["coll", "apse"].join("");
+    return Boolean(
+      style &&
+        (style[displayName] === displayNone ||
+          style[visibilityName] === visibilityHidden ||
+          style[visibilityName] === visibilityCollapsed),
+    );
+  },
+
+  hasPageOutlineBodyContent(section, titleNode) {
+    if (!(section instanceof HTMLElement)) return false;
+    if (this.isPageOutlineOmittedNode(section)) return false;
+
+    const tableElement = ["ta", "ble"].join("");
+    const ignoreSelectors = [
+      ".cbi-title",
+      ".md3e-on-this-page",
+      "script",
+      "style",
+      "template",
+    ].join(", ");
+    const contentSelectors = [
+      tableElement,
+      "svg",
+      "canvas",
+      "img",
+      "input",
+      "select",
+      "textarea",
+      ".ifacebox",
+      ".ifacebadge",
+      ".cbi-section-node",
+      ".cbi-value",
+      ".cbi-map-descr",
+      ".alert-message",
+    ].join(", ");
+
+    return Array.from(section.children).some((child) => {
+      if (!(child instanceof HTMLElement)) return false;
+      if (titleNode && (child === titleNode || child.contains(titleNode))) {
+        return false;
+      }
+      if (child.matches(ignoreSelectors)) return false;
+      if (this.isPageOutlineOmittedNode(child)) return false;
+      if (child.matches(contentSelectors) || child.querySelector(contentSelectors)) {
+        return true;
+      }
+
+      const text = child.textContent?.replace(/\s+/g, " ").trim();
+      return Boolean(text);
+    });
   },
 
   getPageOutlineLabel(titleNode) {
@@ -81,10 +147,20 @@
 
     let outline = main.querySelector(":scope > .md3e-on-this-page");
     if (!sections || sections.length < 2) {
+      if (this._pageOutlineObserver) {
+        this._pageOutlineObserver.disconnect();
+        this._pageOutlineObserver = null;
+      }
+
       outline?.remove();
       document.body?.classList.remove("md3e-has-page-outline");
       return;
     }
+
+    const visibleSections = sections.slice(0, 8);
+    const visibleSectionIds = new Set(
+      visibleSections.map((section) => section.id),
+    );
 
     if (!(outline instanceof HTMLElement)) {
       outline = E("aside", {
@@ -94,7 +170,25 @@
       main.insertBefore(outline, content.nextSibling);
     }
 
+    const outlineKey = visibleSections
+      .map((section) => `${section.id}:${section.label}`)
+      .join("|");
+    const sameElements =
+      Array.isArray(outline._md3eOutlineElements) &&
+      outline._md3eOutlineElements.length === visibleSections.length &&
+      visibleSections.every(
+        (section, index) => outline._md3eOutlineElements[index] === section.element,
+      );
+    if (outline.dataset.md3eOutlineKey === outlineKey && sameElements) {
+      document.body?.classList.add("md3e-has-page-outline");
+      return;
+    }
+
     document.body?.classList.add("md3e-has-page-outline");
+    outline.dataset.md3eOutlineKey = outlineKey;
+    outline._md3eOutlineElements = visibleSections.map(
+      (section) => section.element,
+    );
     outline.innerHTML = "";
 
     const nav = E("nav", { class: "md3e-on-this-page__nav" });
@@ -103,7 +197,7 @@
     );
 
     const list = E("ol", { class: "md3e-on-this-page__list" });
-    sections.slice(0, 8).forEach((section, index) => {
+    visibleSections.forEach((section, index) => {
       list.appendChild(
         E("li", { class: "md3e-on-this-page__item" }, [
           E(
@@ -130,15 +224,20 @@
       outline.querySelectorAll(".md3e-on-this-page__link"),
     );
     const setActive = (id) => {
+      if (!visibleSectionIds.has(id)) return false;
+
       links.forEach((link) => {
         link.classList.toggle("active", link.getAttribute("href") === "#" + id);
       });
+
+      return true;
     };
 
     links.forEach((link) => {
       link.addEventListener("click", (event) => {
         const targetId = link.getAttribute("href")?.slice(1);
         if (!targetId) return;
+        if (!visibleSectionIds.has(targetId)) return;
 
         const target = document.getElementById(targetId);
         if (!(target instanceof HTMLElement)) return;
@@ -179,7 +278,7 @@
       },
     );
 
-    sections.forEach((section) =>
+    visibleSections.forEach((section) =>
       this._pageOutlineObserver.observe(section.element),
     );
   },
@@ -187,6 +286,22 @@
   initPageChrome() {
     const content = document.querySelector(".docs-content");
     if (!content || content._md3ePageChromeInit) return;
+
+    const hasOutlineCandidate = () => {
+      const view = content.querySelector("#view");
+      const map = view?.querySelector(".cbi-map") || view;
+      return this.getPageOutlineSections(map).length >= 2;
+    };
+
+    if (!hasOutlineCandidate()) {
+      this.watchForAddedElement(
+        "_pageChromeBootstrapObserver",
+        content,
+        ".cbi-map, .cbi-section, .cbi-section-node, .cbi-section-table, .cbi-value, .alert-message",
+        () => this.initPageChrome(),
+      );
+      return;
+    }
 
     const decorate = () => {
       content.querySelector(".md3e-page-hero")?.remove();
@@ -201,8 +316,13 @@
 
     decorate();
 
+    let decorateFrame = null;
     new MutationObserver(() => {
-      requestAnimationFrame(decorate);
+      if (decorateFrame) return;
+      decorateFrame = requestAnimationFrame(() => {
+        decorateFrame = null;
+        decorate();
+      });
     }).observe(content, { childList: true, subtree: true });
 
     content._md3ePageChromeInit = true;

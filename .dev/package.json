@@ -9,13 +9,19 @@
     "preview": "npm run assemble && vite --mode local-preview --host 127.0.0.1 --port 4173",
     "build": "npm run assemble && node scripts/clean.js && vite build",
     "clean": "node scripts/clean.js",
-    "format": "prettier --write package.json vite.config.ts scripts/*.js docs/*.md",
-    "format:check": "prettier --check package.json vite.config.ts scripts/*.js docs/*.md",
-    "verify": "npm run format:check && npm run assemble:check && npm run verify:release && npm run verify:breakpoints && npm run verify:assets && npm run verify:generated",
+    "format": "prettier --write package.json vite.config.ts scripts/*.js src/shared/*.js docs/*.md",
+    "format:check": "prettier --check package.json vite.config.ts scripts/*.js src/shared/*.js docs/*.md",
+    "verify": "npm run format:check && npm run verify:source-parts && npm run assemble:check && npm run verify:release && npm run verify:breakpoints && npm run verify:assets && npm run verify:templates && npm run verify:page-outline && npm run verify:generated && npm run verify:terser && npm run verify:tailwind && npm run verify:css-budget",
     "verify:release": "node scripts/verify-release-version.js",
+    "verify:source-parts": "node scripts/verify-source-parts.js",
     "verify:breakpoints": "node scripts/verify-breakpoints.js",
     "verify:assets": "node scripts/verify-assets.js",
-    "verify:generated": "node scripts/verify-generated-output.js"
+    "verify:templates": "node scripts/verify-template-includes.js",
+    "verify:page-outline": "node scripts/verify-page-outline.js",
+    "verify:generated": "node scripts/verify-generated-output.js",
+    "verify:terser": "node scripts/verify-terser-menu.js",
+    "verify:tailwind": "node scripts/verify-tailwind-sources.js",
+    "verify:css-budget": "node scripts/verify-css-budget.js"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",

@@ -100,9 +100,11 @@
     // Close all outline-selects
     document.querySelectorAll(".outline-select.open").forEach((s) => {
       if (s === except) return;
-      this.resetDropdownPanel(
-        s.querySelector(":scope > .outline-select-panel"),
-      );
+      if (s._md3eCloseOutlineSelect) {
+        s._md3eCloseOutlineSelect();
+        return;
+      }
+      this.resetDropdownPanel(s.querySelector(":scope > .outline-select-panel"));
       s.classList.remove("open");
     });
     // Close all cbi-dropdowns

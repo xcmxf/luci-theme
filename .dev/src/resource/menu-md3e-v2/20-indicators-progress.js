@@ -12,8 +12,19 @@
 
   initProgressRings() {
     if (this._progressRingsInitialized) return;
-    this._progressRingsInitialized = true;
 
+    const target = document.getElementById("maincontent") || document.body;
+    if (!target.querySelector(".cbi-progressbar")) {
+      this.watchForAddedElement(
+        "_progressRingBootstrapObserver",
+        target,
+        ".cbi-progressbar",
+        () => this.initProgressRings(),
+      );
+      return;
+    }
+
+    this._progressRingsInitialized = true;
     const syncBar = (bar) => {
       if (!(bar instanceof HTMLElement)) return;
 
@@ -42,7 +53,6 @@
       scope.querySelectorAll?.(".cbi-progressbar").forEach(syncBar);
     };
 
-    const target = document.getElementById("maincontent") || document.body;
     syncAll(document);
 
     this._progressRingThemeHandler = () => syncAll(document);
@@ -72,6 +82,47 @@
       bar.insertBefore(ring, bar.firstChild);
     }
 
+    if (!ring._md3eProgressArc) {
+      ring.textContent = "";
+
+      const radius = 14.5;
+      const circumference = 2 * Math.PI * radius;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      const track = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+      const arc = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+
+      svg.setAttribute("viewBox", "0 0 40 40");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+
+      track.setAttribute("cx", "20");
+      track.setAttribute("cy", "20");
+      track.setAttribute("r", radius);
+      track.setAttribute("fill", "none");
+      track.setAttribute("stroke-width", "2.85");
+
+      arc.setAttribute("cx", "20");
+      arc.setAttribute("cy", "20");
+      arc.setAttribute("r", radius);
+      arc.setAttribute("fill", "none");
+      arc.setAttribute("stroke-width", "3.3");
+      arc.setAttribute("stroke-linecap", "round");
+      arc.setAttribute("transform", "rotate(-90 20 20)");
+      arc.setAttribute("stroke-dasharray", circumference.toFixed(2));
+
+      svg.append(track, arc);
+      ring.appendChild(svg);
+      ring._md3eProgressTrack = track;
+      ring._md3eProgressArc = arc;
+      ring._md3eProgressCircumference = circumference;
+    }
+
     return ring;
   },
 
@@ -82,7 +133,8 @@
     );
 
     bar.style.setProperty("--progress", `${percent}%`);
-    ring.innerHTML = this.buildProgressRingSvg(
+    this.updateProgressRingSvg(
+      ring,
       percent / 100,
       this.getProgressRingPalette(bar),
     );
@@ -125,26 +177,19 @@
     return ctx.fillStyle || fallback;
   },
 
-  escapeProgressRingValue(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/"/g, "&quot;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  },
+  updateProgressRingSvg(ring, progress, palette) {
+    if (!ring?._md3eProgressTrack || !ring?._md3eProgressArc) return;
 
-  buildProgressRingSvg(progress, palette) {
     const clamped = Math.max(0, Math.min(1, progress || 0));
-    const radius = 14.5;
-    const circumference = 2 * Math.PI * radius;
+    const circumference = ring._md3eProgressCircumference;
     const dashOffset = circumference * (1 - clamped);
     const trackOpacity = palette.isDark ? 0.34 : 0.72;
-    const parts = [
-      `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">`,
-      `<circle cx="20" cy="20" r="${radius}" fill="none" stroke="${this.escapeProgressRingValue(palette.track)}" stroke-opacity="${trackOpacity}" stroke-width="2.85"/>`,
-      `<circle cx="20" cy="20" r="${radius}" fill="none" stroke="${this.escapeProgressRingValue(palette.progress)}" stroke-width="3.3" stroke-linecap="round" transform="rotate(-90 20 20)" stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}"/>`,
-    ];
 
-    parts.push(`</svg>`);
-    return parts.join("");
+    ring._md3eProgressTrack.setAttribute("stroke", palette.track);
+    ring._md3eProgressTrack.setAttribute("stroke-opacity", trackOpacity);
+    ring._md3eProgressArc.setAttribute("stroke", palette.progress);
+    ring._md3eProgressArc.setAttribute(
+      "stroke-dashoffset",
+      dashOffset.toFixed(2),
+    );
   },
