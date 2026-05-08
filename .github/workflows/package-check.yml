@@ -24,6 +24,12 @@ on:
       - "ucode/**"
       - "htdocs/**"
   workflow_dispatch:
+    inputs:
+      force_release:
+        description: "Create or update the GitHub release for the current PKG_RELEASE."
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,3 +53,123 @@ jobs:
             ./scripts/feeds install -p luci-base
           artifact_paths: |
             bin/packages/$ARCH/base/*luci-theme-md3e*.[ai]pk
+
+  release:
+    name: create GitHub release
+    needs: package-build
+    runs-on: ubuntu-latest
+    if: >-
+      github.repository == 'xcmxf/luci-theme' &&
+      github.ref_name == github.event.repository.default_branch &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.force_release))
+    permissions:
+      actions: read
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect package release bump
+        id: release
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          FORCE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.force_release }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          get_makefile_field() {
+            local file="$1"
+            local field="$2"
+            sed -n "s/^${field}:=//p" "$file" | head -n 1
+          }
+
+          version="$(get_makefile_field Makefile PKG_VERSION)"
+          release="$(get_makefile_field Makefile PKG_RELEASE)"
+
+          if [[ -z "$version" || -z "$release" ]]; then
+            echo "Unable to read PKG_VERSION or PKG_RELEASE from Makefile" >&2
+            exit 1
+          fi
+
+          package_version="${version}-r${release}"
+          tag="v${version}-rc${release}"
+          title="MD3E ${package_version}"
+
+          release_changed="true"
+          if [[ "${FORCE_RELEASE}" != "true" ]]; then
+            release_changed="false"
+            if [[ -n "${BEFORE_SHA:-}" && ! "${BEFORE_SHA}" =~ ^0+$ ]] && git cat-file -e "${BEFORE_SHA}:Makefile" 2>/dev/null; then
+              git show "${BEFORE_SHA}:Makefile" > /tmp/previous-Makefile
+              previous_release="$(get_makefile_field /tmp/previous-Makefile PKG_RELEASE || true)"
+              if [[ "$release" != "$previous_release" ]]; then
+                release_changed="true"
+              fi
+            else
+              echo "Previous Makefile is unavailable; treating this push as releasable."
+              release_changed="true"
+            fi
+          fi
+
+          release_exists="false"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            release_exists="true"
+          fi
+
+          should_release="false"
+          if [[ "$release_exists" == "false" ]]; then
+            echo "Release $tag does not exist; creating it for the current PKG_RELEASE."
+            should_release="true"
+          elif [[ "$release_changed" == "true" || "${FORCE_RELEASE}" == "true" ]]; then
+            should_release="true"
+          else
+            echo "Release $tag already exists and PKG_RELEASE did not change; skipping release."
+          fi
+
+          {
+            echo "package_version=$package_version"
+            echo "tag=$tag"
+            echo "title=$title"
+            echo "release_exists=$release_exists"
+            echo "should_release=$should_release"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download package artifacts
+        if: steps.release.outputs.should_release == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Create or update GitHub release
+        if: steps.release.outputs.should_release == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          TITLE: ${{ steps.release.outputs.title }}
+          PACKAGE_VERSION: ${{ steps.release.outputs.package_version }}
+        run: |
+          set -euo pipefail
+
+          mapfile -t assets < <(find release-artifacts -type f \( -name "*.apk" -o -name "*.ipk" \) | sort)
+          if (( ${#assets[@]} == 0 )); then
+            echo "No .apk or .ipk artifacts were found to attach to the release." >&2
+            exit 1
+          fi
+
+          cat > release-notes.md <<EOF
+          Automated package release for \`${PACKAGE_VERSION}\`.
+
+          - Source commit: \`${GITHUB_SHA}\`
+          - Build run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${assets[@]}" --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes-file release-notes.md --prerelease
+          else
+            gh release create "$TAG" "${assets[@]}" --title "$TITLE" --notes-file release-notes.md --target "$GITHUB_SHA" --prerelease
+          fi
