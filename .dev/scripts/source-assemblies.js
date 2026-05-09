@@ -51,6 +51,7 @@ export const sourceAssemblies = [
       "src/resource/menu-md3e-v2/31-dropdown-positioning.js",
       "src/resource/menu-md3e-v2/32-custom-selects.js",
       "src/resource/menu-md3e-v2/40-mobile-menu.js",
+      "src/resource/menu-md3e-v2/41-network-status-cards.js",
       "src/resource/menu-md3e-v2/41-action-groups.js",
       "src/resource/menu-md3e-v2/42-mobile-rendering.js",
       "src/resource/menu-md3e-v2/50-root-and-desktop-rendering.js",

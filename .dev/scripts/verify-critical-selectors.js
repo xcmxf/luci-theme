@@ -28,10 +28,16 @@ const layoutCss = readProjectFile(".dev/src/media/main/20-layout-shell.css");
 const actionGroupsJs = readProjectFile(
   ".dev/src/resource/menu-md3e-v2/41-action-groups.js",
 );
+const networkStatusCardsJs = readProjectFile(
+  ".dev/src/resource/menu-md3e-v2/41-network-status-cards.js",
+);
 const pageOutlineSourceCss = readProjectFile(
   ".dev/src/public-md3e/components/60-page-outline.css",
 );
 const publicComponentsCss = readProjectFile(".dev/public/md3e/components.css");
+const statusCardsCss = readProjectFile(
+  ".dev/src/media/main/22-status-cards.css",
+);
 
 assertIncludes(
   headerTemplate,
@@ -63,6 +69,22 @@ assertNotMatch(
   layoutCss,
   /\.cbi-page-actions:has\(\s*>\s*:is\(\.md3e-split-button,\s*\[data-md3e-split-button\]\)\)/,
   "split action layout must not rely on .cbi-page-actions:has(...)",
+);
+
+assertIncludes(
+  networkStatusCardsJs,
+  'card.classList.toggle("md3e-network-card", !isPortCard)',
+  "network status cards must get an explicit .md3e-network-card class",
+);
+assertIncludes(
+  statusCardsCss,
+  ".md3e-network-card-grid",
+  "network status cards must use the MD3E card grid wrapper",
+);
+assertNotMatch(
+  statusCardsCss,
+  /\.md3e-network-card[^{]*\{[\s\S]{0,520}width:\s*fit-content\b/,
+  "network status cards must not shrink to fit-content on mobile",
 );
 
 const navShellHas =

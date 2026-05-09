@@ -2,6 +2,7 @@
     this.initResponsiveLayout();
     ui.menu.load().then((tree) => this.render(tree));
     this.initMobileMenu();
+    this.initNetworkStatusCards();
     this.initActionButtonGroups();
     this.initMobileActionGroups();
     this.initUciIndicator();
