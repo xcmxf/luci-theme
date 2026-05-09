@@ -281,6 +281,7 @@
         .cbi-value-field > *,
         .cbi-value-field .control-group
       ) {
+        width: 100% !important;
         min-width: 0 !important;
         max-width: 100%;
       }
@@ -320,7 +321,6 @@
 
       :where(
         .cbi-section-create,
-        .cbi-page-actions > div,
         .cbi-value-field .control-group
       ) {
         flex-wrap: wrap;
@@ -612,50 +612,67 @@
   }
   @layer segmented {
     .cbi-tabmenu {
-      @apply relative inline-flex max-w-full flex-wrap items-center gap-1.5 p-1.5;
+      @apply relative inline-flex max-w-full flex-wrap items-center gap-1 p-0.5;
+      --_md3e-tab-track-bg: color-mix(
+        in oklab,
+        var(--md-sys-color-surface-container-high) 74%,
+        var(--md-sys-color-surface-container-lowest) 26%
+      );
+      --_md3e-tab-active-bg: color-mix(
+        in oklab,
+        var(--md-sys-color-secondary-container) 92%,
+        var(--md-sys-color-surface-container-lowest) 8%
+      );
       width: fit-content;
       align-self: flex-start;
-      border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+      border: 0;
       border-radius: 999px;
-      background: color-mix(in oklab, var(--surface-highlight) 72%, transparent);
-      box-shadow: 0 16px 32px -24px var(--expressive-shadow);
+      background: var(--_md3e-tab-track-bg);
+      box-shadow: none;
 
       & li {
         @apply relative z-10 m-0 min-w-fit shrink-0 list-none;
 
         & > a {
-          @apply text-muted-foreground flex h-9 cursor-pointer items-center justify-center whitespace-nowrap border-none px-4 text-sm font-bold no-underline transition-all duration-300;
+          @apply text-muted-foreground flex h-9 cursor-pointer items-center justify-center whitespace-nowrap border-none px-4 text-sm font-medium no-underline transition-colors duration-200;
           border-radius: 999px;
 
           &:hover {
             @apply text-foreground;
-            background: color-mix(in oklab, var(--sidebar-hover-bg) 82%, transparent);
+            background: color-mix(in oklab, var(--md-sys-color-on-surface) 7%, transparent);
+          }
+
+          &:focus-visible {
+            outline: 2px solid color-mix(in oklab, var(--md-sys-color-primary) 54%, transparent);
+            outline-offset: 2px;
           }
         }
 
         &.cbi-tab > a {
-          color: var(--md-sys-color-on-primary-container);
-          background: var(--md-sys-color-primary-container);
-          box-shadow:
-            0 8px 16px -8px color-mix(in oklab, var(--md-sys-color-primary) 40%, transparent),
-            inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 10%, transparent);
+          font-weight: 600;
+          color: var(--md-sys-color-on-secondary-container);
+          background: var(--_md3e-tab-active-bg);
+          box-shadow: none;
         }
       }
     }
 
     @media (max-width: 520px) {
       .cbi-tabmenu {
-        @apply gap-1.5 p-2;
+        @apply gap-1 p-1;
+        max-width: 100%;
         width: 100%;
+        min-width: 0;
         flex-wrap: nowrap;
         justify-content: flex-start;
-        border-radius: 1.5rem;
+        border-radius: 999px;
         overflow-x: auto;
         overflow-y: hidden;
+        scrollbar-gutter: stable;
       }
 
       .cbi-tabmenu li > a {
-        @apply px-3.5;
+        @apply px-3;
         min-height: 2.25rem;
       }
     }

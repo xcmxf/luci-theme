@@ -5,7 +5,7 @@
 	const boardinfo = ubus.call('system', 'board');
 	const uci = cursor();
 	const tokens = uci.get_all('md3e', 'theme') || {};
-	const release_cache_version = '1.0.0-5';
+	const release_cache_version = '1.0.0-6';
 	const icon_cache_version = `${tokens.icon_cache_version || '0'}-${release_cache_version}`;
 	const asset_cache_version = `${tokens.asset_cache_version || '0'}-${release_cache_version}`;
 	const logo_png = tokens.logo_png || 'logo.svg';
@@ -17,7 +17,7 @@
 -%}
 
 <!DOCTYPE html>
-<html lang="{{ dispatcher.lang }}">
+<html lang="{{ dispatcher.lang }}" class="{{ blank_page ? 'md3e-login-root' : '' }}">
 	<head>
 		<meta charset="utf-8">
 		<title>{{ striptags(`${dispatched?.title ?  `${_(dispatched.title)} - ` : ''}${boardinfo.hostname ?? '?'}`) }}</title>
@@ -86,6 +86,9 @@
 				});
 
 				const current = getThemePreference();
+				document.querySelectorAll('.theme-switcher').forEach(switcher => {
+					switcher.dataset.activeTheme = current;
+				});
 				document.querySelectorAll('.theme-switcher .theme-option').forEach(opt => {
 					const active = opt.dataset.theme === current;
 					opt.classList.toggle('active', active);
@@ -212,7 +215,7 @@
 		<script src="{{ resource }}/cbi.js"></script>
 	</head>
 
-	<body class="lang_{{ dispatcher.lang }} {{ entityencode(striptags(node?.title ?? ''), true) }}" data-page="{{ entityencode(join('-', ctx.request_path), true) }}">
+	<body class="lang_{{ dispatcher.lang }} {{ blank_page ? 'md3e-login-page' : '' }} {{ entityencode(striptags(node?.title ?? ''), true) }}" data-page="{{ entityencode(join('-', ctx.request_path), true) }}">
 		{% if (!blank_page): %}
 		<header>
 			<div id="header-blur-overlay" class="header-blur-overlay" data-is-opaque="false"></div>

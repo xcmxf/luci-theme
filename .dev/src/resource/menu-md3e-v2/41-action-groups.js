@@ -13,6 +13,7 @@
       const splitButton = directChildren.find((child) =>
         child.matches(".cbi-dropdown"),
       );
+      actions.classList.toggle("md3e-has-split-button", Boolean(splitButton));
 
       if (splitButton) {
         this.initSplitButton(splitButton);

@@ -13,6 +13,8 @@
     }
 
     this._customSelectsInitialized = true;
+    this._openOutlineSelects = this._openOutlineSelects || new Set();
+    this._openCbiDropdowns = this._openCbiDropdowns || new Set();
 
     const schedulePanelPosition = (anchor, panel) => {
       if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
@@ -38,8 +40,10 @@
       if (!(panel instanceof HTMLElement)) return;
 
       if (dropdown.hasAttribute("open")) {
+        this._openCbiDropdowns.add(dropdown);
         schedulePanelPosition(dropdown, panel);
       } else {
+        this._openCbiDropdowns.delete(dropdown);
         this.resetDropdownPanel(panel);
       }
     };
@@ -111,6 +115,7 @@
         if (isOpen || sel.disabled) return;
         this.closeAllDropdowns(wrap);
         isOpen = true;
+        this._openOutlineSelects.add(wrap);
         wrap.classList.add("open");
         schedulePanelPosition(wrap, panel);
       };
@@ -118,6 +123,7 @@
       const close = () => {
         if (!isOpen) return;
         isOpen = false;
+        this._openOutlineSelects.delete(wrap);
         this.resetDropdownPanel(panel);
         wrap.classList.remove("open");
       };
@@ -157,20 +163,22 @@
       }).observe(sel, { attributes: true, childList: true, subtree: true });
     };
 
-    const replaceAll = (scope = document) => {
-      if (scope instanceof HTMLSelectElement) {
-        replace(scope);
-        return;
-      }
-
-      scope.querySelectorAll?.("select").forEach(replace);
+    const replaceAll = (scope = target) => {
+      this.forEachElementMatch(scope, "select", replace);
     };
 
-    replaceAll();
+    replaceAll(target);
+    target
+      .querySelectorAll?.(".cbi-dropdown[open]")
+      .forEach(syncCbiDropdownPanel);
 
     if (!this._customSelectClickHandler) {
       this._customSelectClickHandler = (e) => {
-        document.querySelectorAll(".outline-select.open").forEach((wrap) => {
+        Array.from(this._openOutlineSelects || []).forEach((wrap) => {
+          if (!wrap.isConnected) {
+            this._openOutlineSelects.delete(wrap);
+            return;
+          }
           if (!wrap.contains(e.target)) wrap._md3eCloseOutlineSelect?.();
         });
 
@@ -186,13 +194,16 @@
     }
 
     this._customSelectObserver = new MutationObserver((mutations) => {
-      const replaceScopes = new Set();
       const dropdowns = new Set();
+      const addedSelects = new Set();
 
       mutations.forEach((mutation) => {
         if (mutation.type === "childList") {
           mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) replaceScopes.add(node);
+            if (node.nodeType !== 1) return;
+            this.forEachElementMatch(node, "select", (select) => {
+              addedSelects.add(select);
+            });
           });
           return;
         }
@@ -206,9 +217,11 @@
         }
       });
 
-      if (replaceScopes.size) {
+      if (addedSelects.size) {
         requestAnimationFrame(() => {
-          replaceScopes.forEach((scope) => replaceAll(scope));
+          addedSelects.forEach((select) => {
+            if (select.isConnected) replace(select);
+          });
         });
       }
 
@@ -227,8 +240,12 @@
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
         requestAnimationFrame(() => {
-          const openSelects = document.querySelectorAll(".outline-select.open");
-          const openDropdowns = document.querySelectorAll(".cbi-dropdown[open]");
+          const openSelects = Array.from(this._openOutlineSelects || []).filter(
+            (wrap) => wrap.isConnected,
+          );
+          const openDropdowns = Array.from(this._openCbiDropdowns || []).filter(
+            (dropdown) => dropdown.isConnected && dropdown.hasAttribute("open"),
+          );
           if (!openSelects.length && !openDropdowns.length) return;
 
           openSelects.forEach((wrap) => {

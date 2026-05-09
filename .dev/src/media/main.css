@@ -371,12 +371,10 @@
   from {
     opacity: 0;
     transform: translateY(-8px) scale(0.95);
-    filter: blur(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0px);
   }
 }
 
@@ -384,12 +382,10 @@
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0px);
   }
   to {
     opacity: 0;
     transform: translateY(-8px) scale(0.95);
-    filter: blur(4px);
   }
 }
 
@@ -543,22 +539,18 @@
 @keyframes vt-fade-out {
   from {
     opacity: 1;
-    filter: blur(0);
   }
   to {
     opacity: 0;
-    filter: blur(3px);
   }
 }
 
 @keyframes vt-fade-in {
   from {
     opacity: 0;
-    filter: blur(3px);
   }
   to {
     opacity: 1;
-    filter: blur(0);
   }
 }
 
@@ -863,7 +855,13 @@
         @apply absolute inset-0 z-0 transition-colors duration-500;
         background: color-mix(in oklab, var(--md-sys-color-surface) 82%, transparent);
         border-bottom: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 68%, transparent);
-        backdrop-filter: none; @media (min-width: 64rem) { backdrop-filter: blur(14px); }
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+
+        @media (min-width: 64rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+          backdrop-filter: blur(10px) saturate(1.04);
+          -webkit-backdrop-filter: blur(10px) saturate(1.04);
+        }
 
         &[data-is-opaque="true"] {
           background: color-mix(in oklab, var(--md-sys-color-surface) 92%, transparent);
@@ -876,6 +874,16 @@
 
         [data-darkmode="true"] &[data-is-opaque="true"] {
           background: color-mix(in oklab, var(--md-sys-color-surface-container-low) 92%, transparent);
+        }
+      }
+
+      @media (max-width: 920px) {
+        body.mobile-menu-open & {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 70;
         }
       }
 
@@ -1404,11 +1412,14 @@
         @media (width < 48rem) {
           display: flex;
           position: static;
-          justify-content: flex-start;
+          justify-content: stretch;
           align-items: stretch;
-          flex-direction: column;
-          gap: 0.75rem;
-          width: 100%;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+          width: fit-content;
+          max-width: min(100%, 18rem);
+          margin-inline: auto;
           padding: 0;
           border-radius: 0;
           border: 0;
@@ -1440,23 +1451,23 @@
           background: color-mix(in oklab, var(--surface-bg) 96%, transparent);
           box-shadow: 0 -4px 16px var(--expressive-shadow);
           border-top: 1px solid color-mix(in oklab, var(--border) 54%, transparent);
-          flex-wrap: nowrap;
-          flex-direction: column;
+          flex-wrap: wrap;
+          flex-direction: row;
           justify-content: flex-start;
           align-items: stretch;
-          gap: 0.75rem;
+          gap: 0.3rem;
         }
 
         .cbi-page-actions > .cbi-button,
         .cbi-page-actions > .cbi-dropdown {
-          flex: 1 1 auto;
+          flex: 1 1 100%;
           min-width: 0;
           width: 100%;
         }
 
         .cbi-page-actions > .cbi-button,
         .cbi-page-actions > .cbi-dropdown {
-          flex: 1 1 auto;
+          flex: 1 1 100%;
           width: 100%;
           min-width: 0;
           white-space: nowrap;
@@ -1518,8 +1529,8 @@
         content: none;
       }
 
-      .cbi-map > .cbi-page-actions:has(> :is(.md3e-split-button, [data-md3e-split-button])),
-      .cbi-map .cbi-page-actions:has(> :is(.md3e-split-button, [data-md3e-split-button])) {
+      .cbi-map > .cbi-page-actions.md3e-has-split-button,
+      .cbi-map .cbi-page-actions.md3e-has-split-button {
         width: fit-content;
         max-width: min(100%, 30rem);
         margin-inline: auto;
@@ -1692,15 +1703,15 @@
         }
       }
 
-      &:has(.theme-option[data-theme="device"].active) {
+      &[data-active-theme="device"] {
         @apply before:translate-x-0;
       }
 
-      &:has(.theme-option[data-theme="light"].active) {
+      &[data-active-theme="light"] {
         @apply before:translate-x-[calc(100%+0.5rem)];
       }
 
-      &:has(.theme-option[data-theme="dark"].active) {
+      &[data-active-theme="dark"] {
         @apply before:translate-x-[calc(200%+1rem)];
       }
 
@@ -1986,7 +1997,7 @@
 
     @media (min-width: 48rem) {
       .cbi-page-actions {
-        @apply sticky bottom-6 z-50 flex items-center justify-center gap-2 w-fit mx-auto my-12 px-4 py-2.5 rounded-full border shadow-2xl;
+        @apply z-50 flex items-center justify-center gap-2 w-fit mx-auto px-4 py-2.5 rounded-full border shadow-2xl;
         --md3e-action-save-bg: color-mix(in oklab, var(--md-sys-color-secondary-container) 74%, var(--md-sys-color-surface-container-high));
         --md3e-action-save-fg: var(--md-sys-color-on-secondary-container);
         --md3e-action-save-hover: color-mix(in oklab, var(--md3e-action-save-bg) 82%, var(--md-sys-color-tertiary-container));
@@ -1997,13 +2008,22 @@
         --md3e-action-reset-ring: transparent;
         border-color: color-mix(in oklab, var(--border) 45%, transparent);
         background: color-mix(in oklab, var(--surface-highlight) 76%, transparent);
-        backdrop-filter: blur(10px) saturate(115%);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         box-shadow:
           0 24px 48px -12px var(--expressive-shadow),
           0 4px 12px -4px var(--expressive-shadow);
         animation: preview-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        position: static;
+        bottom: auto;
         width: fit-content;
         max-width: min(100%, 32rem);
+        margin-block: 1rem 0;
+
+        @media (min-width: 64rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+          backdrop-filter: blur(8px) saturate(1.04);
+          -webkit-backdrop-filter: blur(8px) saturate(1.04);
+        }
 
         [data-darkmode="true"] & {
           --md3e-action-save-bg: color-mix(in oklab, var(--md-sys-color-secondary-container) 64%, var(--md-sys-color-surface-container-highest));
@@ -2097,6 +2117,11 @@
 
     #localtime {
       @apply min-w-70;
+
+      @media (max-width: 920px) {
+        width: 100%;
+        min-width: 0;
+      }
     }
 
     /* Outline buttons for Local Time sync actions */
@@ -2679,8 +2704,8 @@
 
     .cbi-page-actions > .cbi-dropdown:is(.md3e-split-button, [data-md3e-split-button="true"]) {
       width: 100%;
-      min-height: 3.35rem;
-      grid-template-columns: minmax(0, 1fr) 3.35rem;
+      min-height: 2.45rem;
+      grid-template-columns: minmax(0, 1fr) 2.65rem;
     }
   }
   @layer tooltip {
@@ -2731,7 +2756,7 @@
 @layer components {
   @layer message {
     .alert-message {
-      @apply relative mt-0 mb-8 overflow-hidden border shadow-xl;
+      @apply relative mt-0 mb-8 overflow-hidden border;
       border-radius: 1.25rem;
       padding: 1.25rem 1.5rem 1.25rem 3.5rem;
       background: var(--md-sys-color-surface-container-high);
@@ -2769,10 +2794,8 @@
         padding-left: 44px;
         padding-right: 1rem;
         box-shadow:
-          0 8px 24px rgba(0, 0, 0, 0.28),
+          0 8px 20px rgba(0, 0, 0, 0.22),
           0 0 0 1px oklch(1 0 0 / 0.06);
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
         animation: sileo-toast-in 400ms var(--sileo-spring) both;
         transition: top 300ms ease;
 
@@ -2845,8 +2868,6 @@
           max-width: none;
           top: calc(8rem + var(--toast-index, 0) * 2.5rem);
           box-shadow: 0 8px 20px -16px var(--expressive-shadow);
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
         }
       }
 
@@ -3061,7 +3082,12 @@
     }
 
     .ifacebadge {
-      @apply border-border bg-label-surface text-default-foreground hover:border-border hover:bg-label-surface inline-flex cursor-default flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-sm font-normal shadow-sm transition-all duration-200 hover:shadow-md max-md:gap-1.5 max-md:px-2.5 max-md:py-1.5 max-md:text-xs;
+      @apply border-border bg-label-surface text-default-foreground hover:border-border hover:bg-label-surface inline-flex cursor-default flex-wrap items-center gap-1.5 rounded-md border px-2 py-1.5 text-sm font-normal transition-all duration-200 hover:shadow-sm max-md:gap-1 max-md:px-2 max-md:py-1 max-md:text-xs;
+      min-width: 0;
+      border-radius: var(--md-sys-shape-corner-medium);
+      background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 82%, var(--md-sys-color-secondary-container) 7%);
+      box-shadow: inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 24%, transparent);
+      font-variant-numeric: tabular-nums;
 
       .cbi-dropdown &,
       .cbi-tooltip & {
@@ -3077,21 +3103,28 @@
       }
 
       & > img {
-        @apply h-5 w-5 shrink-0 self-center object-contain max-md:h-4 max-md:w-4;
+        @apply h-4.5 w-4.5 shrink-0 self-center object-contain max-md:h-4 max-md:w-4;
       }
 
       & > span {
+        min-width: 0;
+
         & > .nowrap {
-          @apply mb-1.5 inline-block text-sm max-md:text-xs;
+          @apply mb-1 inline-block text-sm max-md:text-xs;
         }
       }
 
       &.ifacebadge-active {
         @apply border-primary font-semibold;
+        color: var(--md-sys-color-on-primary-container);
+        background: color-mix(in oklab, var(--md-sys-color-primary-container) 72%, var(--md-sys-color-surface-container-lowest));
+        box-shadow:
+          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 18%, transparent),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 36%, transparent);
       }
 
       &.large {
-        @apply min-w-[200px] flex-1 px-4 py-3 max-md:min-w-[180px] max-md:px-3 max-md:py-2.5;
+        @apply min-w-[11rem] flex-1 px-2.5 py-2 max-md:min-w-0 max-md:px-2 max-md:py-1.5;
       }
     }
   }
@@ -3155,10 +3188,15 @@
 
           & .label[data-clickable] {
             @apply text-primary;
-            @apply inline-flex size-8 cursor-pointer items-center justify-center p-0 before:size-4 before:bg-current before:transition-transform before:duration-300 hover:shadow-md active:scale-95 max-md:size-7;
+            @apply relative inline-flex size-8 cursor-pointer items-center justify-center p-0 text-[0px] leading-none before:size-4 before:bg-current before:transition-transform before:duration-300 hover:shadow-md active:scale-95 max-md:size-7;
             border-radius: 999px;
             background: color-mix(in srgb, var(--primary) 10%, var(--label-surface));
             box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 14%, transparent);
+            font-size: 0;
+            line-height: 0;
+            letter-spacing: 0;
+            white-space: nowrap;
+            overflow: visible;
           }
 
           & span[data-indicator="poll-status"] {
@@ -3235,7 +3273,8 @@
       }
 
       & .network-status-table {
-        @apply mb-3 flex flex-wrap justify-start gap-4 max-md:flex-col;
+        @apply mb-2 flex flex-wrap items-start justify-start gap-2 max-md:gap-1.5;
+        min-width: 0;
       }
 
       & .cbi-section-create {
@@ -3252,40 +3291,48 @@
       }
     }
 
+  }
+}
+@layer components {
+  @layer card {
     /* Port status cards use inline dimensions and a zonebadge strip. */
     div:has(> .ifacebox > .ifacebox-head.cbi-tooltip-container)[style*="grid"] {
-      grid-template-columns: repeat(auto-fit, minmax(9.75rem, 11.25rem)) !important;
+      grid-template-columns: repeat(auto-fit, minmax(7.35rem, 8.65rem)) !important;
       justify-content: start;
-      gap: 0.7rem;
+      gap: 0.34rem;
       margin-bottom: 0 !important;
     }
 
     .ifacebox:has(> .ifacebox-head.cbi-tooltip-container) {
-      min-width: 9.75rem !important;
-      max-width: 11.25rem !important;
-      min-height: 11.65rem;
+      min-width: 7.35rem !important;
+      max-width: 8.65rem !important;
+      min-height: 7.65rem;
       margin: 0 !important;
-      padding: 0.6rem 0.55rem 0.65rem;
-      border-radius: var(--md-sys-shape-corner-large-increased);
-      border-color: color-mix(in oklab, var(--md-sys-color-primary) 16%, var(--md-sys-color-outline-variant));
-      background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--md-sys-color-surface-container) 82%, var(--md-sys-color-primary-container) 18%),
-        color-mix(in oklab, var(--md-sys-color-surface-container-low) 92%, transparent)
-      );
+      padding: 0.32rem;
+      border-radius: var(--md-sys-shape-corner-large);
+      border-color: color-mix(in oklab, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in oklab, var(--md-sys-color-surface-container-high) 78%, var(--md-sys-color-primary-container) 22%),
+          color-mix(in oklab, var(--md-sys-color-surface-container-low) 84%, var(--md-sys-color-tertiary-container) 16%)
+        );
       box-shadow:
-        0 18px 38px -30px var(--expressive-shadow),
-        inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 68%, transparent);
+        0 14px 28px -28px var(--expressive-shadow),
+        inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 58%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 7%, transparent);
 
       & > .ifacebox-head:first-child {
-        @apply mx-auto mb-0.5 px-2 py-0.5 text-xs font-semibold;
+        @apply mx-auto mb-0.5 px-1.5 py-0 text-xs font-semibold;
         width: max-content;
         max-width: 100%;
-        line-height: 1.2;
+        line-height: 1.08;
         border-radius: var(--md-sys-shape-corner-full);
         color: var(--md-sys-color-on-primary-container);
-        background: color-mix(in oklab, var(--md-sys-color-primary-container) 72%, transparent);
-        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 16%, transparent);
+        background: color-mix(in oklab, var(--md-sys-color-primary-container) 76%, var(--md-sys-color-surface-container-high));
+        box-shadow:
+          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 18%, transparent),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 40%, transparent);
         text-shadow: none;
 
         &::before {
@@ -3298,23 +3345,23 @@
         justify-content: center;
       }
 
-      & > .ifacebox-body:first-of-type {
-        min-height: 4.25rem;
-        font-size: var(--md-sys-typescale-body-medium-size);
+      & > .ifacebox-head:first-child + .ifacebox-body {
+        min-height: 2.65rem;
+        font-size: 0.75rem;
         font-weight: 500;
-        line-height: 1.22;
+        line-height: 1.08;
         color: var(--md-sys-color-on-surface);
 
         & > img {
-          width: 2.45rem;
-          height: 2.45rem;
-          margin: 0 auto 0.25rem;
-          padding: 0.3rem;
-          border-radius: var(--md-sys-shape-corner-large);
-          background: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 66%, var(--md-sys-color-secondary-container) 20%);
+          width: 1.42rem;
+          height: 1.42rem;
+          margin: 0 auto 0.08rem;
+          padding: 0.13rem;
+          border-radius: var(--md-sys-shape-corner-medium);
+          background: color-mix(in oklab, var(--md-sys-color-secondary-container) 42%, var(--md-sys-color-surface-container-highest));
           box-shadow:
-            inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 42%, transparent),
-            0 10px 22px -18px var(--expressive-shadow);
+            inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 34%, transparent),
+            0 8px 18px -20px var(--expressive-shadow);
         }
 
         & > br {
@@ -3323,24 +3370,22 @@
       }
 
       & > .ifacebox-head.cbi-tooltip-container {
-        @apply my-1 px-0 py-0;
+        @apply my-0.5 px-0 py-0;
         display: flex !important;
-        min-height: 0.62rem;
+        min-height: 0.38rem;
         align-items: stretch;
-        gap: 0.1rem;
+        gap: 0.06rem;
         overflow: visible;
         border-radius: var(--md-sys-shape-corner-full);
-        background: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 70%, transparent);
+        background: color-mix(in oklab, var(--md-sys-color-surface-container-highest) 72%, var(--md-sys-color-primary-container) 8%);
         box-shadow:
-          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 36%, transparent),
-          inset 0 1px 2px color-mix(in oklab, var(--md-sys-color-shadow) 8%, transparent);
+          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 30%, transparent),
+          inset 0 1px 2px color-mix(in oklab, var(--md-sys-color-shadow) 6%, transparent);
 
         & .zonebadge {
-          height: 0.62rem !important;
+          height: 0.38rem !important;
           border-radius: var(--md-sys-shape-corner-full);
-          box-shadow:
-            inset 0 1px 0 color-mix(in oklab, white 38%, transparent),
-            0 0 10px color-mix(in oklab, var(--success) 24%, transparent);
+          box-shadow: none;
         }
       }
 
@@ -3348,48 +3393,68 @@
         align-items: stretch;
 
         & > .cbi-tooltip-container {
-          @apply w-full px-2 py-1 text-xs font-medium;
-          border-radius: var(--md-sys-shape-corner-medium);
-          background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 76%, transparent);
+          @apply w-full px-1 py-0.5 text-xs font-medium;
+          border-radius: var(--md-sys-shape-corner-small);
+          background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 72%, var(--md-sys-color-secondary-container) 5%);
           box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 30%, transparent);
           color: var(--md-sys-color-on-surface-variant);
           font-variant-numeric: tabular-nums;
-          line-height: 1.18;
+          line-height: 1.08;
           text-align: center !important;
         }
       }
     }
 
     .network-status-table > .ifacebox:not(:has(> .ifacebox-head.cbi-tooltip-container)) {
-      flex: 0 1 23.5rem;
-      width: min(100%, 29rem);
-      max-width: none !important;
-      min-width: min(100%, 18rem);
-      border-radius: var(--md-sys-shape-corner-large-increased);
-      border-color: color-mix(in oklab, var(--md-sys-color-primary) 14%, var(--md-sys-color-outline-variant));
+      flex: 0 1 auto;
+      width: fit-content;
+      max-width: min(100%, 21.75rem) !important;
+      min-width: min(100%, 15.25rem);
+      padding: 0.44rem 0.38rem 0.52rem;
+      border-radius: var(--md-sys-shape-corner-extra-large);
+      border-color: color-mix(in oklab, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
       background:
         radial-gradient(
-          ellipse at 50% 0%,
-          color-mix(in oklab, var(--md-sys-color-primary-container) 28%, transparent),
-          transparent 42%
+          circle at 12% 0%,
+          color-mix(in oklab, var(--md-sys-color-primary-container) 30%, transparent),
+          transparent 34%
         ),
         linear-gradient(
-          180deg,
-          color-mix(in oklab, var(--md-sys-color-surface-container) 84%, var(--md-sys-color-primary-container) 16%),
-          color-mix(in oklab, var(--md-sys-color-surface-container-low) 96%, transparent)
+          150deg,
+          color-mix(in oklab, var(--md-sys-color-surface-container-high) 82%, var(--md-sys-color-primary-container) 18%),
+          color-mix(in oklab, var(--md-sys-color-surface-container-low) 84%, var(--md-sys-color-secondary-container) 16%)
         );
       box-shadow:
-        0 16px 34px -30px var(--expressive-shadow),
-        inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 68%, transparent);
+        0 18px 40px -34px var(--expressive-shadow),
+        inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 62%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 8%, transparent);
+      overflow: hidden;
+
+      @media (max-width: 920px) {
+        flex: 0 1 auto;
+        width: fit-content;
+        max-width: 100% !important;
+      }
 
       & > .ifacebox-head {
-        @apply mx-auto mt-2 mb-1 w-max max-w-[calc(100%-1.5rem)] rounded-full px-3 py-0.5 text-center text-sm font-semibold;
+        @apply mx-auto mb-0 inline-grid items-center rounded-xl px-1.5 py-1 text-center font-semibold;
+        width: fit-content;
+        max-width: calc(100% - 0.18rem);
+        min-height: 1.45rem;
         color: var(--md-sys-color-on-primary-container);
-        background: color-mix(in oklab, var(--md-sys-color-primary-container) 72%, transparent);
+        background:
+          linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--md-sys-color-primary-container) 78%, var(--md-sys-color-surface-container) 22%),
+            color-mix(in oklab, var(--md-sys-color-secondary-container) 42%, var(--md-sys-color-surface-container-high) 58%)
+          );
         box-shadow:
           inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 16%, transparent),
-          0 8px 18px -20px var(--expressive-shadow);
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 42%, transparent);
         text-shadow: none;
+        font-size: 0.78rem;
+        line-height: 1.12;
+        letter-spacing: 0.01em;
 
         &::before {
           content: none;
@@ -3397,20 +3462,29 @@
       }
 
       & > .ifacebox-body {
-        @apply items-stretch gap-2 px-3 pt-1.5 pb-2.5 text-left max-md:px-2.5 max-md:pb-2.5;
+        @apply items-stretch px-0 pb-0 text-left max-md:px-0 max-md:pb-0;
+        gap: 0.14rem;
+        padding-top: 0.18rem;
       }
 
       & > .ifacebox-body > span {
-        @apply grid w-full gap-1.5 text-sm;
-        line-height: 1.28;
+        @apply grid w-full text-sm;
+        gap: 0.035rem;
+        line-height: 1.1;
 
         & > .nowrap {
-          @apply mb-0 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-sm max-md:flex-col max-md:items-start max-md:gap-0.5;
-          min-height: 2rem;
-          background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 54%, transparent);
-          box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 16%, transparent);
+          @apply mb-0 grid items-center rounded-lg px-1 text-sm;
+          column-gap: 0.34rem;
+          grid-template-columns: minmax(3.85rem, max-content) minmax(0, 1fr);
+          min-height: 1.24rem;
+          padding-block: 0.09rem;
+          border-radius: var(--md-sys-shape-corner-full);
+          background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 58%, var(--md-sys-color-primary-container) 12%);
+          box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 8%, transparent),
+            inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 16%, transparent);
           color: var(--md-sys-color-on-surface-variant);
-          line-height: 1.22;
+          line-height: 1.08;
           white-space: normal;
           overflow-wrap: anywhere;
           font-variant-numeric: tabular-nums;
@@ -3423,43 +3497,55 @@
 
         & > .nowrap :is(small, em) {
           color: var(--md-sys-color-on-surface-variant);
-          font-size: 0.75rem;
-          line-height: 1.16;
+          font-size: 0.7rem;
+          line-height: 1.1;
         }
 
         & > .nowrap:nth-child(odd) {
-          background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 64%, transparent);
+          background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 54%, var(--md-sys-color-secondary-container) 12%);
         }
       }
 
       & > .ifacebox-body > div {
-        @apply mt-0 flex w-full flex-wrap items-stretch gap-1.5;
+        @apply mt-0 flex w-full flex-wrap items-center justify-center;
+        gap: 0.18rem;
       }
 
       & > .ifacebox-body > div > .ifacebadge {
-        @apply min-w-0 flex-1 basis-44 items-center gap-2 px-2.5 py-2 text-left text-xs max-md:basis-full;
-        align-self: stretch;
-        min-height: 6.25rem;
-        border-radius: var(--md-sys-shape-corner-medium);
-        border-color: color-mix(in oklab, var(--md-sys-color-outline-variant) 38%, transparent);
-        background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 78%, var(--md-sys-color-secondary-container) 8%);
+        @apply min-w-0 items-center justify-center gap-1 px-1 text-center text-xs;
+        flex: 0 1 auto;
+        width: fit-content;
+        max-width: calc(100% - 0.18rem);
+        align-self: center;
+        min-height: 3.05rem;
+        padding-block: 0.36rem;
+        border-radius: var(--md-sys-shape-corner-large);
+        border-color: color-mix(in oklab, var(--md-sys-color-secondary) 18%, var(--md-sys-color-outline-variant));
+        background:
+          linear-gradient(
+            145deg,
+            color-mix(in oklab, var(--md-sys-color-surface-container-high) 62%, var(--md-sys-color-secondary-container) 14%),
+            color-mix(in oklab, var(--md-sys-color-surface-container) 74%, var(--md-sys-color-tertiary-container) 10%)
+          );
         box-shadow:
-          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 50%, transparent),
-          0 12px 24px -26px var(--expressive-shadow);
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 46%, transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-secondary) 10%, transparent);
 
         & > img {
-          width: 1.65rem;
-          height: 1.65rem;
-          padding: 0.25rem;
+          width: 1.18rem;
+          height: 1.18rem;
+          padding: 0.13rem;
           border-radius: var(--md-sys-shape-corner-medium);
-          background: color-mix(in oklab, var(--md-sys-color-secondary-container) 42%, transparent);
+          background: color-mix(in oklab, var(--md-sys-color-secondary-container) 50%, var(--md-sys-color-surface-container));
         }
 
         & > span {
-          @apply grid h-full gap-0 text-xs;
-          align-content: start;
+          @apply grid h-full gap-0.5 text-xs;
+          align-content: center;
+          justify-items: center;
           color: var(--md-sys-color-on-surface);
-          line-height: 1.22;
+          text-align: center;
+          line-height: 1.12;
           min-width: 0;
           font-variant-numeric: tabular-nums;
 
@@ -3473,32 +3559,54 @@
     }
 
     .ifacebox {
-      @apply relative inline-flex min-w-40 flex-col items-stretch overflow-clip text-center text-base leading-5 transition-all duration-300 max-md:min-w-30 max-md:flex-1;
+      @apply relative inline-flex min-w-40 flex-col items-stretch overflow-clip text-center text-base leading-5 transition-all duration-200 max-md:min-w-30 max-md:flex-1;
       margin: 0 !important;
       max-width: none !important;
       isolation: isolate;
-      border-radius: var(--md-sys-shape-corner-large);
-      border: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 58%, transparent);
-      background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--md-sys-color-surface-container) 96%, var(--md-sys-color-primary-container) 4%),
-        color-mix(in oklab, var(--md-sys-color-surface-container-low) 94%, transparent)
-      );
+      border-radius: var(--md-sys-shape-corner-extra-large);
+      border: 1px solid color-mix(in oklab, var(--md-sys-color-outline-variant) 52%, transparent);
+      background:
+        radial-gradient(
+          circle at 18% 0%,
+          color-mix(in oklab, var(--md-sys-color-primary-container) 22%, transparent),
+          transparent 36%
+        ),
+        linear-gradient(
+          150deg,
+          color-mix(in oklab, var(--md-sys-color-surface-container-low) 86%, var(--md-sys-color-primary-container) 14%),
+          color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 90%, var(--md-sys-color-secondary-container) 10%)
+        );
       box-shadow:
-        0 14px 30px -28px var(--expressive-shadow),
-        inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 58%, transparent);
+        0 14px 30px -30px var(--expressive-shadow),
+        inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 48%, transparent);
+
+      @supports (content-visibility: auto) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 9rem;
+      }
+
+      @media (max-width: 920px) {
+        min-width: 0 !important;
+        overflow-wrap: anywhere;
+      }
 
       &:hover {
-        transform: translateY(-2px);
-        border-color: color-mix(in oklab, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
-        background: linear-gradient(
-          180deg,
-          color-mix(in oklab, var(--md-sys-color-surface-container-high) 94%, var(--md-sys-color-primary-container) 6%),
-          color-mix(in oklab, var(--md-sys-color-surface-container) 96%, transparent)
-        );
+        transform: translateY(-1px);
+        border-color: color-mix(in oklab, var(--md-sys-color-primary) 22%, var(--md-sys-color-outline-variant));
+        background:
+          radial-gradient(
+            circle at 18% 0%,
+            color-mix(in oklab, var(--md-sys-color-primary-container) 28%, transparent),
+            transparent 38%
+          ),
+          linear-gradient(
+            150deg,
+            color-mix(in oklab, var(--md-sys-color-surface-container) 82%, var(--md-sys-color-primary-container) 18%),
+            color-mix(in oklab, var(--md-sys-color-surface-container-low) 88%, var(--md-sys-color-secondary-container) 12%)
+          );
         box-shadow:
-          0 18px 36px -30px var(--expressive-shadow),
-          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 64%, transparent);
+          0 18px 36px -32px var(--expressive-shadow),
+          inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 56%, transparent);
       }
 
       td & {
@@ -3526,7 +3634,6 @@
               rgba(var(--zone-color-rgb), 0.07) 42%,
               transparent 70%
             );
-            filter: blur(4px);
           }
         }
 
@@ -3560,14 +3667,13 @@
               color-mix(in srgb, var(--primary) 8%, transparent) 38%,
               transparent 68%
             );
-            filter: blur(4px);
           }
         }
       }
 
       & .ifacebox-body {
         @apply text-default-foreground flex w-full flex-1 flex-col items-center justify-around gap-2 px-4 pt-2 pb-3 text-center max-md:rounded-b-2xl max-md:px-3 max-md:pt-1.5 max-md:pb-2.5;
-        line-height: 1.45;
+        line-height: 1.4;
 
         td & {
           @apply max-md:flex-row max-md:rounded-r-2xl max-md:rounded-bl-none max-md:py-2 max-md:pr-2 max-md:pl-4;
@@ -3604,7 +3710,7 @@
         }
 
         & > div {
-          @apply flex w-full space-y-2 max-md:space-y-1.5;
+          @apply flex w-full space-y-1.5 max-md:space-y-1;
           td & {
             @apply max-md:w-auto max-md:flex-1 max-md:space-y-1;
           }
@@ -3613,15 +3719,13 @@
             min-width: 0;
             border-color: color-mix(in oklab, var(--md-sys-color-outline-variant) 44%, transparent);
             border-radius: var(--md-sys-shape-corner-medium);
-            background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 74%, var(--md-sys-color-secondary-container) 8%);
-            box-shadow: inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 42%, transparent);
+            background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 80%, var(--md-sys-color-secondary-container) 6%);
+            box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--surface-highlight) 18%, transparent);
 
             &:hover {
               border-color: color-mix(in oklab, var(--md-sys-color-primary) 14%, var(--md-sys-color-outline-variant));
-              background: color-mix(in oklab, var(--md-sys-color-surface-container-low) 82%, var(--md-sys-color-secondary-container) 10%);
-              box-shadow:
-                inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 48%, transparent),
-                0 10px 20px -22px var(--expressive-shadow);
+              background: color-mix(in oklab, var(--md-sys-color-surface-container-low) 86%, var(--md-sys-color-secondary-container) 8%);
+              box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 12%, transparent);
             }
           }
         }
@@ -3645,8 +3749,56 @@
           }
         }
       }
+
+      .network-status-table > &:not(:has(> .ifacebox-head.cbi-tooltip-container)) {
+        & > .ifacebox-body {
+          justify-content: flex-start !important;
+          gap: 0.16rem;
+          padding: 0.14rem 0 0;
+          line-height: 1.12;
+        }
+
+        & > .ifacebox-body > span {
+          display: grid;
+          justify-items: center;
+          gap: 0.06rem;
+          line-height: 1.12;
+          margin: 0;
+          --tw-space-y-reverse: 0 !important;
+        }
+
+        & > .ifacebox-body > span > br {
+          display: none !important;
+        }
+
+        & > .ifacebox-body > span > .nowrap {
+          display: inline-grid !important;
+          width: fit-content;
+          max-width: calc(100% - 0.18rem);
+          align-items: center;
+          justify-content: center;
+          justify-items: center;
+          grid-template-columns: max-content minmax(0, auto);
+          min-height: 1.28rem;
+          margin: 0 !important;
+          margin-bottom: 0 !important;
+          margin-block: 0 !important;
+          padding: 0.12rem 0.28rem;
+          column-gap: 0.22rem;
+          line-height: 1.08;
+          text-align: center;
+        }
+
+        & > .ifacebox-body > span > :not(:last-child) {
+          margin: 0 !important;
+          margin-bottom: 0 !important;
+          margin-block: 0 !important;
+        }
+      }
     }
   }
+}
+@layer components {
   @layer modal {
     #modal_overlay {
       @apply pointer-events-none fixed top-0 bottom-0 hidden overflow-auto bg-transparent;
@@ -3656,7 +3808,8 @@
       }
 
       & > .modal {
-        @apply border-border/50 bg-page-bg flex w-4xl max-w-full max-h-[90vh] flex-col gap-4 overflow-y-auto rounded-xl border p-6 wrap-break-word whitespace-normal shadow-xl max-md:max-h-[95vh] max-md:gap-3 max-md:p-4;
+        @apply border-border/50 bg-page-bg flex w-4xl max-w-full max-h-[90vh] flex-col gap-4 overflow-y-auto rounded-xl border p-6 wrap-break-word whitespace-normal max-md:max-h-[95vh] max-md:gap-3 max-md:p-4;
+        box-shadow: 0 18px 42px -32px var(--expressive-shadow);
 
         & h4 {
           @apply mb-0 text-center;
@@ -4399,8 +4552,8 @@
         }
 
         & .mobile-nav-footer {
-          @apply grid;
-          gap: 0.5rem;
+          @apply flex flex-wrap items-center justify-center;
+          gap: 0.55rem;
           margin-top: auto;
           padding: 0.7rem 0.35rem 0;
           position: sticky;
@@ -4416,8 +4569,7 @@
         }
 
         & .mobile-nav-footer-indicators-slot {
-          display: grid;
-          gap: 0.65rem;
+          display: contents;
         }
 
         & .mobile-nav-footer-indicators-slot:empty {
@@ -4426,20 +4578,28 @@
 
         & .mobile-nav-footer-btn,
         & .mobile-nav-footer-indicators [data-indicator] {
-          @apply inline-flex items-center justify-center gap-2 rounded-full no-underline;
-          width: 100%;
-          min-height: 2.9rem;
-          padding: 0 1rem;
+          @apply inline-flex items-center justify-center rounded-full no-underline;
+          width: 2.8rem;
+          height: 2.8rem;
+          min-height: 2.8rem;
+          padding: 0;
           border: 0;
           background: color-mix(in oklab, var(--md-sys-color-surface-container-high) 62%, transparent);
           color: var(--muted-foreground);
-          font-size: 0.86rem;
+          font-size: 0;
           font-weight: 600;
-          letter-spacing: -0.01em;
+          line-height: 0;
+          letter-spacing: 0;
+          white-space: nowrap;
+          overflow: hidden;
           box-shadow: none;
           transition:
             color 180ms var(--md-sys-motion-easing-standard),
             background-color 180ms var(--md-sys-motion-easing-standard);
+        }
+
+        & .mobile-nav-footer-btn > span {
+          display: none;
         }
 
         & .mobile-nav-footer-btn:hover,
@@ -4449,21 +4609,23 @@
         }
 
         & .mobile-nav-footer-btn svg {
-          width: 0.95rem;
-          height: 0.95rem;
+          width: 1.05rem;
+          height: 1.05rem;
           flex: none;
         }
 
         & .mobile-nav-footer-btn.header-logout-btn {
           opacity: 1;
           visibility: visible;
-          width: 100%;
-          padding: 0 1rem;
-          overflow: visible;
+          width: 2.8rem;
+          height: 2.8rem;
+          padding: 0;
         }
 
         & .theme-toggle.mobile-nav-footer-btn {
-          height: auto;
+          width: 2.8rem;
+          height: 2.8rem;
+          min-height: 2.8rem;
         }
 
         & .theme-toggle.mobile-nav-footer-btn,
@@ -4760,6 +4922,7 @@
         .cbi-value-field > *,
         .cbi-value-field .control-group
       ) {
+        width: 100% !important;
         min-width: 0 !important;
         max-width: 100%;
       }
@@ -4799,7 +4962,6 @@
 
       :where(
         .cbi-section-create,
-        .cbi-page-actions > div,
         .cbi-value-field .control-group
       ) {
         flex-wrap: wrap;
@@ -5091,50 +5253,67 @@
   }
   @layer segmented {
     .cbi-tabmenu {
-      @apply relative inline-flex max-w-full flex-wrap items-center gap-1.5 p-1.5;
+      @apply relative inline-flex max-w-full flex-wrap items-center gap-1 p-0.5;
+      --_md3e-tab-track-bg: color-mix(
+        in oklab,
+        var(--md-sys-color-surface-container-high) 74%,
+        var(--md-sys-color-surface-container-lowest) 26%
+      );
+      --_md3e-tab-active-bg: color-mix(
+        in oklab,
+        var(--md-sys-color-secondary-container) 92%,
+        var(--md-sys-color-surface-container-lowest) 8%
+      );
       width: fit-content;
       align-self: flex-start;
-      border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+      border: 0;
       border-radius: 999px;
-      background: color-mix(in oklab, var(--surface-highlight) 72%, transparent);
-      box-shadow: 0 16px 32px -24px var(--expressive-shadow);
+      background: var(--_md3e-tab-track-bg);
+      box-shadow: none;
 
       & li {
         @apply relative z-10 m-0 min-w-fit shrink-0 list-none;
 
         & > a {
-          @apply text-muted-foreground flex h-9 cursor-pointer items-center justify-center whitespace-nowrap border-none px-4 text-sm font-bold no-underline transition-all duration-300;
+          @apply text-muted-foreground flex h-9 cursor-pointer items-center justify-center whitespace-nowrap border-none px-4 text-sm font-medium no-underline transition-colors duration-200;
           border-radius: 999px;
 
           &:hover {
             @apply text-foreground;
-            background: color-mix(in oklab, var(--sidebar-hover-bg) 82%, transparent);
+            background: color-mix(in oklab, var(--md-sys-color-on-surface) 7%, transparent);
+          }
+
+          &:focus-visible {
+            outline: 2px solid color-mix(in oklab, var(--md-sys-color-primary) 54%, transparent);
+            outline-offset: 2px;
           }
         }
 
         &.cbi-tab > a {
-          color: var(--md-sys-color-on-primary-container);
-          background: var(--md-sys-color-primary-container);
-          box-shadow:
-            0 8px 16px -8px color-mix(in oklab, var(--md-sys-color-primary) 40%, transparent),
-            inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-primary) 10%, transparent);
+          font-weight: 600;
+          color: var(--md-sys-color-on-secondary-container);
+          background: var(--_md3e-tab-active-bg);
+          box-shadow: none;
         }
       }
     }
 
     @media (max-width: 520px) {
       .cbi-tabmenu {
-        @apply gap-1.5 p-2;
+        @apply gap-1 p-1;
+        max-width: 100%;
         width: 100%;
+        min-width: 0;
         flex-wrap: nowrap;
         justify-content: flex-start;
-        border-radius: 1.5rem;
+        border-radius: 999px;
         overflow-x: auto;
         overflow-y: hidden;
+        scrollbar-gutter: stable;
       }
 
       .cbi-tabmenu li > a {
-        @apply px-3.5;
+        @apply px-3;
         min-height: 2.25rem;
       }
     }
@@ -5952,9 +6131,12 @@
 
     #indicators.mobile-nav-footer-indicators {
       display: flex;
-      flex-direction: column;
-      width: 100%;
-      gap: 0.65rem;
+      flex: 0 0 auto;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      gap: 0.55rem;
       margin-bottom: 0;
     }
 
@@ -5962,10 +6144,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.75rem;
-      width: 100%;
-      min-height: 3rem;
-      padding: 0 1.25rem;
+      width: 2.8rem;
+      height: 2.8rem;
+      min-height: 2.8rem;
+      padding: 0;
       border: 0;
       border-radius: 999px;
       color: var(--muted-foreground);
@@ -5976,10 +6158,12 @@
       );
       box-shadow: none;
       text-decoration: none;
-      font-size: 0.86rem;
+      font-size: 0;
       font-weight: 650;
-      line-height: 1;
+      line-height: 0;
+      letter-spacing: 0;
       white-space: nowrap;
+      overflow: hidden;
       transition:
         color 0.2s ease,
         background-color 0.2s ease;
@@ -6163,6 +6347,12 @@
     }
 
     @media (max-width: 920px) {
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: clip;
+      }
+
       body[data-layout-mode="mobile"] #maincontent > .docs-sidebar {
         display: none !important;
       }
@@ -6240,12 +6430,27 @@
 
       #maincontent {
         gap: 0;
-        padding-inline: 0.75rem;
+        padding-inline: clamp(0.45rem, 2.4vw, 0.75rem);
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
       }
 
       #maincontent > .docs-content {
+        width: 100%;
+        max-width: 100%;
         border-radius: 1.65rem;
-        padding: 1rem 1rem calc(6rem + env(safe-area-inset-bottom));
+        padding: 0.9rem clamp(0.75rem, 2.6vw, 1rem) calc(6rem + env(safe-area-inset-bottom));
+        overflow-x: clip;
+        overflow-y: visible;
+      }
+
+      #view,
+      #maincontent .cbi-map {
+        width: 100%;
+        max-width: 100%;
+        align-self: stretch;
+        overflow-x: clip;
       }
 
       .md3e-page-hero {
@@ -6260,8 +6465,102 @@
       }
 
       #maincontent .cbi-section {
-        padding: 1rem;
+        padding: 0.75rem 0;
         border-radius: 1.5rem;
+        overflow: visible;
+      }
+
+      #maincontent .cbi-section > .cbi-title {
+        margin-left: 0.25rem;
+        margin-right: 0.25rem;
+        min-width: 0;
+        padding-right: max(0.25rem, env(safe-area-inset-right));
+        overflow: visible;
+
+        & > h3 {
+          min-width: 0;
+          max-width: calc(100% - 3rem);
+          overflow-wrap: anywhere;
+        }
+
+        & :is(.cbi-button, button, .label[data-clickable], span[data-indicator]) {
+          flex: none;
+        }
+      }
+
+      #maincontent .cbi-section-node {
+        padding: 1rem 0.85rem 1.15rem !important;
+        border-radius: 1.35rem !important;
+        min-width: 0;
+        overflow: visible !important;
+        overflow-wrap: anywhere;
+      }
+
+      @media (max-width: 430px) {
+        #maincontent {
+          padding-inline: 0.45rem;
+        }
+
+        #maincontent > .docs-content {
+          padding-inline: 0.65rem;
+          border-radius: 1.25rem;
+        }
+
+        #maincontent .cbi-section-node {
+          padding-inline: 0.75rem !important;
+        }
+      }
+
+      @media (max-width: 360px) {
+        #maincontent {
+          padding-inline: 0.35rem;
+        }
+
+        #maincontent > .docs-content {
+          padding: 0.75rem 0.48rem calc(5.5rem + env(safe-area-inset-bottom));
+          border-radius: 1rem;
+        }
+
+        #maincontent .cbi-section {
+          padding-block: 0.55rem;
+          border-radius: 1rem;
+        }
+
+        #maincontent .cbi-section > .cbi-title {
+          gap: 0.5rem;
+          margin-inline: 0.15rem;
+
+          & > h3 {
+            max-width: calc(100% - 2.55rem);
+            font-size: 1.05rem;
+            line-height: 1.26;
+          }
+        }
+
+        #maincontent .cbi-section-node {
+          padding: 0.82rem 0.6rem 0.95rem !important;
+          border-radius: 1rem !important;
+        }
+      }
+
+      @media (max-width: 340px) {
+        #maincontent {
+          padding-inline: 0.25rem;
+        }
+
+        #maincontent > .docs-content {
+          padding-inline: 0.38rem;
+          border-radius: 0.85rem;
+        }
+
+        #maincontent .cbi-section > .cbi-title {
+          margin-inline: 0.08rem;
+        }
+
+        #maincontent .cbi-section-node {
+          padding-inline: 0.48rem !important;
+          border-radius: 0.9rem !important;
+        }
       }
 
       .mobile-nav .md3e-nav-panel-head {
@@ -6291,7 +6590,7 @@
 }
 @layer components {
   @layer login {
-    body:has(> .login-screen) :is(
+    body.md3e-login-page :is(
       header,
       #maincontent,
       footer,
@@ -6308,8 +6607,8 @@
       display: none !important;
     }
 
-    html:has(body > .login-screen),
-    body:has(> .login-screen),
+    html.md3e-login-root,
+    body.md3e-login-page,
     .login-screen {
       overscroll-behavior-y: none;
       overscroll-behavior-x: none;
@@ -6410,7 +6709,7 @@
         .login-card {
           position: relative;
           z-index: 1;
-          opacity: 0;
+          opacity: 1;
           animation: login-card-in 0.95s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
@@ -6513,7 +6812,7 @@
           & > * {
             position: relative;
             z-index: 1;
-            opacity: 0;
+            opacity: 1;
             animation: login-item-in 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
           }
 

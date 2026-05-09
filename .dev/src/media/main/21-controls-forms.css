@@ -53,15 +53,15 @@
         }
       }
 
-      &:has(.theme-option[data-theme="device"].active) {
+      &[data-active-theme="device"] {
         @apply before:translate-x-0;
       }
 
-      &:has(.theme-option[data-theme="light"].active) {
+      &[data-active-theme="light"] {
         @apply before:translate-x-[calc(100%+0.5rem)];
       }
 
-      &:has(.theme-option[data-theme="dark"].active) {
+      &[data-active-theme="dark"] {
         @apply before:translate-x-[calc(200%+1rem)];
       }
 
@@ -347,7 +347,7 @@
 
     @media (min-width: 48rem) {
       .cbi-page-actions {
-        @apply sticky bottom-6 z-50 flex items-center justify-center gap-2 w-fit mx-auto my-12 px-4 py-2.5 rounded-full border shadow-2xl;
+        @apply z-50 flex items-center justify-center gap-2 w-fit mx-auto px-4 py-2.5 rounded-full border shadow-2xl;
         --md3e-action-save-bg: color-mix(in oklab, var(--md-sys-color-secondary-container) 74%, var(--md-sys-color-surface-container-high));
         --md3e-action-save-fg: var(--md-sys-color-on-secondary-container);
         --md3e-action-save-hover: color-mix(in oklab, var(--md3e-action-save-bg) 82%, var(--md-sys-color-tertiary-container));
@@ -358,13 +358,22 @@
         --md3e-action-reset-ring: transparent;
         border-color: color-mix(in oklab, var(--border) 45%, transparent);
         background: color-mix(in oklab, var(--surface-highlight) 76%, transparent);
-        backdrop-filter: blur(10px) saturate(115%);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         box-shadow:
           0 24px 48px -12px var(--expressive-shadow),
           0 4px 12px -4px var(--expressive-shadow);
         animation: preview-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        position: static;
+        bottom: auto;
         width: fit-content;
         max-width: min(100%, 32rem);
+        margin-block: 1rem 0;
+
+        @media (min-width: 64rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+          backdrop-filter: blur(8px) saturate(1.04);
+          -webkit-backdrop-filter: blur(8px) saturate(1.04);
+        }
 
         [data-darkmode="true"] & {
           --md3e-action-save-bg: color-mix(in oklab, var(--md-sys-color-secondary-container) 64%, var(--md-sys-color-surface-container-highest));
@@ -458,6 +467,11 @@
 
     #localtime {
       @apply min-w-70;
+
+      @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+        width: 100%;
+        min-width: 0;
+      }
     }
 
     /* Outline buttons for Local Time sync actions */
@@ -1040,8 +1054,8 @@
 
     .cbi-page-actions > .cbi-dropdown:is(.md3e-split-button, [data-md3e-split-button="true"]) {
       width: 100%;
-      min-height: 3.35rem;
-      grid-template-columns: minmax(0, 1fr) 3.35rem;
+      min-height: 2.45rem;
+      grid-template-columns: minmax(0, 1fr) 2.65rem;
     }
   }
   @layer tooltip {

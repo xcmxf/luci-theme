@@ -11,6 +11,8 @@ export const sourceAssemblies = [
       "src/media/main/20-layout-shell.css",
       "src/media/main/21-controls-forms.css",
       "src/media/main/22-feedback-cards-overlays.css",
+      "src/media/main/22-status-cards.css",
+      "src/media/main/22-overlays-navigation.css",
       "src/media/main/23-tables-forms-segmented.css",
       "src/media/main/24-navigation-page-chrome.css",
       "src/media/main/25-login.css",

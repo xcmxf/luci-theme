@@ -60,6 +60,16 @@
     media.addEventListener("change", apply);
   },
 
+  forEachElementMatch(scope, selector, callback) {
+    if (!scope || !selector || typeof callback !== "function") return;
+
+    if (scope instanceof HTMLElement && scope.matches(selector)) {
+      callback(scope);
+    }
+
+    scope.querySelectorAll?.(selector).forEach(callback);
+  },
+
   watchForAddedElement(watchKey, target, selector, callback, timeout = 4000) {
     if (!target || this[watchKey]) return;
 

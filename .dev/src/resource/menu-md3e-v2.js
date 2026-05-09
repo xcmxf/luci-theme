@@ -69,6 +69,16 @@ return baseclass.extend({
     media.addEventListener("change", apply);
   },
 
+  forEachElementMatch(scope, selector, callback) {
+    if (!scope || !selector || typeof callback !== "function") return;
+
+    if (scope instanceof HTMLElement && scope.matches(selector)) {
+      callback(scope);
+    }
+
+    scope.querySelectorAll?.(selector).forEach(callback);
+  },
+
   watchForAddedElement(watchKey, target, selector, callback, timeout = 4000) {
     if (!target || this[watchKey]) return;
 
@@ -827,9 +837,13 @@ return baseclass.extend({
     const content = document.querySelector(".docs-content");
     if (!content || content._md3ePageChromeInit) return;
 
-    const hasOutlineCandidate = () => {
+    const getMap = () => {
       const view = content.querySelector("#view");
-      const map = view?.querySelector(".cbi-map") || view;
+      return view?.querySelector(".cbi-map") || view;
+    };
+
+    const hasOutlineCandidate = () => {
+      const map = getMap();
       return this.getPageOutlineSections(map).length >= 2;
     };
 
@@ -846,9 +860,8 @@ return baseclass.extend({
     const decorate = () => {
       content.querySelector(".md3e-page-hero")?.remove();
 
-      const view = content.querySelector("#view");
-      const map = view?.querySelector(".cbi-map") || view;
-      if (!view || !map) return;
+      const map = getMap();
+      if (!map) return;
 
       const sections = this.getPageOutlineSections(map);
       this.syncPageOutline(sections);
@@ -856,14 +869,44 @@ return baseclass.extend({
 
     decorate();
 
+    const isPageChromeMutation = (mutation) => {
+      const pageChromeSelector =
+        ".cbi-map, .cbi-section, .cbi-section-node, .cbi-section-table, .cbi-value, .alert-message";
+
+      if (
+        mutation.target instanceof HTMLElement
+      ) {
+        if (
+          mutation.target.matches(pageChromeSelector) ||
+          mutation.target.closest(".cbi-title, h2, h3")
+        ) {
+          return true;
+        }
+      }
+
+      return [...mutation.addedNodes, ...mutation.removedNodes].some((node) => {
+        if (node.nodeType !== 1) return false;
+        return (
+          node.matches?.(pageChromeSelector) ||
+          node.querySelector?.(pageChromeSelector)
+        );
+      });
+    };
+
     let decorateFrame = null;
-    new MutationObserver(() => {
+    new MutationObserver((mutations) => {
+      if (!mutations.some(isPageChromeMutation)) return;
       if (decorateFrame) return;
       decorateFrame = requestAnimationFrame(() => {
         decorateFrame = null;
         decorate();
       });
-    }).observe(content, { childList: true, subtree: true });
+    }).observe(content, {
+      childList: true,
+      attributes: true,
+      attributeFilter: ["hidden", "style", "class", "aria-hidden"],
+      subtree: true,
+    });
 
     content._md3ePageChromeInit = true;
   },
@@ -915,16 +958,12 @@ return baseclass.extend({
     };
 
     const syncAll = (scope = document) => {
-      if (scope instanceof HTMLElement && scope.matches(".cbi-progressbar")) {
-        syncBar(scope);
-      }
-
-      scope.querySelectorAll?.(".cbi-progressbar").forEach(syncBar);
+      this.forEachElementMatch(scope, ".cbi-progressbar", syncBar);
     };
 
     syncAll(document);
 
-    this._progressRingThemeHandler = () => syncAll(document);
+    this._progressRingThemeHandler = () => syncAll(target);
     window.addEventListener("md3e:themechange", this._progressRingThemeHandler);
 
     this._progressRingObserver = new MutationObserver((mutations) => {
@@ -1622,9 +1661,11 @@ return baseclass.extend({
       ro.observe(c);
     };
 
-    target
-      .querySelectorAll(".cbi-section-node-tabbed, .cbi-map-tabbed")
-      .forEach(watch);
+    this.forEachElementMatch(
+      target,
+      ".cbi-section-node-tabbed, .cbi-map-tabbed",
+      watch,
+    );
 
     /* ── View load animation (blur-in after spinner) ── */
 
@@ -1643,7 +1684,7 @@ return baseclass.extend({
       }).observe(v, { childList: true });
     };
 
-    const view = document.getElementById("view");
+    const view = target.querySelector("#view");
     if (view) watchView(view);
 
     new MutationObserver((muts) => {
@@ -1662,10 +1703,11 @@ return baseclass.extend({
 
         for (const n of m.addedNodes) {
           if (n.nodeType !== 1) continue;
-          if (n.matches?.(".cbi-section-node-tabbed, .cbi-map-tabbed"))
-            watch(n);
-          n.querySelectorAll?.(".cbi-section-node-tabbed, .cbi-map-tabbed")
-            .forEach(watch);
+          this.forEachElementMatch(
+            n,
+            ".cbi-section-node-tabbed, .cbi-map-tabbed",
+            watch,
+          );
           if (n.id === "view") watchView(n);
         }
       }
@@ -1677,25 +1719,53 @@ return baseclass.extend({
     });
   },
   initDescriptionPlacement() {
-    const move = () => {
-      document
+    const move = (scope = document) => {
+      const descriptions = [];
+
+      if (
+        scope instanceof HTMLElement &&
+        scope.matches(".cbi-value-field > .cbi-value-description")
+      ) {
+        descriptions.push(scope);
+      }
+
+      scope
         .querySelectorAll(".cbi-value-field > .cbi-value-description")
-        .forEach((desc) => {
-          if (desc._aurMoved) return;
-          desc._aurMoved = true;
-          const row = desc.closest(".cbi-value");
-          if (!row) return;
-          const title = row.querySelector(".cbi-value-title");
-          if (title) {
-            title.appendChild(desc);
-          }
-        });
+        ?.forEach((desc) => descriptions.push(desc));
+
+      descriptions.forEach((desc) => {
+        if (desc._aurMoved) return;
+        desc._aurMoved = true;
+        const row = desc.closest(".cbi-value");
+        if (!row) return;
+        const title = row.querySelector(".cbi-value-title");
+        if (title) {
+          title.appendChild(desc);
+        }
+      });
     };
 
     move();
 
     const target = document.getElementById("maincontent") || document.body;
-    new MutationObserver(() => requestAnimationFrame(move)).observe(target, {
+    let moveFrame = null;
+    const pendingScopes = new Set();
+
+    new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) pendingScopes.add(node);
+        });
+      });
+
+      if (!pendingScopes.size || moveFrame) return;
+
+      moveFrame = requestAnimationFrame(() => {
+        moveFrame = null;
+        pendingScopes.forEach((scope) => move(scope));
+        pendingScopes.clear();
+      });
+    }).observe(target, {
       childList: true,
       subtree: true,
     });
@@ -1776,7 +1846,15 @@ return baseclass.extend({
 
   closeAllDropdowns(except) {
     // Close all outline-selects
-    document.querySelectorAll(".outline-select.open").forEach((s) => {
+    const outlineSelects = new Set([
+      ...(this._openOutlineSelects || []),
+      ...document.querySelectorAll(".outline-select.open"),
+    ]);
+    outlineSelects.forEach((s) => {
+      if (!s.isConnected) {
+        this._openOutlineSelects?.delete(s);
+        return;
+      }
       if (s === except) return;
       if (s._md3eCloseOutlineSelect) {
         s._md3eCloseOutlineSelect();
@@ -1786,7 +1864,15 @@ return baseclass.extend({
       s.classList.remove("open");
     });
     // Close all cbi-dropdowns
-    document.querySelectorAll(".cbi-dropdown[open]").forEach((d) => {
+    const cbiDropdowns = new Set([
+      ...(this._openCbiDropdowns || []),
+      ...document.querySelectorAll(".cbi-dropdown[open]"),
+    ]);
+    cbiDropdowns.forEach((d) => {
+      if (!d.isConnected) {
+        this._openCbiDropdowns?.delete(d);
+        return;
+      }
       if (d === except) return;
       const panel = this.getCbiDropdownPanel(d);
       d.dispatchEvent(new CustomEvent("cbi-dropdown-close", {}));
@@ -1911,6 +1997,8 @@ return baseclass.extend({
     }
 
     this._customSelectsInitialized = true;
+    this._openOutlineSelects = this._openOutlineSelects || new Set();
+    this._openCbiDropdowns = this._openCbiDropdowns || new Set();
 
     const schedulePanelPosition = (anchor, panel) => {
       if (!(anchor instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
@@ -1936,8 +2024,10 @@ return baseclass.extend({
       if (!(panel instanceof HTMLElement)) return;
 
       if (dropdown.hasAttribute("open")) {
+        this._openCbiDropdowns.add(dropdown);
         schedulePanelPosition(dropdown, panel);
       } else {
+        this._openCbiDropdowns.delete(dropdown);
         this.resetDropdownPanel(panel);
       }
     };
@@ -2009,6 +2099,7 @@ return baseclass.extend({
         if (isOpen || sel.disabled) return;
         this.closeAllDropdowns(wrap);
         isOpen = true;
+        this._openOutlineSelects.add(wrap);
         wrap.classList.add("open");
         schedulePanelPosition(wrap, panel);
       };
@@ -2016,6 +2107,7 @@ return baseclass.extend({
       const close = () => {
         if (!isOpen) return;
         isOpen = false;
+        this._openOutlineSelects.delete(wrap);
         this.resetDropdownPanel(panel);
         wrap.classList.remove("open");
       };
@@ -2055,20 +2147,22 @@ return baseclass.extend({
       }).observe(sel, { attributes: true, childList: true, subtree: true });
     };
 
-    const replaceAll = (scope = document) => {
-      if (scope instanceof HTMLSelectElement) {
-        replace(scope);
-        return;
-      }
-
-      scope.querySelectorAll?.("select").forEach(replace);
+    const replaceAll = (scope = target) => {
+      this.forEachElementMatch(scope, "select", replace);
     };
 
-    replaceAll();
+    replaceAll(target);
+    target
+      .querySelectorAll?.(".cbi-dropdown[open]")
+      .forEach(syncCbiDropdownPanel);
 
     if (!this._customSelectClickHandler) {
       this._customSelectClickHandler = (e) => {
-        document.querySelectorAll(".outline-select.open").forEach((wrap) => {
+        Array.from(this._openOutlineSelects || []).forEach((wrap) => {
+          if (!wrap.isConnected) {
+            this._openOutlineSelects.delete(wrap);
+            return;
+          }
           if (!wrap.contains(e.target)) wrap._md3eCloseOutlineSelect?.();
         });
 
@@ -2084,13 +2178,16 @@ return baseclass.extend({
     }
 
     this._customSelectObserver = new MutationObserver((mutations) => {
-      const replaceScopes = new Set();
       const dropdowns = new Set();
+      const addedSelects = new Set();
 
       mutations.forEach((mutation) => {
         if (mutation.type === "childList") {
           mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) replaceScopes.add(node);
+            if (node.nodeType !== 1) return;
+            this.forEachElementMatch(node, "select", (select) => {
+              addedSelects.add(select);
+            });
           });
           return;
         }
@@ -2104,9 +2201,11 @@ return baseclass.extend({
         }
       });
 
-      if (replaceScopes.size) {
+      if (addedSelects.size) {
         requestAnimationFrame(() => {
-          replaceScopes.forEach((scope) => replaceAll(scope));
+          addedSelects.forEach((select) => {
+            if (select.isConnected) replace(select);
+          });
         });
       }
 
@@ -2125,8 +2224,12 @@ return baseclass.extend({
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
         requestAnimationFrame(() => {
-          const openSelects = document.querySelectorAll(".outline-select.open");
-          const openDropdowns = document.querySelectorAll(".cbi-dropdown[open]");
+          const openSelects = Array.from(this._openOutlineSelects || []).filter(
+            (wrap) => wrap.isConnected,
+          );
+          const openDropdowns = Array.from(this._openCbiDropdowns || []).filter(
+            (dropdown) => dropdown.isConnected && dropdown.hasAttribute("open"),
+          );
           if (!openSelects.length && !openDropdowns.length) return;
 
           openSelects.forEach((wrap) => {
@@ -2161,7 +2264,7 @@ return baseclass.extend({
       overlay.classList.toggle("mobile-menu-open", open);
       menuToggle.classList.toggle("active", open);
       menuToggle.setAttribute("aria-expanded", String(open));
-      document.body.style.overflow = open ? "hidden" : "";
+      document.documentElement.style.overflow = open ? "hidden" : "";
       document.body.classList.toggle("mobile-menu-open", open);
 
       if (open) {
@@ -2217,6 +2320,7 @@ return baseclass.extend({
       const splitButton = directChildren.find((child) =>
         child.matches(".cbi-dropdown"),
       );
+      actions.classList.toggle("md3e-has-split-button", Boolean(splitButton));
 
       if (splitButton) {
         this.initSplitButton(splitButton);
@@ -2513,9 +2617,14 @@ return baseclass.extend({
       updateButtons(category.name);
     };
 
+    const syncShellExpandedState = (expanded) => {
+      document.body?.classList.toggle("md3e-nav-expanded", expanded);
+    };
+
     const collapse = () => {
       shell.classList.add("is-collapsed");
       shell.classList.remove("is-expanded");
+      syncShellExpandedState(false);
       panel.setAttribute("aria-hidden", "true");
       shell.dataset.panelMode = pageCategory.name;
       updateButtons(pageCategory.name);
@@ -2525,6 +2634,7 @@ return baseclass.extend({
       renderPanel(category);
       shell.classList.remove("is-collapsed");
       shell.classList.add("is-expanded");
+      syncShellExpandedState(true);
       panel.setAttribute("aria-hidden", "false");
       updateButtons(category.name);
     };
@@ -2563,6 +2673,7 @@ return baseclass.extend({
     this.desktopShellElement = shell;
     this.collapseDesktopShell = collapse;
     this.expandDesktopShell = expand;
+    syncShellExpandedState(false);
     this.syncLayoutMode();
 
     if (!this._desktopShellClickHandler) {

@@ -14,6 +14,11 @@ yarn.lock
 
 # Local OpenWrt / browser verification artifacts
 LOCAL_OPENWRT_WORKFLOW.md
+LOCAL_*.md
+*.local.md
+*.private.md
+*.scratch.md
+.local-notes/
 log.md
 todo.md
 .openwrt-local.env

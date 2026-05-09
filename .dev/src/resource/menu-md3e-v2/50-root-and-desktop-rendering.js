@@ -106,9 +106,14 @@
       updateButtons(category.name);
     };
 
+    const syncShellExpandedState = (expanded) => {
+      document.body?.classList.toggle("md3e-nav-expanded", expanded);
+    };
+
     const collapse = () => {
       shell.classList.add("is-collapsed");
       shell.classList.remove("is-expanded");
+      syncShellExpandedState(false);
       panel.setAttribute("aria-hidden", "true");
       shell.dataset.panelMode = pageCategory.name;
       updateButtons(pageCategory.name);
@@ -118,6 +123,7 @@
       renderPanel(category);
       shell.classList.remove("is-collapsed");
       shell.classList.add("is-expanded");
+      syncShellExpandedState(true);
       panel.setAttribute("aria-hidden", "false");
       updateButtons(category.name);
     };
@@ -156,6 +162,7 @@
     this.desktopShellElement = shell;
     this.collapseDesktopShell = collapse;
     this.expandDesktopShell = expand;
+    syncShellExpandedState(false);
     this.syncLayoutMode();
 
     if (!this._desktopShellClickHandler) {

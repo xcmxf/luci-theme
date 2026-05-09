@@ -214,4 +214,8 @@ textarea {
   #maincontent .right > a.btn {
     width: 100%;
   }
+
+  #maincontent .cbi-page-actions > * {
+    width: auto;
+  }
 }

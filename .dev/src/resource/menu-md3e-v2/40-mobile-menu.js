@@ -17,7 +17,7 @@
       overlay.classList.toggle("mobile-menu-open", open);
       menuToggle.classList.toggle("active", open);
       menuToggle.setAttribute("aria-expanded", String(open));
-      document.body.style.overflow = open ? "hidden" : "";
+      document.documentElement.style.overflow = open ? "hidden" : "";
       document.body.classList.toggle("mobile-menu-open", open);
 
       if (open) {

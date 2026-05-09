@@ -22,9 +22,30 @@ const budgets = [
     maxGzipBytes: 10 * 1024,
   },
 ];
+const sourcePartBudgets = [
+  {
+    label: "main CSS source part",
+    root: ".dev/src/media/main",
+    maxBytes: 50 * 1024,
+  },
+  {
+    label: "public component CSS source part",
+    root: ".dev/src/public-md3e/components",
+    maxBytes: 24 * 1024,
+  },
+];
+const sourcePartReportLimit = 5;
 
 function formatBytes(bytes) {
   return `${bytes} B (${(bytes / 1024).toFixed(1)} KiB)`;
+}
+
+function collectCssFiles(root) {
+  return fs
+    .readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
+    .map((entry) => path.join(root, entry.name))
+    .sort();
 }
 
 const errors = [];
@@ -48,6 +69,40 @@ for (const budget of budgets) {
   if (gzipBytes > budget.maxGzipBytes) {
     errors.push(
       `${budget.label} gzip is ${formatBytes(gzipBytes)}, budget ${formatBytes(budget.maxGzipBytes)}`,
+    );
+  }
+}
+
+for (const budget of sourcePartBudgets) {
+  const root = path.join(projectRoot, budget.root);
+  const files = collectCssFiles(root);
+  const rankedFiles = [];
+
+  for (const filePath of files) {
+    const size = fs.statSync(filePath).size;
+    const relativePath = path
+      .relative(projectRoot, filePath)
+      .replace(/\\/g, "/");
+    rankedFiles.push({ relativePath, size });
+
+    if (size > budget.maxBytes) {
+      errors.push(
+        `${relativePath} is ${formatBytes(size)}, ${budget.label} budget ${formatBytes(budget.maxBytes)}`,
+      );
+    }
+  }
+
+  rankedFiles.sort((a, b) => b.size - a.size);
+
+  if (rankedFiles.length) {
+    summaries.push(
+      `${budget.label} top ${Math.min(
+        sourcePartReportLimit,
+        rankedFiles.length,
+      )}: ${rankedFiles
+        .slice(0, sourcePartReportLimit)
+        .map((file) => `${file.relativePath} ${formatBytes(file.size)}`)
+        .join(", ")}`,
     );
   }
 }

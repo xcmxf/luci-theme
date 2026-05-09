@@ -99,7 +99,7 @@
     padding-inline: 0 !important;
   }
 
-  body[data-layout-mode="desktop"]:has(.md3e-nav-shell.is-expanded) #maincontent {
+  body[data-layout-mode="desktop"].md3e-nav-expanded #maincontent {
     --md3e-rail-right: calc(var(--md3e-rail-left) + var(--nav-rail-width, 5.5rem) + var(--nav-panel-width, 16rem) - 0.55rem);
     --md3e-layout-extra: 0px;
   }
@@ -166,12 +166,12 @@
 }
 
 @media (min-width: __MD3E_DESKTOP_LAYOUT_MIN_WIDTH__px) and (min-height: 36rem) {
-  body[data-layout-mode="desktop"]:has(.md3e-nav-shell.is-expanded) #maincontent {
+  body[data-layout-mode="desktop"].md3e-nav-expanded #maincontent {
     --md3e-layout-extra: 0px;
     --md3e-content-left: calc(var(--nav-rail-width, 5.5rem) + var(--nav-panel-width, 16rem) + 0.9rem + var(--md3e-content-min-gap));
   }
 
-  body[data-layout-mode="desktop"].md3e-has-page-outline:has(.md3e-nav-shell.is-expanded) #maincontent {
+  body[data-layout-mode="desktop"].md3e-has-page-outline.md3e-nav-expanded #maincontent {
     --md3e-layout-extra: 0px;
     --md3e-content-left: calc(var(--nav-rail-width, 5.5rem) + var(--nav-panel-width, 16rem) + 0.9rem + var(--md3e-content-min-gap));
   }

@@ -46,16 +46,12 @@
     };
 
     const syncAll = (scope = document) => {
-      if (scope instanceof HTMLElement && scope.matches(".cbi-progressbar")) {
-        syncBar(scope);
-      }
-
-      scope.querySelectorAll?.(".cbi-progressbar").forEach(syncBar);
+      this.forEachElementMatch(scope, ".cbi-progressbar", syncBar);
     };
 
     syncAll(document);
 
-    this._progressRingThemeHandler = () => syncAll(document);
+    this._progressRingThemeHandler = () => syncAll(target);
     window.addEventListener("md3e:themechange", this._progressRingThemeHandler);
 
     this._progressRingObserver = new MutationObserver((mutations) => {

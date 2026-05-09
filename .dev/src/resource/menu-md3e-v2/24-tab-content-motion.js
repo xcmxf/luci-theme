@@ -129,9 +129,11 @@
       ro.observe(c);
     };
 
-    target
-      .querySelectorAll(".cbi-section-node-tabbed, .cbi-map-tabbed")
-      .forEach(watch);
+    this.forEachElementMatch(
+      target,
+      ".cbi-section-node-tabbed, .cbi-map-tabbed",
+      watch,
+    );
 
     /* ── View load animation (blur-in after spinner) ── */
 
@@ -150,7 +152,7 @@
       }).observe(v, { childList: true });
     };
 
-    const view = document.getElementById("view");
+    const view = target.querySelector("#view");
     if (view) watchView(view);
 
     new MutationObserver((muts) => {
@@ -169,10 +171,11 @@
 
         for (const n of m.addedNodes) {
           if (n.nodeType !== 1) continue;
-          if (n.matches?.(".cbi-section-node-tabbed, .cbi-map-tabbed"))
-            watch(n);
-          n.querySelectorAll?.(".cbi-section-node-tabbed, .cbi-map-tabbed")
-            .forEach(watch);
+          this.forEachElementMatch(
+            n,
+            ".cbi-section-node-tabbed, .cbi-map-tabbed",
+            watch,
+          );
           if (n.id === "view") watchView(n);
         }
       }
