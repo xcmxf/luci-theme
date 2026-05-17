@@ -10,7 +10,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, "..", "..");
 const require = createRequire(import.meta.url);
 const routerUrl =
-  process.env.MD3E_ROUTER_URL || "http://172.20.110.135/cgi-bin/luci/";
+  process.env.MD3E_ROUTER_URL || "http://10.0.0.1/cgi-bin/luci/";
 const routerUser = process.env.MD3E_ROUTER_USER || "root";
 const routerPassword = process.env.MD3E_ROUTER_PASSWORD || "";
 const chromeCandidates = [
@@ -42,48 +42,136 @@ function firstExisting(paths) {
 const playwrightModule = resolvePlaywright();
 const chromePath =
   process.env.MD3E_CHROME_PATH || firstExisting(chromeCandidates);
+const diagnosticsDir = path.join(projectRoot, ".tmp-device-layout-diagnostics");
 
-if (!playwrightModule || !chromePath) {
-  console.log(
-    "device layout check skipped: Playwright runtime or Chromium-compatible browser is unavailable",
-  );
+if (!playwrightModule) {
+  console.log("device layout check skipped: Playwright runtime is unavailable");
   process.exit(0);
 }
 
 const script = `
+const fs = require("node:fs");
+const path = require("node:path");
 const { chromium } = require(${JSON.stringify(playwrightModule)});
 const routerUrl = ${JSON.stringify(routerUrl)};
 const routerUser = ${JSON.stringify(routerUser)};
 const routerPassword = ${JSON.stringify(routerPassword)};
 const chromePath = ${JSON.stringify(chromePath)};
+const diagnosticsDir = ${JSON.stringify(diagnosticsDir)};
+
+async function writeDiagnostics(page, label, details = {}) {
+  try {
+    fs.mkdirSync(diagnosticsDir, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const basePath = path.join(diagnosticsDir, stamp + "-" + label);
+    const screenshotPath = basePath + ".png";
+    const jsonPath = basePath + ".json";
+    const layout = await page.evaluate(() => {
+      const rectFor = (selector) => {
+        const node = document.querySelector(selector);
+        if (!(node instanceof HTMLElement)) return null;
+        const rect = node.getBoundingClientRect();
+        return {
+          left: Math.round(rect.left),
+          top: Math.round(rect.top),
+          right: Math.round(rect.right),
+          bottom: Math.round(rect.bottom),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+        };
+      };
+      const inactivePanels = Array.from(
+        document.querySelectorAll(
+          "#maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > [data-tab-title]:not([data-tab-active='true'])",
+        ),
+      ).map((panel) => {
+        const style = getComputedStyle(panel);
+        const rect = panel.getBoundingClientRect();
+        return {
+          id: panel.id || "",
+          className: panel.className || "",
+          height: Math.round(rect.height),
+          overflow: style.overflow,
+          marginBlockStart: style.marginBlockStart,
+          marginBlockEnd: style.marginBlockEnd,
+          paddingBlockStart: style.paddingBlockStart,
+          paddingBlockEnd: style.paddingBlockEnd,
+          pointerEvents: style.pointerEvents,
+          visibility: style.visibility,
+        };
+      });
+      return {
+        title: document.title,
+        href: location.href,
+        viewport: {
+          innerWidth: window.innerWidth,
+          innerHeight: window.innerHeight,
+          scrollX: window.scrollX,
+          scrollY: window.scrollY,
+        },
+        scroll: {
+          bodyHeight: document.body.scrollHeight,
+          documentHeight: document.documentElement.scrollHeight,
+        },
+        rects: {
+          maincontent: rectFor("#maincontent"),
+          docsContent: rectFor("#maincontent > .docs-content"),
+          footer: rectFor("footer"),
+        },
+        inactivePanels,
+        bodyClasses: document.body.className || "",
+        htmlLayoutMode: document.documentElement.getAttribute("data-layout-mode"),
+        bodyLayoutMode: document.body.getAttribute("data-layout-mode"),
+      };
+    });
+
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    fs.writeFileSync(jsonPath, JSON.stringify({ details, layout }, null, 2));
+    console.error("device layout diagnostics written: " + screenshotPath);
+    console.error("device layout diagnostics written: " + jsonPath);
+  } catch (diagnosticError) {
+    console.error("device layout diagnostics failed:", diagnosticError);
+  }
+}
 
 (async () => {
-  const browser = await chromium.launch({
-    executablePath: chromePath,
+  const launchOptions = {
     headless: true,
     args: ["--no-sandbox"],
-  });
+  };
+  if (chromePath) launchOptions.executablePath = chromePath;
+  const browser = await chromium.launch(launchOptions);
   const page = await browser.newPage({
     viewport: { width: 626, height: 947 },
     deviceScaleFactor: 1,
   });
+  const mobilePage = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    isMobile: true,
+  });
   const base = routerUrl.endsWith("/") ? routerUrl : routerUrl + "/";
-  await page.goto(base, { waitUntil: "domcontentloaded", timeout: 30000 });
+  const loginIfNeeded = async (page) => {
+    await page.goto(base, { waitUntil: "domcontentloaded", timeout: 30000 });
 
-  const loginFields = await page.locator('input[name="luci_username"], input[name="username"], input[type="password"]').count();
-  if (loginFields) {
-    const user = page.locator('input[name="luci_username"], input[name="username"]').first();
-    if (await user.count()) await user.fill(routerUser);
-    const pass = page.locator('input[name="luci_password"], input[name="password"], input[type="password"]').first();
-    if (await pass.count()) await pass.fill(routerPassword);
-    const submit = page.locator('button[type="submit"], input[type="submit"], .cbi-button-apply, .btn').first();
-    if (await submit.count()) {
-      await Promise.allSettled([
-        page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 15000 }),
-        submit.click(),
-      ]);
+    const loginFields = await page.locator('input[name="luci_username"], input[name="username"], input[type="password"]').count();
+    if (loginFields) {
+      const user = page.locator('input[name="luci_username"], input[name="username"]').first();
+      if (await user.count()) await user.fill(routerUser);
+      const pass = page.locator('input[name="luci_password"], input[name="password"], input[type="password"]').first();
+      if (await pass.count()) await pass.fill(routerPassword);
+      const submit = page.locator('button[type="submit"], input[type="submit"], .cbi-button-apply, .btn').first();
+      if (await submit.count()) {
+        await Promise.allSettled([
+          page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 15000 }),
+          submit.click(),
+        ]);
+      }
     }
-  }
+  };
+
+  await loginIfNeeded(page);
+  await loginIfNeeded(mobilePage);
 
   const response = await page.goto(base + "admin/network/network", {
     waitUntil: "domcontentloaded",
@@ -129,26 +217,142 @@ const chromePath = ${JSON.stringify(chromePath)};
       url: location.href,
       ifaceboxCount: boxes.length,
       badCount: badBoxes.length,
+      badBoxes,
       bodyText: document.body.innerText || "",
     };
   });
 
-  await browser.close();
-
   if (!response || response.status() !== 200) {
+    await writeDiagnostics(page, "desktop-network-response", {
+      status: response?.status() ?? null,
+    });
+    await browser.close();
     throw new Error("Interfaces page did not return HTTP 200");
   }
   if (!/Interfaces|接口/.test(result.bodyText)) {
+    await writeDiagnostics(page, "desktop-network-title", {
+      title: result.title,
+      bodyText: result.bodyText.slice(0, 500),
+    });
+    await browser.close();
     throw new Error("Interfaces page did not render expected title text");
   }
   if (result.ifaceboxCount < 1) {
+    await writeDiagnostics(page, "desktop-ifacebox-missing", result);
+    await browser.close();
     throw new Error("Interfaces page rendered no ifacebox cards");
   }
   if (result.badCount > 0) {
+    await writeDiagnostics(page, "desktop-ifacebox-layout", result);
+    await browser.close();
     throw new Error("Interfaces page ifacebox layout has " + result.badCount + " overflow/overlap issues");
   }
 
-  console.log("device interfaces layout ok: ifaceboxCount=" + result.ifaceboxCount + ", badCount=" + result.badCount);
+  const mobileResponse = await mobilePage.goto(base + "admin/network/network", {
+    waitUntil: "networkidle",
+    timeout: 30000,
+  });
+  await mobilePage.waitForTimeout(1000);
+
+  const mobileResult = await mobilePage.evaluate(() => {
+    const pageEnd = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    const footerBottom = Math.round(document.querySelector("footer")?.getBoundingClientRect().bottom || 0);
+    const docsBottom = Math.round(document.querySelector("#maincontent > .docs-content")?.getBoundingClientRect().bottom || 0);
+    const inactivePanels = Array.from(
+      document.querySelectorAll(
+        "#maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > [data-tab-title]:not([data-tab-active='true'])",
+      ),
+    ).map((panel) => {
+      const style = getComputedStyle(panel);
+      const rect = panel.getBoundingClientRect();
+      return {
+        id: panel.id || "",
+        height: Math.round(rect.height),
+        overflow: style.overflow,
+        marginBlockStart: style.marginBlockStart,
+        marginBlockEnd: style.marginBlockEnd,
+        paddingBlockStart: style.paddingBlockStart,
+        paddingBlockEnd: style.paddingBlockEnd,
+        pointerEvents: style.pointerEvents,
+        visibility: style.visibility,
+      };
+    });
+    const badInactivePanels = inactivePanels.filter(
+      (panel) =>
+        panel.height !== 0 ||
+        panel.overflow !== "hidden" ||
+        panel.marginBlockStart !== "0px" ||
+        panel.marginBlockEnd !== "0px" ||
+        panel.paddingBlockStart !== "0px" ||
+        panel.paddingBlockEnd !== "0px" ||
+        panel.pointerEvents !== "none" ||
+        panel.visibility !== "hidden",
+    );
+
+    return {
+      pageEnd,
+      footerBottom,
+      docsBottom,
+      trailingBlank: pageEnd - Math.max(footerBottom, docsBottom),
+      inactivePanelCount: inactivePanels.length,
+      badInactivePanels,
+      mobileOutlineCount: document.querySelectorAll(".md3e-on-this-page").length,
+      hasOutlineBodyClass: document.body.classList.contains(
+        "md3e-has-page-outline",
+      ),
+    };
+  });
+
+  if (!mobileResponse || mobileResponse.status() !== 200) {
+    await writeDiagnostics(mobilePage, "mobile-network-response", {
+      status: mobileResponse?.status() ?? null,
+    });
+    await browser.close();
+    throw new Error("Mobile Interfaces page did not return HTTP 200");
+  }
+  if (mobileResult.inactivePanelCount > 0 && mobileResult.badInactivePanels.length) {
+    await writeDiagnostics(mobilePage, "mobile-inactive-tab-panels", mobileResult);
+    await browser.close();
+    throw new Error(
+      "Mobile Interfaces page has inactive tab panels extending page layout: " +
+        JSON.stringify(mobileResult.badInactivePanels),
+    );
+  }
+  if (mobileResult.trailingBlank > 96) {
+    await writeDiagnostics(mobilePage, "mobile-trailing-blank", mobileResult);
+    await browser.close();
+    throw new Error(
+      "Mobile Interfaces page trailing blank is too large: " +
+        mobileResult.trailingBlank +
+        "px",
+    );
+  }
+  if (mobileResult.mobileOutlineCount > 0 || mobileResult.hasOutlineBodyClass) {
+    await writeDiagnostics(mobilePage, "mobile-page-outline-present", mobileResult);
+    await browser.close();
+    throw new Error(
+      "Mobile Interfaces page should not render page outline: " +
+        JSON.stringify({
+          mobileOutlineCount: mobileResult.mobileOutlineCount,
+          hasOutlineBodyClass: mobileResult.hasOutlineBodyClass,
+        }),
+    );
+  }
+
+  console.log(
+    "device interfaces layout ok: ifaceboxCount=" +
+      result.ifaceboxCount +
+      ", badCount=" +
+      result.badCount +
+      ", mobileTrailingBlank=" +
+      mobileResult.trailingBlank +
+      ", inactivePanelCount=" +
+      mobileResult.inactivePanelCount +
+      ", mobileOutlineCount=" +
+      mobileResult.mobileOutlineCount,
+  );
+
+  await browser.close();
 })().catch((error) => {
   console.error(error);
   process.exit(1);

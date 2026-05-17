@@ -28,6 +28,8 @@ const ignoredArtifactPaths = [
   ".tmp-playwright-rc7/package.json",
   ".tmp-release/luci-theme-md3e.apk",
   ".tmp-release-rc7/luci-theme-md3e.apk",
+  ".tmp-device-layout-diagnostics/failure.png",
+  ".tmp-device-layout-diagnostics/failure.json",
   "action-artifacts/luci-theme-md3e.apk",
   "actions-artifacts/luci-theme-md3e.ipk",
   "artifacts/package-check.log",

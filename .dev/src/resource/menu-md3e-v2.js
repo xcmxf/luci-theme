@@ -35,8 +35,12 @@ return baseclass.extend({
 
     if (mode === "desktop") {
       this.setMobileMenuOpen?.(false);
+      this.scheduleFrame("_pageChromeViewportFrame", () =>
+        this.initPageChrome?.(),
+      );
     } else {
       this.collapseDesktopShell?.();
+      this.teardownPageChrome?.();
     }
 
     this.syncIndicatorHost();
@@ -776,22 +780,59 @@ return baseclass.extend({
     if (this._pageOutlineScrollStateInit) return;
 
     this._pageOutlineScrollStateInit = true;
-    let timer = null;
 
     const markScrolling = () => {
       const current = document.querySelector(".md3e-on-this-page");
       if (!(current instanceof HTMLElement)) return;
 
       current.classList.add("is-scrolling");
-      if (timer) clearTimeout(timer);
+      if (this._pageOutlineScrollStateTimer) {
+        clearTimeout(this._pageOutlineScrollStateTimer);
+      }
 
-      timer = setTimeout(() => {
+      this._pageOutlineScrollStateTimer = setTimeout(() => {
         current.classList.remove("is-scrolling");
+        this._pageOutlineScrollStateTimer = null;
       }, 220);
     };
 
+    this._pageOutlineScrollStateHandler = markScrolling;
     window.addEventListener("wheel", markScrolling, { passive: true });
     window.addEventListener("scroll", markScrolling, { passive: true });
+  },
+
+  teardownPageChrome() {
+    const main = document.querySelector("#maincontent");
+    const content = document.querySelector(".docs-content");
+
+    if (this._pageOutlineObserver) {
+      this._pageOutlineObserver.disconnect();
+      this._pageOutlineObserver = null;
+    }
+
+    if (this._pageChromeMutationDisconnect) {
+      this._pageChromeMutationDisconnect();
+      this._pageChromeMutationDisconnect = null;
+    }
+
+    main?.querySelector(":scope > .md3e-on-this-page")?.remove();
+    document.body?.classList.remove("md3e-has-page-outline");
+
+    if (this._pageOutlineScrollStateHandler) {
+      window.removeEventListener("wheel", this._pageOutlineScrollStateHandler);
+      window.removeEventListener("scroll", this._pageOutlineScrollStateHandler);
+      this._pageOutlineScrollStateHandler = null;
+      this._pageOutlineScrollStateInit = false;
+    }
+
+    if (this._pageOutlineScrollStateTimer) {
+      clearTimeout(this._pageOutlineScrollStateTimer);
+      this._pageOutlineScrollStateTimer = null;
+    }
+
+    if (content instanceof HTMLElement) {
+      content._md3ePageChromeInit = false;
+    }
   },
 
   syncPageOutline(sections) {
@@ -940,6 +981,10 @@ return baseclass.extend({
   initPageChrome() {
     const content = document.querySelector(".docs-content");
     if (!content || content._md3ePageChromeInit) return;
+    if (this.isMobileViewport?.()) {
+      this.teardownPageChrome();
+      return;
+    }
 
     const getMap = () => {
       const view = content.querySelector("#view");
@@ -997,15 +1042,24 @@ return baseclass.extend({
       });
     };
 
-    this.observeDomMutations(content, "page-chrome", (mutations) => {
-      if (!mutations.some(isPageChromeMutation)) return;
-      this.scheduleFrame("_pageChromeDecorateFrame", decorate);
-    }, {
-      childList: true,
-      attributes: true,
-      attributeFilter: ["hidden", "style", "class", "aria-hidden"],
-      subtree: true,
-    });
+    this._pageChromeMutationDisconnect = this.observeDomMutations(
+      content,
+      "page-chrome",
+      (mutations) => {
+        if (this.isMobileViewport?.()) {
+          this.teardownPageChrome();
+          return;
+        }
+        if (!mutations.some(isPageChromeMutation)) return;
+        this.scheduleFrame("_pageChromeDecorateFrame", decorate);
+      },
+      {
+        childList: true,
+        attributes: true,
+        attributeFilter: ["hidden", "style", "class", "aria-hidden"],
+        subtree: true,
+      },
+    );
 
     content._md3ePageChromeInit = true;
   },
@@ -1705,6 +1759,16 @@ return baseclass.extend({
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const maxAnimatedHeight = 720;
     const maxAnimatedDelta = 360;
+    const tabPanelSelector =
+      ".cbi-map-tabbed > [data-tab-title], .cbi-section-node-tabbed > [data-tab-title]";
+
+    const syncTabPanelState = (scope = target) => {
+      this.forEachElementMatch(scope, tabPanelSelector, (panel) => {
+        const active = panel.getAttribute("data-tab-active") === "true";
+        panel.classList.toggle("md3e-tab-panel-active", active);
+        panel.classList.toggle("md3e-tab-panel-hidden", !active);
+      });
+    };
 
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -1763,6 +1827,7 @@ return baseclass.extend({
       ".cbi-section-node-tabbed, .cbi-map-tabbed",
       watch,
     );
+    syncTabPanelState();
 
     /* ── View load animation (blur-in after spinner) ── */
 
@@ -1807,6 +1872,7 @@ return baseclass.extend({
 
     this.observeDomMutations(target, "tab-content-animation", (muts) => {
       if (!muts.some(isTabContentMutation)) return;
+      this.scheduleFrame("_tabPanelStateFrame", () => syncTabPanelState());
 
       for (const m of muts) {
         if (

@@ -81,6 +81,16 @@
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const maxAnimatedHeight = 720;
     const maxAnimatedDelta = 360;
+    const tabPanelSelector =
+      ".cbi-map-tabbed > [data-tab-title], .cbi-section-node-tabbed > [data-tab-title]";
+
+    const syncTabPanelState = (scope = target) => {
+      this.forEachElementMatch(scope, tabPanelSelector, (panel) => {
+        const active = panel.getAttribute("data-tab-active") === "true";
+        panel.classList.toggle("md3e-tab-panel-active", active);
+        panel.classList.toggle("md3e-tab-panel-hidden", !active);
+      });
+    };
 
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -139,6 +149,7 @@
       ".cbi-section-node-tabbed, .cbi-map-tabbed",
       watch,
     );
+    syncTabPanelState();
 
     /* ── View load animation (blur-in after spinner) ── */
 
@@ -183,6 +194,7 @@
 
     this.observeDomMutations(target, "tab-content-animation", (muts) => {
       if (!muts.some(isTabContentMutation)) return;
+      this.scheduleFrame("_tabPanelStateFrame", () => syncTabPanelState());
 
       for (const m of muts) {
         if (

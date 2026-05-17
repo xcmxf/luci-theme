@@ -26,8 +26,12 @@
 
     if (mode === "desktop") {
       this.setMobileMenuOpen?.(false);
+      this.scheduleFrame("_pageChromeViewportFrame", () =>
+        this.initPageChrome?.(),
+      );
     } else {
       this.collapseDesktopShell?.();
+      this.teardownPageChrome?.();
     }
 
     this.syncIndicatorHost();

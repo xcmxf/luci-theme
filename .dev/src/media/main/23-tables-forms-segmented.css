@@ -1115,6 +1115,25 @@
     [data-tab-active="true"] {
       @apply visible h-auto overflow-visible;
     }
+    #maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > .md3e-tab-panel-hidden,
+    #maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > [data-tab-title]:not([data-tab-active="true"]) {
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
+      margin-block: 0 !important;
+      padding-block: 0 !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
+    }
+    #maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > .md3e-tab-panel-active,
+    #maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > [data-tab-title][data-tab-active="true"] {
+      max-height: none !important;
+      overflow: visible !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
 
     @keyframes tab-content-in {
       from {

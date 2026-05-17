@@ -37,6 +37,9 @@ const bootstrapLayoutJs = readProjectFile(
 const customSelectsJs = readProjectFile(
   ".dev/src/resource/menu-md3e-v2/32-custom-selects.js",
 );
+const tabContentMotionJs = readProjectFile(
+  ".dev/src/resource/menu-md3e-v2/24-tab-content-motion.js",
+);
 const pageOutlineSourceCss = readProjectFile(
   ".dev/src/public-md3e/components/60-page-outline.css",
 );
@@ -217,6 +220,36 @@ assertIncludes(
   tablesFormsCss,
   ".md3e-row-action-cluster",
   "row action button cluster CSS must use the explicit marker class",
+);
+assertIncludes(
+  tablesFormsCss,
+  ".md3e-tab-panel-hidden",
+  "hidden LuCI tab panels must use an explicit runtime marker class",
+);
+assertIncludes(
+  tabContentMotionJs,
+  "syncTabPanelState",
+  "tab content runtime must sync explicit active/hidden panel classes",
+);
+assertIncludes(
+  tabContentMotionJs,
+  "md3e-tab-panel-hidden",
+  "tab content runtime must mark inactive panels explicitly",
+);
+assertIncludes(
+  tablesFormsCss,
+  '#maincontent :is(.cbi-map-tabbed, .cbi-section-node-tabbed) > [data-tab-title]:not([data-tab-active="true"])',
+  "hidden LuCI tab panels must be clipped so inactive content cannot extend mobile page scroll height",
+);
+assertIncludes(
+  tablesFormsCss,
+  "margin-block: 0 !important",
+  "hidden LuCI tab panels must not leave inactive tab margin in page flow",
+);
+assertIncludes(
+  tablesFormsCss,
+  "overflow: hidden !important",
+  "hidden LuCI tab panels must override generic cbi-section overflow-visible rules",
 );
 assertNotMatch(
   tablesFormsCss,
