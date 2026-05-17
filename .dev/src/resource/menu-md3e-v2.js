@@ -158,6 +158,84 @@ return baseclass.extend({
     }
   },
 
+  observeDomMutations(target, subscriberKey, callback, options = {}) {
+    if (
+      !(target instanceof HTMLElement) ||
+      !subscriberKey ||
+      typeof callback !== "function"
+    ) {
+      return null;
+    }
+
+    const hub = target._md3eMutationHub || {
+      subscribers: new Map(),
+      observer: null,
+      options: {
+        childList: false,
+        subtree: false,
+        attributes: false,
+        attributeFilter: new Set(),
+        observeAllAttributes: false,
+      },
+    };
+    target._md3eMutationHub = hub;
+
+    const nextOptions = {
+      childList: Boolean(options.childList),
+      subtree: Boolean(options.subtree),
+      attributes: Boolean(options.attributes),
+      attributeFilter: Array.isArray(options.attributeFilter)
+        ? options.attributeFilter
+        : null,
+    };
+
+    hub.subscribers.set(subscriberKey, { callback });
+    hub.options.childList = hub.options.childList || nextOptions.childList;
+    hub.options.subtree = hub.options.subtree || nextOptions.subtree;
+    hub.options.attributes = hub.options.attributes || nextOptions.attributes;
+
+    if (nextOptions.attributes) {
+      if (nextOptions.attributeFilter) {
+        nextOptions.attributeFilter.forEach((name) =>
+          hub.options.attributeFilter.add(name),
+        );
+      } else {
+        hub.options.observeAllAttributes = true;
+      }
+    }
+
+    const observerOptions = {
+      childList: hub.options.childList,
+      subtree: hub.options.subtree,
+    };
+
+    if (hub.options.attributes) {
+      observerOptions.attributes = true;
+      if (!hub.options.observeAllAttributes && hub.options.attributeFilter.size) {
+        observerOptions.attributeFilter = Array.from(hub.options.attributeFilter);
+      }
+    }
+
+    if (!hub.observer) {
+      hub.observer = new MutationObserver((mutations) => {
+        const subscribers = Array.from(hub.subscribers.values());
+        subscribers.forEach((subscriber) => subscriber.callback(mutations));
+      });
+    } else {
+      hub.observer.disconnect();
+    }
+
+    hub.observer.observe(target, observerOptions);
+
+    return () => {
+      hub.subscribers.delete(subscriberKey);
+      if (!hub.subscribers.size) {
+        hub.observer.disconnect();
+        target._md3eMutationHub = null;
+      }
+    };
+  },
+
   scheduleFrame(frameKey, callback) {
     if (!frameKey || typeof callback !== "function") return;
     if (this[frameKey]) return;
@@ -919,10 +997,10 @@ return baseclass.extend({
       });
     };
 
-    new MutationObserver((mutations) => {
+    this.observeDomMutations(content, "page-chrome", (mutations) => {
       if (!mutations.some(isPageChromeMutation)) return;
       this.scheduleFrame("_pageChromeDecorateFrame", decorate);
-    }).observe(content, {
+    }, {
       childList: true,
       attributes: true,
       attributeFilter: ["hidden", "style", "class", "aria-hidden"],
@@ -987,15 +1065,15 @@ return baseclass.extend({
     this._progressRingThemeHandler = () => syncAll(target);
     window.addEventListener("md3e:themechange", this._progressRingThemeHandler);
 
-    this._progressRingObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "progress-rings", (mutations) => {
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== 1) continue;
           syncAll(node);
         }
       }
-    });
-    this._progressRingObserver.observe(target, {
+    }, {
       childList: true,
       subtree: true,
     });
@@ -1294,8 +1372,9 @@ return baseclass.extend({
     };
 
     /* Watch for new toasts added to #maincontent */
-    new MutationObserver((mutations) => {
+    this.observeDomMutations(container, "toast-auto-dismiss", (mutations) => {
       for (const m of mutations) {
+        if (m.type !== "childList") continue;
         for (const node of m.addedNodes) {
           if (
             node.nodeType === 1 &&
@@ -1306,7 +1385,7 @@ return baseclass.extend({
           }
         }
       }
-    }).observe(container, { childList: true });
+    }, { childList: true });
 
     /* Setup any existing toasts */
     container
@@ -1473,15 +1552,15 @@ return baseclass.extend({
 
     bindExistingTabs(document);
 
-    this._vercelTabsObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "vercel-tabs", (mutations) => {
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== 1) continue;
           bindExistingTabs(node);
         }
       }
-    });
-    this._vercelTabsObserver.observe(target, { childList: true, subtree: true });
+    }, { childList: true, subtree: true });
   },
   initNavHover() {
     const nav = document.querySelector("#topmenu");
@@ -1726,7 +1805,7 @@ return baseclass.extend({
       );
     };
 
-    new MutationObserver((muts) => {
+    this.observeDomMutations(target, "tab-content-animation", (muts) => {
       if (!muts.some(isTabContentMutation)) return;
 
       for (const m of muts) {
@@ -1752,7 +1831,7 @@ return baseclass.extend({
           if (n.id === "view") watchView(n);
         }
       }
-    }).observe(target, {
+    }, {
       childList: true,
       subtree: true,
       attributes: true,
@@ -1841,7 +1920,7 @@ return baseclass.extend({
     const target = document.getElementById("maincontent") || document.body;
     const pendingScopes = new Set();
 
-    new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "description-placement", (mutations) => {
       mutations.forEach((mutation) => {
         if (
           mutation.type === "attributes" &&
@@ -1871,7 +1950,7 @@ return baseclass.extend({
         pendingScopes.forEach((scope) => move(scope));
         pendingScopes.clear();
       });
-    }).observe(target, {
+    }, {
       childList: true,
       attributes: true,
       attributeFilter: ["open", "class", "disabled"],
@@ -2133,6 +2212,7 @@ return baseclass.extend({
         this._openCbiDropdowns.delete(dropdown);
         this.resetDropdownPanel(panel);
       }
+      this._syncDropdownViewportListeners?.();
     };
 
     const replace = (sel) => {
@@ -2205,6 +2285,7 @@ return baseclass.extend({
         this._openOutlineSelects.add(wrap);
         wrap.classList.add("open");
         schedulePanelPosition(wrap, panel);
+        this._syncDropdownViewportListeners?.();
       };
 
       const close = () => {
@@ -2213,6 +2294,7 @@ return baseclass.extend({
         this._openOutlineSelects.delete(wrap);
         this.resetDropdownPanel(panel);
         wrap.classList.remove("open");
+        this._syncDropdownViewportListeners?.();
       };
 
       trigger.addEventListener("click", (e) => {
@@ -2264,6 +2346,7 @@ return baseclass.extend({
         Array.from(this._openOutlineSelects || []).forEach((wrap) => {
           if (!wrap.isConnected) {
             this._openOutlineSelects.delete(wrap);
+            this._syncDropdownViewportListeners?.();
             return;
           }
           if (!wrap.contains(e.target)) wrap._md3eCloseOutlineSelect?.();
@@ -2282,7 +2365,7 @@ return baseclass.extend({
       document.addEventListener("click", this._customSelectClickHandler);
     }
 
-    this._customSelectObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "custom-selects", (mutations) => {
       const dropdowns = new Set();
       const addedSelects = new Set();
 
@@ -2319,12 +2402,27 @@ return baseclass.extend({
       this.scheduleFrame("_customSelectDropdownFrame", () => {
         dropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
       });
-    }).observe(target, {
+    }, {
       childList: true,
       attributes: true,
       attributeFilter: ["open"],
       subtree: true,
     });
+
+    const syncViewportListeners = () => {
+      const hasOpen =
+        Array.from(this._openOutlineSelects || []).some((wrap) => wrap.isConnected) ||
+        Array.from(this._openCbiDropdowns || []).some(
+          (dropdown) => dropdown.isConnected && dropdown.hasAttribute("open"),
+        );
+
+      if (hasOpen === this._dropdownViewportListening) return;
+      this._dropdownViewportListening = hasOpen;
+
+      const method = hasOpen ? "addEventListener" : "removeEventListener";
+      window[method]("resize", this._dropdownViewportHandler);
+      window[method]("scroll", this._dropdownViewportHandler, true);
+    };
 
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
@@ -2346,9 +2444,10 @@ return baseclass.extend({
           openDropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
         });
       };
-      window.addEventListener("resize", this._dropdownViewportHandler);
-      window.addEventListener("scroll", this._dropdownViewportHandler, true);
     }
+
+    this._syncDropdownViewportListeners = syncViewportListeners;
+    syncViewportListeners();
   },
   initMobileMenu() {
     const overlay = document.querySelector("#mobile-menu-overlay");
@@ -2545,10 +2644,11 @@ return baseclass.extend({
     this._networkStatusCardsInitialized = true;
     enhance(target);
 
-    target._md3eNetworkStatusObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "network-status-cards", (mutations) => {
       const added = new Set();
 
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType === 1) added.add(node);
         }
@@ -2560,9 +2660,7 @@ return baseclass.extend({
           if (node.isConnected) enhance(node);
         });
       });
-    });
-
-    target._md3eNetworkStatusObserver.observe(target, {
+    }, {
       childList: true,
       subtree: true,
     });
@@ -2632,17 +2730,31 @@ return baseclass.extend({
           (child) =>
             child instanceof HTMLElement && child.matches("td, .td"),
         );
+        const buttonSelector = ".cbi-button, .btn, button, a.btn, input.btn";
         let actionCount = 0;
 
         cells.forEach((cell) => {
           cell.classList.remove("md3e-row-action-cell", "md3e-row-actions");
+          cell
+            .querySelectorAll(":scope > .md3e-row-action-cluster")
+            .forEach((cluster) =>
+              cluster.classList.remove("md3e-row-action-cluster"),
+            );
         });
 
         for (let index = cells.length - 1; index >= 0; index -= 1) {
           const cell = cells[index];
-          const buttons = Array.from(
-            cell.querySelectorAll(".cbi-button, .btn, button, a.btn, input.btn"),
+          const actionClusters = Array.from(cell.children).filter(
+            (child) =>
+              child instanceof HTMLElement &&
+              child.matches("div") &&
+              child.querySelector(`:scope > :is(${buttonSelector})`),
           );
+          actionClusters.forEach((cluster) =>
+            cluster.classList.add("md3e-row-action-cluster"),
+          );
+
+          const buttons = Array.from(cell.querySelectorAll(buttonSelector));
           const compactText =
             cell.textContent.trim().replace(/\s+/g, " ").length <= 32;
           const isActionCell = buttons.length > 0 && compactText;
@@ -2667,10 +2779,9 @@ return baseclass.extend({
     target.querySelectorAll(".cbi-page-actions").forEach(enhance);
     markRowActionCells(target);
 
-    if (target._md3eActionGroupObserver) return;
-
-    target._md3eActionGroupObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "action-button-groups", (mutations) => {
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== 1) continue;
           if (node.matches?.(".cbi-page-actions")) enhance(node);
@@ -2678,9 +2789,7 @@ return baseclass.extend({
           markRowActionCells(node);
         }
       }
-    });
-
-    target._md3eActionGroupObserver.observe(target, {
+    }, {
       childList: true,
       subtree: true,
     });

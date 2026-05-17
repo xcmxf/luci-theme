@@ -63,17 +63,31 @@
           (child) =>
             child instanceof HTMLElement && child.matches("td, .td"),
         );
+        const buttonSelector = ".cbi-button, .btn, button, a.btn, input.btn";
         let actionCount = 0;
 
         cells.forEach((cell) => {
           cell.classList.remove("md3e-row-action-cell", "md3e-row-actions");
+          cell
+            .querySelectorAll(":scope > .md3e-row-action-cluster")
+            .forEach((cluster) =>
+              cluster.classList.remove("md3e-row-action-cluster"),
+            );
         });
 
         for (let index = cells.length - 1; index >= 0; index -= 1) {
           const cell = cells[index];
-          const buttons = Array.from(
-            cell.querySelectorAll(".cbi-button, .btn, button, a.btn, input.btn"),
+          const actionClusters = Array.from(cell.children).filter(
+            (child) =>
+              child instanceof HTMLElement &&
+              child.matches("div") &&
+              child.querySelector(`:scope > :is(${buttonSelector})`),
           );
+          actionClusters.forEach((cluster) =>
+            cluster.classList.add("md3e-row-action-cluster"),
+          );
+
+          const buttons = Array.from(cell.querySelectorAll(buttonSelector));
           const compactText =
             cell.textContent.trim().replace(/\s+/g, " ").length <= 32;
           const isActionCell = buttons.length > 0 && compactText;
@@ -98,10 +112,9 @@
     target.querySelectorAll(".cbi-page-actions").forEach(enhance);
     markRowActionCells(target);
 
-    if (target._md3eActionGroupObserver) return;
-
-    target._md3eActionGroupObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "action-button-groups", (mutations) => {
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== 1) continue;
           if (node.matches?.(".cbi-page-actions")) enhance(node);
@@ -109,9 +122,7 @@
           markRowActionCells(node);
         }
       }
-    });
-
-    target._md3eActionGroupObserver.observe(target, {
+    }, {
       childList: true,
       subtree: true,
     });

@@ -131,10 +131,11 @@
     this._networkStatusCardsInitialized = true;
     enhance(target);
 
-    target._md3eNetworkStatusObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "network-status-cards", (mutations) => {
       const added = new Set();
 
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType === 1) added.add(node);
         }
@@ -146,9 +147,7 @@
           if (node.isConnected) enhance(node);
         });
       });
-    });
-
-    target._md3eNetworkStatusObserver.observe(target, {
+    }, {
       childList: true,
       subtree: true,
     });

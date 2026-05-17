@@ -235,7 +235,7 @@
         body[data-page="admin-status-processes"] &:last-child,
         &[data-title=""],
         &.cbi-section-actions {
-          & > div:has(> :is(.cbi-button, .btn, button, a.btn, input.btn)) {
+          & > .md3e-row-action-cluster {
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-end;
@@ -256,7 +256,7 @@
           }
 
           @media (max-width: 82rem) {
-            & > div:has(> :is(.cbi-button, .btn, button, a.btn, input.btn)) {
+            & > .md3e-row-action-cluster {
               max-width: min(15rem, 24vw);
               gap: 0.32rem;
 
@@ -269,7 +269,7 @@
           }
 
           @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
-            & > div:has(> :is(.cbi-button, .btn, button, a.btn, input.btn)) {
+            & > .md3e-row-action-cluster {
               justify-content: flex-start;
               max-width: 100%;
               margin-left: 0;

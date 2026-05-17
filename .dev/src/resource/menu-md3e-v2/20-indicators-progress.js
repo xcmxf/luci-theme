@@ -54,15 +54,15 @@
     this._progressRingThemeHandler = () => syncAll(target);
     window.addEventListener("md3e:themechange", this._progressRingThemeHandler);
 
-    this._progressRingObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "progress-rings", (mutations) => {
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== 1) continue;
           syncAll(node);
         }
       }
-    });
-    this._progressRingObserver.observe(target, {
+    }, {
       childList: true,
       subtree: true,
     });

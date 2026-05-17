@@ -31,6 +31,12 @@ const actionGroupsJs = readProjectFile(
 const networkStatusCardsJs = readProjectFile(
   ".dev/src/resource/menu-md3e-v2/41-network-status-cards.js",
 );
+const bootstrapLayoutJs = readProjectFile(
+  ".dev/src/resource/menu-md3e-v2/10-bootstrap-layout.js",
+);
+const customSelectsJs = readProjectFile(
+  ".dev/src/resource/menu-md3e-v2/32-custom-selects.js",
+);
 const pageOutlineSourceCss = readProjectFile(
   ".dev/src/public-md3e/components/60-page-outline.css",
 );
@@ -186,6 +192,51 @@ assertIncludes(
   networkStatusCardsJs,
   'row.classList.add("md3e-interface-row")',
   "network interface row marker must be applied by the LuCI runtime enhancer",
+);
+assertIncludes(
+  bootstrapLayoutJs,
+  "observeDomMutations(target, subscriberKey, callback",
+  "runtime modules must use the shared DOM mutation hub for target-level observers",
+);
+assertIncludes(
+  networkStatusCardsJs,
+  'this.observeDomMutations(target, "network-status-cards"',
+  "network status cards must subscribe to the shared mutation hub",
+);
+assertIncludes(
+  actionGroupsJs,
+  'this.observeDomMutations(target, "action-button-groups"',
+  "action button groups must subscribe to the shared mutation hub",
+);
+assertIncludes(
+  actionGroupsJs,
+  "md3e-row-action-cluster",
+  "row action button clusters must get an explicit marker class",
+);
+assertIncludes(
+  tablesFormsCss,
+  ".md3e-row-action-cluster",
+  "row action button cluster CSS must use the explicit marker class",
+);
+assertNotMatch(
+  tablesFormsCss,
+  />\s*div:has\(\s*>\s*:is\(\.cbi-button,\s*\.btn,\s*button,\s*a\.btn,\s*input\.btn\)\)/,
+  "row action button cluster CSS must not rely on div:has(> button)",
+);
+assertIncludes(
+  customSelectsJs,
+  'this.observeDomMutations(target, "custom-selects"',
+  "custom selects must subscribe to the shared mutation hub",
+);
+assertIncludes(
+  customSelectsJs,
+  'const method = hasOpen ? "addEventListener" : "removeEventListener"',
+  "dropdown viewport listeners must be attached only while a dropdown is open",
+);
+assertNotMatch(
+  customSelectsJs,
+  /window\.addEventListener\("scroll",\s*this\._dropdownViewportHandler,\s*true\)/,
+  "dropdown scroll listener must not be installed permanently during init",
 );
 
 const navShellHas =

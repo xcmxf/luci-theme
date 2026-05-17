@@ -41,6 +41,7 @@
         this._openCbiDropdowns.delete(dropdown);
         this.resetDropdownPanel(panel);
       }
+      this._syncDropdownViewportListeners?.();
     };
 
     const replace = (sel) => {
@@ -113,6 +114,7 @@
         this._openOutlineSelects.add(wrap);
         wrap.classList.add("open");
         schedulePanelPosition(wrap, panel);
+        this._syncDropdownViewportListeners?.();
       };
 
       const close = () => {
@@ -121,6 +123,7 @@
         this._openOutlineSelects.delete(wrap);
         this.resetDropdownPanel(panel);
         wrap.classList.remove("open");
+        this._syncDropdownViewportListeners?.();
       };
 
       trigger.addEventListener("click", (e) => {
@@ -172,6 +175,7 @@
         Array.from(this._openOutlineSelects || []).forEach((wrap) => {
           if (!wrap.isConnected) {
             this._openOutlineSelects.delete(wrap);
+            this._syncDropdownViewportListeners?.();
             return;
           }
           if (!wrap.contains(e.target)) wrap._md3eCloseOutlineSelect?.();
@@ -190,7 +194,7 @@
       document.addEventListener("click", this._customSelectClickHandler);
     }
 
-    this._customSelectObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "custom-selects", (mutations) => {
       const dropdowns = new Set();
       const addedSelects = new Set();
 
@@ -227,12 +231,27 @@
       this.scheduleFrame("_customSelectDropdownFrame", () => {
         dropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
       });
-    }).observe(target, {
+    }, {
       childList: true,
       attributes: true,
       attributeFilter: ["open"],
       subtree: true,
     });
+
+    const syncViewportListeners = () => {
+      const hasOpen =
+        Array.from(this._openOutlineSelects || []).some((wrap) => wrap.isConnected) ||
+        Array.from(this._openCbiDropdowns || []).some(
+          (dropdown) => dropdown.isConnected && dropdown.hasAttribute("open"),
+        );
+
+      if (hasOpen === this._dropdownViewportListening) return;
+      this._dropdownViewportListening = hasOpen;
+
+      const method = hasOpen ? "addEventListener" : "removeEventListener";
+      window[method]("resize", this._dropdownViewportHandler);
+      window[method]("scroll", this._dropdownViewportHandler, true);
+    };
 
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
@@ -254,7 +273,8 @@
           openDropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
         });
       };
-      window.addEventListener("resize", this._dropdownViewportHandler);
-      window.addEventListener("scroll", this._dropdownViewportHandler, true);
     }
+
+    this._syncDropdownViewportListeners = syncViewportListeners;
+    syncViewportListeners();
   },

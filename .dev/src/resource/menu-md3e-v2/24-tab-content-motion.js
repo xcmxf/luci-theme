@@ -181,7 +181,7 @@
       );
     };
 
-    new MutationObserver((muts) => {
+    this.observeDomMutations(target, "tab-content-animation", (muts) => {
       if (!muts.some(isTabContentMutation)) return;
 
       for (const m of muts) {
@@ -207,7 +207,7 @@
           if (n.id === "view") watchView(n);
         }
       }
-    }).observe(target, {
+    }, {
       childList: true,
       subtree: true,
       attributes: true,

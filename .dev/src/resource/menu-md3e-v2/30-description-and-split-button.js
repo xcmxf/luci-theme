@@ -80,7 +80,7 @@
     const target = document.getElementById("maincontent") || document.body;
     const pendingScopes = new Set();
 
-    new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "description-placement", (mutations) => {
       mutations.forEach((mutation) => {
         if (
           mutation.type === "attributes" &&
@@ -110,7 +110,7 @@
         pendingScopes.forEach((scope) => move(scope));
         pendingScopes.clear();
       });
-    }).observe(target, {
+    }, {
       childList: true,
       attributes: true,
       attributeFilter: ["open", "class", "disabled"],

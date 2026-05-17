@@ -158,13 +158,13 @@
 
     bindExistingTabs(document);
 
-    this._vercelTabsObserver = new MutationObserver((mutations) => {
+    this.observeDomMutations(target, "vercel-tabs", (mutations) => {
       for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== 1) continue;
           bindExistingTabs(node);
         }
       }
-    });
-    this._vercelTabsObserver.observe(target, { childList: true, subtree: true });
+    }, { childList: true, subtree: true });
   },

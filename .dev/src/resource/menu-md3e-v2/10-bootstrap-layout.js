@@ -149,6 +149,84 @@
     }
   },
 
+  observeDomMutations(target, subscriberKey, callback, options = {}) {
+    if (
+      !(target instanceof HTMLElement) ||
+      !subscriberKey ||
+      typeof callback !== "function"
+    ) {
+      return null;
+    }
+
+    const hub = target._md3eMutationHub || {
+      subscribers: new Map(),
+      observer: null,
+      options: {
+        childList: false,
+        subtree: false,
+        attributes: false,
+        attributeFilter: new Set(),
+        observeAllAttributes: false,
+      },
+    };
+    target._md3eMutationHub = hub;
+
+    const nextOptions = {
+      childList: Boolean(options.childList),
+      subtree: Boolean(options.subtree),
+      attributes: Boolean(options.attributes),
+      attributeFilter: Array.isArray(options.attributeFilter)
+        ? options.attributeFilter
+        : null,
+    };
+
+    hub.subscribers.set(subscriberKey, { callback });
+    hub.options.childList = hub.options.childList || nextOptions.childList;
+    hub.options.subtree = hub.options.subtree || nextOptions.subtree;
+    hub.options.attributes = hub.options.attributes || nextOptions.attributes;
+
+    if (nextOptions.attributes) {
+      if (nextOptions.attributeFilter) {
+        nextOptions.attributeFilter.forEach((name) =>
+          hub.options.attributeFilter.add(name),
+        );
+      } else {
+        hub.options.observeAllAttributes = true;
+      }
+    }
+
+    const observerOptions = {
+      childList: hub.options.childList,
+      subtree: hub.options.subtree,
+    };
+
+    if (hub.options.attributes) {
+      observerOptions.attributes = true;
+      if (!hub.options.observeAllAttributes && hub.options.attributeFilter.size) {
+        observerOptions.attributeFilter = Array.from(hub.options.attributeFilter);
+      }
+    }
+
+    if (!hub.observer) {
+      hub.observer = new MutationObserver((mutations) => {
+        const subscribers = Array.from(hub.subscribers.values());
+        subscribers.forEach((subscriber) => subscriber.callback(mutations));
+      });
+    } else {
+      hub.observer.disconnect();
+    }
+
+    hub.observer.observe(target, observerOptions);
+
+    return () => {
+      hub.subscribers.delete(subscriberKey);
+      if (!hub.subscribers.size) {
+        hub.observer.disconnect();
+        target._md3eMutationHub = null;
+      }
+    };
+  },
+
   scheduleFrame(frameKey, callback) {
     if (!frameKey || typeof callback !== "function") return;
     if (this[frameKey]) return;

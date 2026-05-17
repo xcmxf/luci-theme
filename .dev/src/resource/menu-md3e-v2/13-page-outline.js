@@ -343,10 +343,10 @@
       });
     };
 
-    new MutationObserver((mutations) => {
+    this.observeDomMutations(content, "page-chrome", (mutations) => {
       if (!mutations.some(isPageChromeMutation)) return;
       this.scheduleFrame("_pageChromeDecorateFrame", decorate);
-    }).observe(content, {
+    }, {
       childList: true,
       attributes: true,
       attributeFilter: ["hidden", "style", "class", "aria-hidden"],

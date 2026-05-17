@@ -170,8 +170,9 @@
     };
 
     /* Watch for new toasts added to #maincontent */
-    new MutationObserver((mutations) => {
+    this.observeDomMutations(container, "toast-auto-dismiss", (mutations) => {
       for (const m of mutations) {
+        if (m.type !== "childList") continue;
         for (const node of m.addedNodes) {
           if (
             node.nodeType === 1 &&
@@ -182,7 +183,7 @@
           }
         }
       }
-    }).observe(container, { childList: true });
+    }, { childList: true });
 
     /* Setup any existing toasts */
     container
