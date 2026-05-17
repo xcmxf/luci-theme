@@ -679,13 +679,6 @@
         .cbi-page-actions > .cbi-button,
         .cbi-page-actions > .cbi-dropdown {
           flex: 1 1 100%;
-          min-width: 0;
-          width: 100%;
-        }
-
-        .cbi-page-actions > .cbi-button,
-        .cbi-page-actions > .cbi-dropdown {
-          flex: 1 1 100%;
           width: 100%;
           min-width: 0;
           white-space: nowrap;
@@ -699,22 +692,7 @@
         }
       }
 
-      .cbi-map > .cbi-page-actions {
-        position: static;
-        display: flex;
-        width: 100%;
-        max-width: 100%;
-        margin-top: 0.85rem;
-        padding-top: 0;
-        padding-bottom: 0;
-        justify-content: flex-end;
-        align-self: stretch;
-        background: transparent;
-        box-shadow: none;
-        backdrop-filter: none;
-        border-top: 0;
-      }
-
+      .cbi-map > .cbi-page-actions,
       .cbi-map .cbi-page-actions {
         position: static;
         display: flex;
@@ -731,18 +709,12 @@
         border-top: 0;
       }
 
-      .cbi-map > .cbi-page-actions > div:not(.md3e-split-button):not([data-md3e-split-button]):not(.md3e-action-group) {
-        margin-left: auto;
-      }
-
+      .cbi-map > .cbi-page-actions > div:not(.md3e-split-button):not([data-md3e-split-button]):not(.md3e-action-group),
       .cbi-map .cbi-page-actions > div:not(.md3e-split-button):not([data-md3e-split-button]):not(.md3e-action-group) {
         margin-left: auto;
       }
 
-      .cbi-map > .cbi-page-actions::before {
-        content: none;
-      }
-
+      .cbi-map > .cbi-page-actions::before,
       .cbi-map .cbi-page-actions::before {
         content: none;
       }

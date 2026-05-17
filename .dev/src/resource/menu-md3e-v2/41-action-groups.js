@@ -39,7 +39,64 @@
       });
     };
 
+    const markRowActionCells = (scope = target) => {
+      const rows = new Set();
+
+      if (scope instanceof HTMLElement) {
+        const row = scope.matches("tr, .tr")
+          ? scope
+          : scope.closest("tr, .tr");
+        if (row instanceof HTMLElement) rows.add(row);
+      }
+
+      this.forEachElementMatch(scope, "tr, .tr, td, .td", (element) => {
+        if (!(element instanceof HTMLElement)) return;
+
+        const row = element.matches("tr, .tr")
+          ? element
+          : element.closest("tr, .tr");
+        if (row instanceof HTMLElement) rows.add(row);
+      });
+
+      rows.forEach((row) => {
+        const cells = Array.from(row.children).filter(
+          (child) =>
+            child instanceof HTMLElement && child.matches("td, .td"),
+        );
+        let actionCount = 0;
+
+        cells.forEach((cell) => {
+          cell.classList.remove("md3e-row-action-cell", "md3e-row-actions");
+        });
+
+        for (let index = cells.length - 1; index >= 0; index -= 1) {
+          const cell = cells[index];
+          const buttons = Array.from(
+            cell.querySelectorAll(".cbi-button, .btn, button, a.btn, input.btn"),
+          );
+          const compactText =
+            cell.textContent.trim().replace(/\s+/g, " ").length <= 32;
+          const isActionCell = buttons.length > 0 && compactText;
+
+          cell.classList.toggle("md3e-row-action-cell", isActionCell);
+          cell.classList.toggle(
+            "md3e-row-actions",
+            isActionCell && buttons.length >= 2,
+          );
+
+          if (!isActionCell) {
+            break;
+          }
+
+          actionCount += 1;
+        }
+
+        row.classList.toggle("md3e-has-row-actions", actionCount >= 2);
+      });
+    };
+
     target.querySelectorAll(".cbi-page-actions").forEach(enhance);
+    markRowActionCells(target);
 
     if (target._md3eActionGroupObserver) return;
 
@@ -49,6 +106,7 @@
           if (node.nodeType !== 1) continue;
           if (node.matches?.(".cbi-page-actions")) enhance(node);
           node.querySelectorAll?.(".cbi-page-actions").forEach(enhance);
+          markRowActionCells(node);
         }
       }
     });

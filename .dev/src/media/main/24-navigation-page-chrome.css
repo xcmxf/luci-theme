@@ -969,12 +969,9 @@
       }
 
       .docs-sidebar-tools {
-        justify-content: center;
-      }
-
-      .docs-sidebar-tools {
         width: var(--nav-rail-width);
         max-width: var(--nav-rail-width);
+        justify-content: center;
         justify-self: start;
         position: relative;
         z-index: 3;

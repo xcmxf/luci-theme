@@ -21,7 +21,9 @@
       document.body.classList.toggle("mobile-menu-open", open);
 
       if (open) {
-        requestAnimationFrame(() => this.expandActiveMobilePrimaryItem?.());
+        this.scheduleFrame("_mobileMenuExpandActiveFrame", () =>
+          this.expandActiveMobilePrimaryItem?.(),
+        );
       } else {
         resetMobileDrawer();
       }

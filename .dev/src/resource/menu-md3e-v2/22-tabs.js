@@ -37,14 +37,8 @@
       if (!items.length) return;
 
       let activeReady = false;
-      let activeFrame = null;
-
       const updateActiveIndicator = () => {
-        if (activeFrame) return;
-
-        activeFrame = requestAnimationFrame(() => {
-          activeFrame = null;
-
+        this.scheduleElementFrame(tabMenu, "_md3eTabActiveFrame", () => {
           const active = tabMenu.querySelector("li.cbi-tab");
           if (!active) return;
 
@@ -52,7 +46,7 @@
           const activeRect = active.getBoundingClientRect();
           const needsJump = !activeReady;
 
-          requestAnimationFrame(() => {
+          this.scheduleElementFrame(tabMenu, "_md3eTabActiveWriteFrame", () => {
             if (needsJump) tabMenu.classList.add("tab-active-jump");
 
             tabMenu.style.setProperty(
@@ -70,8 +64,10 @@
 
             if (needsJump) {
               activeReady = true;
-              requestAnimationFrame(() =>
-                tabMenu.classList.remove("tab-active-jump"),
+              this.scheduleElementFrame(
+                tabMenu,
+                "_md3eTabActiveJumpFrame",
+                () => tabMenu.classList.remove("tab-active-jump"),
               );
             }
           });
@@ -83,7 +79,6 @@
 
       let lastHoverTop = null;
       let hoverHideTimer = null;
-      let hoverFrame = null;
       let hoverTarget = null;
 
       const updateHoverIndicator = (li) => {
@@ -100,10 +95,7 @@
         }
 
         hoverTarget = li;
-        if (hoverFrame) return;
-
-        hoverFrame = requestAnimationFrame(() => {
-          hoverFrame = null;
+        this.scheduleElementFrame(tabMenu, "_md3eTabHoverFrame", () => {
           const current = hoverTarget;
           if (!current) return;
 
@@ -116,7 +108,7 @@
             lastHoverTop === null ||
             (lastHoverTop !== null && Math.abs(newTop - lastHoverTop) > 2);
 
-          requestAnimationFrame(() => {
+          this.scheduleElementFrame(tabMenu, "_md3eTabHoverWriteFrame", () => {
             if (needsJump) tabMenu.classList.add("tab-hover-jump");
 
             tabMenu.style.setProperty(
@@ -129,8 +121,10 @@
             lastHoverTop = newTop;
 
             if (needsJump) {
-              requestAnimationFrame(() =>
-                tabMenu.classList.remove("tab-hover-jump"),
+              this.scheduleElementFrame(
+                tabMenu,
+                "_md3eTabHoverJumpFrame",
+                () => tabMenu.classList.remove("tab-hover-jump"),
               );
             }
           });
@@ -147,7 +141,11 @@
         observer.observe(li, { attributes: true, attributeFilter: ["class"] }),
       );
 
-      requestAnimationFrame(updateActiveIndicator);
+      this.scheduleElementFrame(
+        tabMenu,
+        "_md3eTabInitialActiveFrame",
+        updateActiveIndicator,
+      );
     };
 
     const bindExistingTabs = (scope = document) => {

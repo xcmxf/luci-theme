@@ -38,6 +38,9 @@ const publicComponentsCss = readProjectFile(".dev/public/md3e/components.css");
 const statusCardsCss = readProjectFile(
   ".dev/src/media/main/22-status-cards.css",
 );
+const tablesFormsCss = readProjectFile(
+  ".dev/src/media/main/23-tables-forms-segmented.css",
+);
 
 assertIncludes(
   headerTemplate,
@@ -77,14 +80,112 @@ assertIncludes(
   "network status cards must get an explicit .md3e-network-card class",
 );
 assertIncludes(
+  networkStatusCardsJs,
+  'card.classList.toggle("md3e-port-card", isPortCard)',
+  "port status cards must get an explicit .md3e-port-card class",
+);
+assertIncludes(
+  networkStatusCardsJs,
+  'classList.add("md3e-port-name")',
+  "port status card name must be marked with .md3e-port-name",
+);
+assertIncludes(
+  networkStatusCardsJs,
+  'classList.add("md3e-port-zone")',
+  "port status card zone strip must be marked with .md3e-port-zone",
+);
+assertIncludes(
+  networkStatusCardsJs,
+  'classList.add("md3e-port-traffic")',
+  "port status card traffic area must be marked with .md3e-port-traffic",
+);
+assertIncludes(
   statusCardsCss,
   ".md3e-network-card-grid",
   "network status cards must use the MD3E card grid wrapper",
+);
+assertIncludes(
+  statusCardsCss,
+  ".md3e-port-card-grid",
+  "port status cards must use the explicit MD3E port card grid wrapper",
+);
+assertIncludes(
+  statusCardsCss,
+  ".md3e-port-card > .md3e-port-name",
+  "port status card CSS must use the explicit .md3e-port-name marker",
+);
+assertIncludes(
+  statusCardsCss,
+  ".md3e-port-card > .md3e-port-zone",
+  "port status card CSS must use the explicit .md3e-port-zone marker",
+);
+assertIncludes(
+  statusCardsCss,
+  ".md3e-port-card .md3e-port-traffic",
+  "port status card CSS must use the explicit .md3e-port-traffic marker",
 );
 assertNotMatch(
   statusCardsCss,
   /\.md3e-network-card[^{]*\{[\s\S]{0,520}width:\s*fit-content\b/,
   "network status cards must not shrink to fit-content on mobile",
+);
+assertNotMatch(
+  statusCardsCss,
+  /\.ifacebox:has\(\s*>\s*\.ifacebox-head\.cbi-tooltip-container\)/,
+  "port status cards must not rely on .ifacebox:has(...) fallback selectors",
+);
+assertIncludes(
+  readProjectFile(
+    ".dev/src/resource/menu-md3e-v2/30-description-and-split-button.js",
+  ),
+  'field?.classList.toggle("md3e-value-field-localtime", hasLocalTime)',
+  "localtime controls must get an explicit .md3e-value-field-localtime class",
+);
+assertIncludes(
+  readProjectFile(".dev/src/media/main/21-controls-forms.css"),
+  ".cbi-value-field.md3e-value-field-localtime",
+  "localtime button CSS must use the explicit .md3e-value-field-localtime class",
+);
+assertNotMatch(
+  readProjectFile(".dev/src/media/main/21-controls-forms.css"),
+  /\.cbi-value-field:has\(#localtime\)/,
+  "localtime button CSS must not rely on .cbi-value-field:has(#localtime)",
+);
+
+assertIncludes(
+  tablesFormsCss,
+  '[data-page="admin-network-network"] &',
+  "network interfaces table must keep page-scoped responsive badge layout",
+);
+assertIncludes(
+  tablesFormsCss,
+  "& .ifacebox-body .cbi-tooltip.ifacebadge.large",
+  "network interface badge tooltip must stay out of normal icon flow",
+);
+assertIncludes(
+  tablesFormsCss,
+  '&[data-name="_ifacestat"]',
+  "network interface status details must keep the redesigned compact card",
+);
+assertIncludes(
+  tablesFormsCss,
+  "max-md:flex-none",
+  "network interface cells must not shrink and squeeze redesigned badges on mobile",
+);
+assertIncludes(
+  tablesFormsCss,
+  ".md3e-interface-row",
+  "network interface rows must use explicit JS markers for mobile redesign",
+);
+assertIncludes(
+  tablesFormsCss,
+  "grid-template-columns: minmax(0, 1fr) !important",
+  "network interface row grid must override LuCI's generated multi-column table layout",
+);
+assertIncludes(
+  networkStatusCardsJs,
+  'row.classList.add("md3e-interface-row")',
+  "network interface row marker must be applied by the LuCI runtime enhancer",
 );
 
 const navShellHas =

@@ -21,12 +21,7 @@
         return;
       }
 
-      if (panel._md3ePositionFrame) {
-        cancelAnimationFrame(panel._md3ePositionFrame);
-      }
-
-      panel._md3ePositionFrame = requestAnimationFrame(() => {
-        panel._md3ePositionFrame = null;
+      this.scheduleElementFrame(panel, "_md3ePositionFrame", () => {
         this.positionDropdownPanel(anchor, panel);
         panel
           .querySelector(":scope > .outline-select-option.selected")
@@ -188,7 +183,9 @@
         const dropdown = openBtn.closest(".cbi-dropdown");
         if (!dropdown) return;
         this.closeAllDropdowns(dropdown);
-        requestAnimationFrame(() => syncCbiDropdownPanel(dropdown));
+        this.scheduleFrame("_customSelectClickFrame", () =>
+          syncCbiDropdownPanel(dropdown),
+        );
       };
       document.addEventListener("click", this._customSelectClickHandler);
     }
@@ -218,7 +215,7 @@
       });
 
       if (addedSelects.size) {
-        requestAnimationFrame(() => {
+        this.scheduleFrame("_customSelectAddedFrame", () => {
           addedSelects.forEach((select) => {
             if (select.isConnected) replace(select);
           });
@@ -227,7 +224,7 @@
 
       if (!dropdowns.size) return;
 
-      requestAnimationFrame(() => {
+      this.scheduleFrame("_customSelectDropdownFrame", () => {
         dropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
       });
     }).observe(target, {
@@ -239,7 +236,7 @@
 
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
-        requestAnimationFrame(() => {
+        this.scheduleFrame("_customSelectViewportFrame", () => {
           const openSelects = Array.from(this._openOutlineSelects || []).filter(
             (wrap) => wrap.isConnected,
           );

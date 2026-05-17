@@ -148,3 +148,28 @@
       });
     }
   },
+
+  scheduleFrame(frameKey, callback) {
+    if (!frameKey || typeof callback !== "function") return;
+    if (this[frameKey]) return;
+
+    this[frameKey] = requestAnimationFrame(() => {
+      this[frameKey] = null;
+      callback();
+    });
+  },
+
+  scheduleElementFrame(element, frameKey, callback) {
+    if (!(element instanceof HTMLElement) || !frameKey || typeof callback !== "function") {
+      return;
+    }
+
+    if (element[frameKey]) {
+      cancelAnimationFrame(element[frameKey]);
+    }
+
+    element[frameKey] = requestAnimationFrame(() => {
+      element[frameKey] = null;
+      callback();
+    });
+  },

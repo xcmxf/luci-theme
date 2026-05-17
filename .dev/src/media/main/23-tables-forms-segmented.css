@@ -78,6 +78,21 @@
           @apply bg-transparent;
         }
 
+        [data-page="admin-network-network"] &.md3e-interface-row {
+          @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.78rem;
+            border-radius: 1.45rem;
+            background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 86%, var(--md-sys-color-secondary-container) 7%);
+            box-shadow:
+              inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 28%, transparent),
+              inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 42%, transparent);
+          }
+        }
+
         & > .col-1 {
           @apply max-md:flex-[1_1_2rem] md:w-20 md:max-w-28;
         }
@@ -175,6 +190,93 @@
           0 10px 20px -22px var(--expressive-shadow);
         font-variant-numeric: tabular-nums;
 
+        .md3e-has-row-actions > &.md3e-row-action-cell {
+          width: 1%;
+          max-width: 8.25rem;
+          padding-inline: 0.25rem;
+          white-space: nowrap;
+          text-align: center;
+
+          & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+            width: auto;
+            min-width: 0;
+            max-width: 100%;
+            min-height: 2.22rem;
+            margin: 0;
+            padding-inline: 0.78rem;
+            white-space: nowrap;
+          }
+
+          &:first-of-type {
+            padding-left: 0.75rem;
+          }
+
+          &:last-child {
+            padding-right: 0.75rem;
+          }
+
+          @media (max-width: 82rem) {
+            max-width: 6.7rem;
+
+            & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+              padding-inline: 0.58rem;
+              font-size: 0.78rem;
+            }
+          }
+
+          @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+            width: auto;
+            max-width: 100%;
+            padding-inline: 0.2rem;
+            text-align: left;
+          }
+        }
+
+        body[data-page="admin-status-processes"] &:last-child,
+        &[data-title=""],
+        &.cbi-section-actions {
+          & > div:has(> :is(.cbi-button, .btn, button, a.btn, input.btn)) {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.42rem;
+            min-width: 0;
+            max-width: min(19rem, 24vw);
+            margin-left: auto;
+
+            & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+              width: auto;
+              min-width: 0;
+              max-width: 100%;
+              margin: 0;
+              padding-inline: 0.72rem;
+              white-space: nowrap;
+            }
+          }
+
+          @media (max-width: 82rem) {
+            & > div:has(> :is(.cbi-button, .btn, button, a.btn, input.btn)) {
+              max-width: min(15rem, 24vw);
+              gap: 0.32rem;
+
+              & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+                min-height: 2.12rem;
+                padding-inline: 0.55rem;
+                font-size: 0.78rem;
+              }
+            }
+          }
+
+          @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+            & > div:has(> :is(.cbi-button, .btn, button, a.btn, input.btn)) {
+              justify-content: flex-start;
+              max-width: 100%;
+              margin-left: 0;
+            }
+          }
+        }
+
         &:first-child {
           @apply first:pl-4;
           border-top-left-radius: var(--md-sys-shape-corner-large);
@@ -233,6 +335,43 @@
           }
         }
 
+        &.md3e-row-actions {
+          width: 1%;
+          max-width: min(28rem, 34vw);
+          white-space: normal;
+          text-align: right;
+
+          & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+            width: auto;
+            min-width: max-content;
+            margin: 0.18rem 0 0.18rem 0.28rem;
+            padding-inline: 0.85rem;
+            white-space: nowrap;
+          }
+
+          @media (max-width: 72rem) {
+            max-width: min(21rem, 30vw);
+
+            & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+              min-height: 2.15rem;
+              padding-inline: 0.72rem;
+              font-size: 0.8rem;
+            }
+          }
+
+          @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+            width: 100%;
+            max-width: 100%;
+            text-align: left;
+
+            & > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+              width: auto;
+              min-width: 0;
+              margin-inline: 0 0.28rem;
+            }
+          }
+        }
+
         & > .cbi-button {
           @apply max-md:w-full;
         }
@@ -247,8 +386,288 @@
 
         [data-page="admin-network-network"] & {
           &[data-name="_ifacebox"],
-          &[data-name="_ifacestat"] {
-            @apply max-md:basis-[100%];
+          &[data-name="_ifacestat"],
+          &.md3e-interface-cell,
+          &.md3e-interface-status-cell {
+            @apply max-md:basis-[100%] max-md:flex-none;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+
+          &[data-name="_ifacebox"],
+          &.md3e-interface-cell {
+            @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+              order: 1;
+            }
+          }
+
+          &[data-name="_ifacestat"],
+          &.md3e-interface-status-cell {
+            @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+              order: 2;
+            }
+          }
+
+          &.cbi-section-actions,
+          &.md3e-row-actions,
+          &.md3e-interface-actions-cell {
+            @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+              order: 3;
+              width: 100% !important;
+              max-width: 100% !important;
+            }
+          }
+
+          &[data-name="_ifacebox"],
+          &.md3e-interface-cell {
+            @apply max-md:grow max-md:px-0.5;
+
+            & > .ifacebox {
+              display: grid;
+              grid-template-columns: 2.55rem minmax(0, 1fr) auto;
+              grid-template-areas:
+                "icon title ports"
+                "icon supporting ports";
+              align-items: center;
+              column-gap: 0.72rem;
+              row-gap: 0.18rem;
+              width: 100%;
+              max-width: 100% !important;
+              min-height: 4.15rem;
+              padding: 0.72rem 0.84rem;
+              overflow: visible;
+              border-radius: 1.25rem;
+              background: color-mix(in oklab, var(--md-sys-color-surface-container) 82%, transparent);
+              box-shadow:
+                inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 24%, transparent),
+                inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 38%, transparent);
+
+              @media (max-width: 520px) {
+                grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+                column-gap: 0.62rem;
+                padding: 0.68rem 0.72rem;
+              }
+            }
+
+            & .ifacebox-head {
+              grid-area: title;
+              display: flex;
+              min-width: 0;
+              min-height: 0;
+              align-items: center;
+              padding: 0;
+              border-radius: 0;
+              background: transparent !important;
+              color: var(--md-sys-color-on-surface);
+              font-size: var(--md-sys-typescale-title-small-size);
+              font-weight: 700;
+              line-height: 1.18;
+              text-align: left;
+              white-space: nowrap;
+              overflow-wrap: anywhere;
+              box-shadow: none !important;
+
+              & > strong {
+                min-width: 0;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+            }
+
+            & .ifacebox-body {
+              display: contents;
+            }
+
+            & .ifacebox-body > .cbi-tooltip-container {
+              grid-area: icon;
+              position: relative;
+              display: inline-flex;
+              width: 2.45rem;
+              height: 2.45rem;
+              align-items: center;
+              justify-content: center;
+              align-self: center;
+              padding: 0.28rem;
+              border-radius: 999px;
+              background: color-mix(in oklab, var(--md-sys-color-primary-container) 72%, var(--md-sys-color-surface-container-high));
+              box-shadow:
+                inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 22%, transparent),
+                inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 46%, transparent);
+              text-decoration: none;
+              white-space: normal;
+
+              @media (max-width: 520px) {
+                width: 2.25rem;
+                height: 2.25rem;
+              }
+            }
+
+            & .ifacebox-body > .cbi-tooltip-container > img.middle {
+              width: 1.2rem;
+              height: 1.2rem;
+              max-width: none;
+              margin: 0;
+              object-fit: contain;
+            }
+
+            & .ifacebox-body > span:not(.cbi-tooltip-container) {
+              grid-area: ports;
+              min-width: 0;
+              max-width: min(7rem, 25vw);
+              display: inline-flex;
+              flex-wrap: wrap;
+              align-items: center;
+              align-self: center;
+              justify-self: end;
+              gap: 0.22rem;
+              color: var(--md-sys-color-on-surface-variant);
+              font-size: 0;
+              line-height: 0;
+
+              & > .cbi-tooltip-container {
+                display: inline-flex;
+                width: 1.24rem;
+                height: 1.24rem;
+                align-items: center;
+                justify-content: center;
+                padding: 0.09rem;
+                border-radius: 999px;
+                background: color-mix(in oklab, var(--md-sys-color-secondary-container) 46%, transparent);
+                box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 22%, transparent);
+                text-decoration: none;
+              }
+
+              & > .cbi-tooltip-container > img.middle {
+                width: 0.96rem;
+                height: 0.96rem;
+                max-width: none;
+                margin: 0;
+                object-fit: contain;
+              }
+            }
+
+            & .ifacebox-body > br {
+              display: none;
+            }
+
+            & .ifacebox-body > small {
+              grid-area: supporting;
+              min-width: 0;
+              color: var(--md-sys-color-on-surface-variant);
+              font-size: 0.84rem;
+              font-weight: 520;
+              line-height: 1.16;
+              overflow-wrap: anywhere;
+            }
+
+            & .ifacebox-body .cbi-tooltip.ifacebadge.large {
+              position: absolute;
+              top: auto;
+              right: auto;
+              bottom: calc(100% + 0.45rem);
+              left: 0;
+              display: grid !important;
+              grid-template-columns: 1.35rem minmax(0, 1fr);
+              align-items: start;
+              gap: 0.45rem;
+              width: max-content;
+              min-width: 13rem !important;
+              max-width: min(18rem, calc(100vw - 2rem)) !important;
+              padding: 0.62rem 0.68rem;
+              border-radius: var(--md-sys-shape-corner-medium);
+              text-align: left;
+              white-space: normal;
+              pointer-events: none;
+            }
+
+            & .ifacebox-body .cbi-tooltip.ifacebadge.large > img {
+              width: 1rem;
+              height: 1rem;
+              margin: 0;
+              justify-self: center;
+            }
+
+            & .ifacebox-body .cbi-tooltip.ifacebadge.large > span {
+              display: grid;
+              min-width: 0;
+              gap: 0.12rem;
+            }
+
+            & .ifacebox-body .cbi-tooltip.ifacebadge.large > span > .nowrap {
+              display: block !important;
+              margin: 0 !important;
+              white-space: normal !important;
+              overflow-wrap: anywhere;
+            }
+          }
+
+          &[data-name="_ifacestat"],
+          &.md3e-interface-status-cell {
+            @apply max-md:px-0.5;
+
+            & > div {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              column-gap: 0.9rem;
+              row-gap: 0.2rem;
+              max-width: 100%;
+              min-width: 0;
+              padding: 0.74rem 0.86rem;
+              border-radius: 1.25rem;
+              background: color-mix(in oklab, var(--md-sys-color-surface-container-low) 82%, transparent);
+              box-shadow:
+                inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 22%, transparent),
+                inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 36%, transparent);
+              color: var(--md-sys-color-on-surface-variant);
+              font-size: 0.82rem;
+              line-height: 1.24;
+              text-align: left;
+              overflow-wrap: anywhere;
+              font-variant-numeric: tabular-nums;
+
+              @media (max-width: 560px) {
+                grid-template-columns: minmax(0, 1fr);
+              }
+            }
+
+            & > div > br {
+              display: none;
+            }
+
+            & > div > .nowrap {
+              display: block !important;
+              min-width: 0;
+              margin: 0 !important;
+              white-space: normal !important;
+              overflow-wrap: anywhere;
+            }
+
+            & > div > .nowrap :is(strong, b) {
+              color: var(--md-sys-color-on-surface);
+              font-weight: 650;
+            }
+          }
+
+          &.md3e-interface-actions-cell {
+            @apply max-md:px-0.5;
+
+            @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+              display: flex !important;
+              flex-wrap: wrap;
+              align-items: center;
+              gap: 0.42rem;
+              padding-top: 0.06rem;
+            }
+
+            & > :is(.cbi-button, .btn, button, a.btn, input.btn),
+            & > div > :is(.cbi-button, .btn, button, a.btn, input.btn) {
+              min-height: 2.32rem;
+              margin: 0;
+              padding-inline: 0.88rem;
+              border-radius: 999px;
+              white-space: nowrap;
+            }
           }
         }
 
@@ -256,6 +675,21 @@
     }
 
     .cbi-section-table {
+      [data-page="admin-network-network"] & .md3e-interface-row {
+        @media (max-width: __MD3E_MOBILE_LAYOUT_MAX_WIDTH__px) {
+          display: grid !important;
+          grid-template-columns: minmax(0, 1fr) !important;
+          gap: 0.6rem;
+          width: 100%;
+          padding: 0.78rem;
+          border-radius: 1.45rem;
+          background: color-mix(in oklab, var(--md-sys-color-surface-container-lowest) 86%, var(--md-sys-color-secondary-container) 7%);
+          box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--md-sys-color-outline-variant) 28%, transparent),
+            inset 0 1px 0 color-mix(in oklab, var(--surface-highlight) 42%, transparent);
+        }
+      }
+
       .cbi-section-table-titles {
         .cbi-section-table-cell {
           @apply !w-auto;
@@ -347,8 +781,7 @@
         margin-bottom: 0;
       }
 
-      &:has(.cbi-dropdown[open]),
-      &:has(.outline-select.open) {
+      &.md3e-value-dropdown-open {
         z-index: 90;
         isolation: isolate;
         margin-bottom: max(9rem, 22vh);
@@ -399,7 +832,7 @@
       }
 
       /* Stack vertically for data-heavy items or mobile */
-      &:has(.cbi-progressbar), &:has(.progress) {
+      &.md3e-value-progress {
         @apply flex-col items-stretch gap-2;
         & .cbi-value-title {
           width: 100% !important;
@@ -447,8 +880,7 @@
         @apply max-w-full min-w-0 justify-self-stretch text-right;
         grid-column: 2;
 
-        &:has(.cbi-dropdown[open]),
-        &:has(.outline-select.open) {
+        &.md3e-value-field-dropdown-open {
           position: relative;
           z-index: 91;
           overflow: visible;
@@ -461,11 +893,11 @@
           grid-column: auto;
         }
 
-        &:has(textarea) {
+        &.md3e-value-field-textarea {
           @apply justify-self-stretch text-left;
         }
 
-        &:has(> :is(input, select, textarea, .cbi-dropdown, .control-group)) {
+        &.md3e-value-field-control {
           font-size: var(--md-sys-typescale-body-medium-size);
           line-height: var(--md-sys-typescale-body-medium-line-height);
           font-weight: 400;
@@ -474,7 +906,7 @@
           text-align: left;
         }
 
-        &:has(> .cbi-dropdown[disabled]) {
+        &.md3e-value-field-disabled-dropdown {
           @apply cursor-not-allowed;
         }
 
@@ -492,13 +924,13 @@
       }
 
       /* Custom mount-point widgets (no standard title/field) span full width */
-      &:not(:has(> .cbi-value-title)):not(:has(> .cbi-value-field)) > :first-child {
+      &.md3e-value-custom-mount > :first-child {
         grid-column: 1 / -1;
       }
     }
 
     @media (width >= 48rem) {
-      #maincontent .cbi-value:has(> .cbi-value-field > .cbi-dropdown:not(.btn):not(.cbi-button)) > .cbi-value-field,
+      #maincontent .cbi-value.md3e-value-port-dropdown > .cbi-value-field,
       #maincontent .cbi-value[data-name="Port" i] > .cbi-value-field,
       #maincontent .cbi-value[data-name$="Port" i] > .cbi-value-field,
       #maincontent .cbi-value[data-field$=".Port"] > .cbi-value-field {
@@ -508,7 +940,7 @@
         text-align: left;
       }
 
-      #maincontent .cbi-value:has(> .cbi-value-field > .cbi-dropdown:not(.btn):not(.cbi-button)) > .cbi-value-field > .cbi-dropdown:not(.btn):not(.cbi-button) {
+      #maincontent .cbi-value.md3e-value-port-dropdown > .cbi-value-field > .cbi-dropdown:not(.btn):not(.cbi-button) {
         width: auto !important;
         max-width: min(18rem, 100%);
       }
@@ -522,7 +954,7 @@
       }
     }
 
-    .cbi-value:has(> .cbi-value-field > .cbi-progressbar) {
+    .cbi-value.md3e-value-progress {
       grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
       column-gap: 2rem;

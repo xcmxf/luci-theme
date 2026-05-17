@@ -129,9 +129,6 @@
 
     .cbi-page-actions > .cbi-button:hover,
     .cbi-page-actions > .md3e-action-group > :is(.cbi-button, .btn, button, a.btn):hover {
-      transform: none !important;
-      translate: none !important;
-      scale: none !important;
       border-color: transparent;
       background: color-mix(in oklab, var(--md-comp-outlined-button-container-color) 88%, var(--md-sys-color-primary-container));
       box-shadow: none;
@@ -139,9 +136,6 @@
 
     .cbi-page-actions > .cbi-button:active,
     .cbi-page-actions > .md3e-action-group > :is(.cbi-button, .btn, button, a.btn):active {
-      transform: none !important;
-      translate: none !important;
-      scale: none !important;
       background: color-mix(in oklab, var(--md-comp-outlined-button-container-color) 76%, var(--md-sys-color-primary-container));
     }
 
@@ -389,18 +383,6 @@
         .cbi-button {
           @apply h-10 px-5 rounded-full font-bold text-sm transition-all duration-300;
           border: 1px solid transparent;
-
-          &:hover {
-            transform: none !important;
-            translate: none !important;
-            scale: none !important;
-          }
-
-          &:active {
-            transform: none !important;
-            translate: none !important;
-            scale: none !important;
-          }
         }
 
         .cbi-button-reset {
@@ -475,7 +457,7 @@
     }
 
     /* Outline buttons for Local Time sync actions */
-    .cbi-value-field:has(#localtime) .control-group .cbi-button {
+    .cbi-value-field.md3e-value-field-localtime .control-group .cbi-button {
       @apply h-9 text-xs font-normal shadow-sm;
       color: var(--md-comp-tonal-button-label-text-color);
       border-color: color-mix(in oklab, var(--md-sys-color-outline-variant) 76%, transparent);

@@ -157,6 +157,31 @@ return baseclass.extend({
       });
     }
   },
+
+  scheduleFrame(frameKey, callback) {
+    if (!frameKey || typeof callback !== "function") return;
+    if (this[frameKey]) return;
+
+    this[frameKey] = requestAnimationFrame(() => {
+      this[frameKey] = null;
+      callback();
+    });
+  },
+
+  scheduleElementFrame(element, frameKey, callback) {
+    if (!(element instanceof HTMLElement) || !frameKey || typeof callback !== "function") {
+      return;
+    }
+
+    if (element[frameKey]) {
+      cancelAnimationFrame(element[frameKey]);
+    }
+
+    element[frameKey] = requestAnimationFrame(() => {
+      element[frameKey] = null;
+      callback();
+    });
+  },
   getModeMetadata(modeName) {
     const key = String(modeName || "").toLowerCase();
 
@@ -894,14 +919,9 @@ return baseclass.extend({
       });
     };
 
-    let decorateFrame = null;
     new MutationObserver((mutations) => {
       if (!mutations.some(isPageChromeMutation)) return;
-      if (decorateFrame) return;
-      decorateFrame = requestAnimationFrame(() => {
-        decorateFrame = null;
-        decorate();
-      });
+      this.scheduleFrame("_pageChromeDecorateFrame", decorate);
     }).observe(content, {
       childList: true,
       attributes: true,
@@ -1332,14 +1352,8 @@ return baseclass.extend({
       if (!items.length) return;
 
       let activeReady = false;
-      let activeFrame = null;
-
       const updateActiveIndicator = () => {
-        if (activeFrame) return;
-
-        activeFrame = requestAnimationFrame(() => {
-          activeFrame = null;
-
+        this.scheduleElementFrame(tabMenu, "_md3eTabActiveFrame", () => {
           const active = tabMenu.querySelector("li.cbi-tab");
           if (!active) return;
 
@@ -1347,7 +1361,7 @@ return baseclass.extend({
           const activeRect = active.getBoundingClientRect();
           const needsJump = !activeReady;
 
-          requestAnimationFrame(() => {
+          this.scheduleElementFrame(tabMenu, "_md3eTabActiveWriteFrame", () => {
             if (needsJump) tabMenu.classList.add("tab-active-jump");
 
             tabMenu.style.setProperty(
@@ -1365,8 +1379,10 @@ return baseclass.extend({
 
             if (needsJump) {
               activeReady = true;
-              requestAnimationFrame(() =>
-                tabMenu.classList.remove("tab-active-jump"),
+              this.scheduleElementFrame(
+                tabMenu,
+                "_md3eTabActiveJumpFrame",
+                () => tabMenu.classList.remove("tab-active-jump"),
               );
             }
           });
@@ -1378,7 +1394,6 @@ return baseclass.extend({
 
       let lastHoverTop = null;
       let hoverHideTimer = null;
-      let hoverFrame = null;
       let hoverTarget = null;
 
       const updateHoverIndicator = (li) => {
@@ -1395,10 +1410,7 @@ return baseclass.extend({
         }
 
         hoverTarget = li;
-        if (hoverFrame) return;
-
-        hoverFrame = requestAnimationFrame(() => {
-          hoverFrame = null;
+        this.scheduleElementFrame(tabMenu, "_md3eTabHoverFrame", () => {
           const current = hoverTarget;
           if (!current) return;
 
@@ -1411,7 +1423,7 @@ return baseclass.extend({
             lastHoverTop === null ||
             (lastHoverTop !== null && Math.abs(newTop - lastHoverTop) > 2);
 
-          requestAnimationFrame(() => {
+          this.scheduleElementFrame(tabMenu, "_md3eTabHoverWriteFrame", () => {
             if (needsJump) tabMenu.classList.add("tab-hover-jump");
 
             tabMenu.style.setProperty(
@@ -1424,8 +1436,10 @@ return baseclass.extend({
             lastHoverTop = newTop;
 
             if (needsJump) {
-              requestAnimationFrame(() =>
-                tabMenu.classList.remove("tab-hover-jump"),
+              this.scheduleElementFrame(
+                tabMenu,
+                "_md3eTabHoverJumpFrame",
+                () => tabMenu.classList.remove("tab-hover-jump"),
               );
             }
           });
@@ -1442,7 +1456,11 @@ return baseclass.extend({
         observer.observe(li, { attributes: true, attributeFilter: ["class"] }),
       );
 
-      requestAnimationFrame(updateActiveIndicator);
+      this.scheduleElementFrame(
+        tabMenu,
+        "_md3eTabInitialActiveFrame",
+        updateActiveIndicator,
+      );
     };
 
     const bindExistingTabs = (scope = document) => {
@@ -1474,7 +1492,6 @@ return baseclass.extend({
 
     let hideTimer = null;
     let hasHovered = false;
-    let hoverFrame = null;
     let hoverTarget = null;
 
     const show = (li) => {
@@ -1484,10 +1501,7 @@ return baseclass.extend({
       }
 
       hoverTarget = li;
-      if (hoverFrame) return;
-
-      hoverFrame = requestAnimationFrame(() => {
-        hoverFrame = null;
+      this.scheduleElementFrame(nav, "_md3eNavHoverFrame", () => {
         const current = hoverTarget;
         if (!current) return;
 
@@ -1495,7 +1509,7 @@ return baseclass.extend({
         const liRect = current.getBoundingClientRect();
         const needsJump = !hasHovered;
 
-        requestAnimationFrame(() => {
+        this.scheduleElementFrame(nav, "_md3eNavHoverWriteFrame", () => {
           if (needsJump) nav.classList.add("nav-hover-jump");
 
           nav.style.setProperty(
@@ -1507,7 +1521,9 @@ return baseclass.extend({
 
           if (needsJump) {
             hasHovered = true;
-            requestAnimationFrame(() => nav.classList.remove("nav-hover-jump"));
+            this.scheduleElementFrame(nav, "_md3eNavHoverJumpFrame", () =>
+              nav.classList.remove("nav-hover-jump"),
+            );
           }
         });
       });
@@ -1515,10 +1531,6 @@ return baseclass.extend({
 
     const hide = () => {
       hoverTarget = null;
-      if (hoverFrame) {
-        cancelAnimationFrame(hoverFrame);
-        hoverFrame = null;
-      }
 
       hideTimer = setTimeout(() => {
         nav.classList.remove("nav-hovering");
@@ -1555,16 +1567,9 @@ return baseclass.extend({
     const replayAnimation = (el, className) => {
       if (!(el instanceof HTMLElement)) return;
 
-      if (el._md3eReplayFrame) cancelAnimationFrame(el._md3eReplayFrame);
-      if (el._md3eReplayWriteFrame) {
-        cancelAnimationFrame(el._md3eReplayWriteFrame);
-      }
-
       el.classList.remove(className);
-      el._md3eReplayFrame = requestAnimationFrame(() => {
-        el._md3eReplayFrame = null;
-        el._md3eReplayWriteFrame = requestAnimationFrame(() => {
-          el._md3eReplayWriteFrame = null;
+      this.scheduleElementFrame(el, "_md3eReplayFrame", () => {
+        this.scheduleElementFrame(el, "_md3eReplayWriteFrame", () => {
           el.classList.add(className);
           el.addEventListener(
             "animationend",
@@ -1617,6 +1622,11 @@ return baseclass.extend({
 
     /* ── Container height animation (independent via ResizeObserver) ── */
 
+    const reduceHeightMotion = () =>
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const maxAnimatedHeight = 720;
+    const maxAnimatedDelta = 360;
+
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const el = entry.target;
@@ -1627,11 +1637,18 @@ return baseclass.extend({
         el._htPrev = newH;
 
         if (oldH === undefined || oldH === newH) continue;
+        if (
+          reduceHeightMotion() ||
+          Math.max(oldH, newH) > maxAnimatedHeight ||
+          Math.abs(newH - oldH) > maxAnimatedDelta
+        ) {
+          continue;
+        }
 
         el._htLock = true;
         el.classList.add("tab-height-anim");
         el.style.height = oldH + "px";
-        requestAnimationFrame(() => {
+        this.scheduleElementFrame(el, "_md3eHeightWriteFrame", () => {
           el.style.height = newH + "px";
         });
 
@@ -1688,7 +1705,30 @@ return baseclass.extend({
     const view = target.querySelector("#view");
     if (view) watchView(view);
 
+    const isTabContentMutation = (mutation) => {
+      if (
+        mutation.type === "attributes" &&
+        mutation.attributeName === "data-tab-active"
+      ) {
+        return true;
+      }
+
+      if (mutation.type !== "childList") return false;
+
+      return Array.from(mutation.addedNodes).some(
+        (node) =>
+          node.nodeType === 1 &&
+          (node.id === "view" ||
+            node.matches?.(".cbi-section-node-tabbed, .cbi-map-tabbed") ||
+            node.querySelector?.(
+              ".cbi-section-node-tabbed, .cbi-map-tabbed, #view",
+            )),
+      );
+    };
+
     new MutationObserver((muts) => {
+      if (!muts.some(isTabContentMutation)) return;
+
       for (const m of muts) {
         if (
           m.type === "attributes" &&
@@ -1720,6 +1760,54 @@ return baseclass.extend({
     });
   },
   initDescriptionPlacement() {
+    const syncValueState = (row) => {
+      if (!(row instanceof HTMLElement) || !row.classList.contains("cbi-value")) {
+        return;
+      }
+
+      const field = row.querySelector(":scope > .cbi-value-field");
+      const hasOpenDropdown = Boolean(
+        row.querySelector(".cbi-dropdown[open], .outline-select.open"),
+      );
+      const hasProgress = Boolean(
+        row.querySelector(".cbi-progressbar, .progress"),
+      );
+      const hasTextarea = Boolean(field?.querySelector("textarea"));
+      const hasControl = Boolean(
+        field?.querySelector(":scope > :is(input, select, textarea, .cbi-dropdown, .control-group)"),
+      );
+      const hasDisabledDropdown = Boolean(
+        field?.querySelector(":scope > .cbi-dropdown[disabled]"),
+      );
+      const hasLocalTime = Boolean(field?.querySelector("#localtime"));
+      const hasStandardLayout = Boolean(
+        row.querySelector(":scope > .cbi-value-title") ||
+          row.querySelector(":scope > .cbi-value-field"),
+      );
+      const hasPortDropdown = Boolean(
+        field?.querySelector(":scope > .cbi-dropdown:not(.btn):not(.cbi-button)"),
+      );
+
+      row.classList.toggle("md3e-value-dropdown-open", hasOpenDropdown);
+      field?.classList.toggle("md3e-value-field-dropdown-open", hasOpenDropdown);
+      row.classList.toggle("md3e-value-progress", hasProgress);
+      row.classList.toggle("md3e-value-custom-mount", !hasStandardLayout);
+      row.classList.toggle("md3e-value-port-dropdown", hasPortDropdown);
+      field?.classList.toggle("md3e-value-field-textarea", hasTextarea);
+      field?.classList.toggle("md3e-value-field-control", hasControl);
+      field?.classList.toggle("md3e-value-field-disabled-dropdown", hasDisabledDropdown);
+      field?.classList.toggle("md3e-value-field-localtime", hasLocalTime);
+    };
+
+    const syncValueStates = (scope = document) => {
+      if (scope instanceof HTMLElement) {
+        if (scope.matches(".cbi-value")) syncValueState(scope);
+        scope.querySelectorAll?.(".cbi-value").forEach(syncValueState);
+      } else {
+        document.querySelectorAll(".cbi-value").forEach(syncValueState);
+      }
+    };
+
     const move = (scope = document) => {
       const descriptions = [];
 
@@ -1744,30 +1832,49 @@ return baseclass.extend({
           title.appendChild(desc);
         }
       });
+
+      syncValueStates(scope);
     };
 
     move();
 
     const target = document.getElementById("maincontent") || document.body;
-    let moveFrame = null;
     const pendingScopes = new Set();
 
     new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        if (
+          mutation.type === "attributes" &&
+          mutation.target instanceof HTMLElement
+        ) {
+          const row = mutation.target.closest(".cbi-value");
+          if (row) pendingScopes.add(row);
+          return;
+        }
+
+        if (
+          mutation.type === "childList" &&
+          mutation.target instanceof HTMLElement
+        ) {
+          const row = mutation.target.closest(".cbi-value");
+          if (row) pendingScopes.add(row);
+        }
+
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === 1) pendingScopes.add(node);
         });
       });
 
-      if (!pendingScopes.size || moveFrame) return;
+      if (!pendingScopes.size) return;
 
-      moveFrame = requestAnimationFrame(() => {
-        moveFrame = null;
+      this.scheduleFrame("_descriptionPlacementFrame", () => {
         pendingScopes.forEach((scope) => move(scope));
         pendingScopes.clear();
       });
     }).observe(target, {
       childList: true,
+      attributes: true,
+      attributeFilter: ["open", "class", "disabled"],
       subtree: true,
     });
   },
@@ -2006,12 +2113,7 @@ return baseclass.extend({
         return;
       }
 
-      if (panel._md3ePositionFrame) {
-        cancelAnimationFrame(panel._md3ePositionFrame);
-      }
-
-      panel._md3ePositionFrame = requestAnimationFrame(() => {
-        panel._md3ePositionFrame = null;
+      this.scheduleElementFrame(panel, "_md3ePositionFrame", () => {
         this.positionDropdownPanel(anchor, panel);
         panel
           .querySelector(":scope > .outline-select-option.selected")
@@ -2173,7 +2275,9 @@ return baseclass.extend({
         const dropdown = openBtn.closest(".cbi-dropdown");
         if (!dropdown) return;
         this.closeAllDropdowns(dropdown);
-        requestAnimationFrame(() => syncCbiDropdownPanel(dropdown));
+        this.scheduleFrame("_customSelectClickFrame", () =>
+          syncCbiDropdownPanel(dropdown),
+        );
       };
       document.addEventListener("click", this._customSelectClickHandler);
     }
@@ -2203,7 +2307,7 @@ return baseclass.extend({
       });
 
       if (addedSelects.size) {
-        requestAnimationFrame(() => {
+        this.scheduleFrame("_customSelectAddedFrame", () => {
           addedSelects.forEach((select) => {
             if (select.isConnected) replace(select);
           });
@@ -2212,7 +2316,7 @@ return baseclass.extend({
 
       if (!dropdowns.size) return;
 
-      requestAnimationFrame(() => {
+      this.scheduleFrame("_customSelectDropdownFrame", () => {
         dropdowns.forEach((dropdown) => syncCbiDropdownPanel(dropdown));
       });
     }).observe(target, {
@@ -2224,7 +2328,7 @@ return baseclass.extend({
 
     if (!this._dropdownViewportHandler) {
       this._dropdownViewportHandler = () => {
-        requestAnimationFrame(() => {
+        this.scheduleFrame("_customSelectViewportFrame", () => {
           const openSelects = Array.from(this._openOutlineSelects || []).filter(
             (wrap) => wrap.isConnected,
           );
@@ -2269,7 +2373,9 @@ return baseclass.extend({
       document.body.classList.toggle("mobile-menu-open", open);
 
       if (open) {
-        requestAnimationFrame(() => this.expandActiveMobilePrimaryItem?.());
+        this.scheduleFrame("_mobileMenuExpandActiveFrame", () =>
+          this.expandActiveMobilePrimaryItem?.(),
+        );
       } else {
         resetMobileDrawer();
       }
@@ -2312,7 +2418,73 @@ return baseclass.extend({
     const target = document.getElementById("maincontent") || document.body;
     if (!target) return;
 
+    const enhanceCard = (card, allowNetworkCard = false) => {
+      if (!(card instanceof HTMLElement)) return false;
+
+      const isPortCard = Boolean(
+        card.querySelector(":scope > .ifacebox-head.cbi-tooltip-container"),
+      );
+
+      card.classList.toggle("md3e-port-card", isPortCard);
+
+      if (allowNetworkCard) {
+        card.classList.toggle("md3e-network-card", !isPortCard);
+      } else if (isPortCard) {
+        card.classList.remove("md3e-network-card");
+      }
+
+      if (isPortCard) {
+        card
+          .querySelector(":scope > .ifacebox-head:first-child")
+          ?.classList.add("md3e-port-name");
+        card
+          .querySelector(":scope > .ifacebox-head.cbi-tooltip-container")
+          ?.classList.add("md3e-port-zone");
+
+        const bodies = Array.from(
+          card.querySelectorAll(":scope > .ifacebox-body"),
+        );
+
+        bodies[0]?.classList.add("md3e-port-link");
+        bodies[1]?.classList.add("md3e-port-stats");
+        bodies[1]
+          ?.querySelector(":scope > .cbi-tooltip-container")
+          ?.classList.add("md3e-port-traffic");
+      }
+
+      if (!isPortCard && allowNetworkCard) {
+        card
+          .querySelectorAll(":scope > .ifacebox-body .ifacebadge")
+          .forEach((badge) => badge.classList.add("md3e-network-list-item"));
+      }
+
+      return isPortCard;
+    };
+
     const enhance = (scope = target) => {
+      const markNetworkInterfaceRow = (node) => {
+        if (!(node instanceof HTMLElement)) return;
+
+        const ifaceCell = node.matches('[data-name="_ifacebox"]')
+          ? node
+          : node.querySelector?.('[data-name="_ifacebox"]');
+        if (!(ifaceCell instanceof HTMLElement)) return;
+
+        const row = ifaceCell.closest("tr, .tr, .cbi-section-table-row");
+        if (!(row instanceof HTMLElement)) return;
+
+        row.classList.add("md3e-interface-row");
+        ifaceCell.classList.add("md3e-interface-cell");
+        row
+          .querySelector('[data-name="_ifacestat"]')
+          ?.classList.add("md3e-interface-status-cell");
+        row
+          .querySelector(
+            ".cbi-section-actions, .md3e-row-actions, .md3e-row-action-cell",
+          )
+          ?.classList.add("md3e-interface-actions-cell");
+      };
+
       const tables = [];
       if (
         scope instanceof HTMLElement &&
@@ -2328,23 +2500,46 @@ return baseclass.extend({
         table.classList.add("md3e-network-card-grid");
 
         table.querySelectorAll(":scope > .ifacebox").forEach((card) => {
-          if (!(card instanceof HTMLElement)) return;
-
-          const isPortCard = Boolean(
-            card.querySelector(":scope > .ifacebox-head.cbi-tooltip-container"),
-          );
-          card.classList.toggle("md3e-port-card", isPortCard);
-          card.classList.toggle("md3e-network-card", !isPortCard);
-
-          if (!isPortCard) {
-            card
-              .querySelectorAll(":scope > .ifacebox-body .ifacebadge")
-              .forEach((badge) =>
-                badge.classList.add("md3e-network-list-item"),
-              );
-          }
+          enhanceCard(card, true);
         });
       });
+
+      const portCards = [];
+      if (
+        scope instanceof HTMLElement &&
+        scope.matches(".ifacebox") &&
+        scope.querySelector(":scope > .ifacebox-head.cbi-tooltip-container")
+      ) {
+        portCards.push(scope);
+      }
+
+      scope.querySelectorAll?.(".ifacebox").forEach((card) => {
+        if (
+          card instanceof HTMLElement &&
+          card.querySelector(":scope > .ifacebox-head.cbi-tooltip-container")
+        ) {
+          portCards.push(card);
+        }
+      });
+
+      portCards.forEach((card) => {
+        if (!enhanceCard(card, false)) return;
+
+        const grid = card.parentElement;
+        if (grid && !grid.classList.contains("network-status-table")) {
+          grid.classList.add("md3e-port-card-grid");
+        }
+      });
+
+      if (
+        scope instanceof HTMLElement &&
+        scope.matches('[data-name="_ifacebox"]')
+      ) {
+        markNetworkInterfaceRow(scope);
+      }
+      scope
+        .querySelectorAll?.('[data-name="_ifacebox"]')
+        .forEach(markNetworkInterfaceRow);
     };
 
     this._networkStatusCardsInitialized = true;
@@ -2360,7 +2555,7 @@ return baseclass.extend({
       }
 
       if (!added.size) return;
-      requestAnimationFrame(() => {
+      this.scheduleFrame("_networkStatusCardsFrame", () => {
         added.forEach((node) => {
           if (node.isConnected) enhance(node);
         });
@@ -2413,7 +2608,64 @@ return baseclass.extend({
       });
     };
 
+    const markRowActionCells = (scope = target) => {
+      const rows = new Set();
+
+      if (scope instanceof HTMLElement) {
+        const row = scope.matches("tr, .tr")
+          ? scope
+          : scope.closest("tr, .tr");
+        if (row instanceof HTMLElement) rows.add(row);
+      }
+
+      this.forEachElementMatch(scope, "tr, .tr, td, .td", (element) => {
+        if (!(element instanceof HTMLElement)) return;
+
+        const row = element.matches("tr, .tr")
+          ? element
+          : element.closest("tr, .tr");
+        if (row instanceof HTMLElement) rows.add(row);
+      });
+
+      rows.forEach((row) => {
+        const cells = Array.from(row.children).filter(
+          (child) =>
+            child instanceof HTMLElement && child.matches("td, .td"),
+        );
+        let actionCount = 0;
+
+        cells.forEach((cell) => {
+          cell.classList.remove("md3e-row-action-cell", "md3e-row-actions");
+        });
+
+        for (let index = cells.length - 1; index >= 0; index -= 1) {
+          const cell = cells[index];
+          const buttons = Array.from(
+            cell.querySelectorAll(".cbi-button, .btn, button, a.btn, input.btn"),
+          );
+          const compactText =
+            cell.textContent.trim().replace(/\s+/g, " ").length <= 32;
+          const isActionCell = buttons.length > 0 && compactText;
+
+          cell.classList.toggle("md3e-row-action-cell", isActionCell);
+          cell.classList.toggle(
+            "md3e-row-actions",
+            isActionCell && buttons.length >= 2,
+          );
+
+          if (!isActionCell) {
+            break;
+          }
+
+          actionCount += 1;
+        }
+
+        row.classList.toggle("md3e-has-row-actions", actionCount >= 2);
+      });
+    };
+
     target.querySelectorAll(".cbi-page-actions").forEach(enhance);
+    markRowActionCells(target);
 
     if (target._md3eActionGroupObserver) return;
 
@@ -2423,6 +2675,7 @@ return baseclass.extend({
           if (node.nodeType !== 1) continue;
           if (node.matches?.(".cbi-page-actions")) enhance(node);
           node.querySelectorAll?.(".cbi-page-actions").forEach(enhance);
+          markRowActionCells(node);
         }
       }
     });

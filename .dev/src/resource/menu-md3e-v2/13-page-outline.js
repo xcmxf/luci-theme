@@ -343,14 +343,9 @@
       });
     };
 
-    let decorateFrame = null;
     new MutationObserver((mutations) => {
       if (!mutations.some(isPageChromeMutation)) return;
-      if (decorateFrame) return;
-      decorateFrame = requestAnimationFrame(() => {
-        decorateFrame = null;
-        decorate();
-      });
+      this.scheduleFrame("_pageChromeDecorateFrame", decorate);
     }).observe(content, {
       childList: true,
       attributes: true,

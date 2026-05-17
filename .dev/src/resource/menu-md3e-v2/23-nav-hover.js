@@ -7,7 +7,6 @@
 
     let hideTimer = null;
     let hasHovered = false;
-    let hoverFrame = null;
     let hoverTarget = null;
 
     const show = (li) => {
@@ -17,10 +16,7 @@
       }
 
       hoverTarget = li;
-      if (hoverFrame) return;
-
-      hoverFrame = requestAnimationFrame(() => {
-        hoverFrame = null;
+      this.scheduleElementFrame(nav, "_md3eNavHoverFrame", () => {
         const current = hoverTarget;
         if (!current) return;
 
@@ -28,7 +24,7 @@
         const liRect = current.getBoundingClientRect();
         const needsJump = !hasHovered;
 
-        requestAnimationFrame(() => {
+        this.scheduleElementFrame(nav, "_md3eNavHoverWriteFrame", () => {
           if (needsJump) nav.classList.add("nav-hover-jump");
 
           nav.style.setProperty(
@@ -40,7 +36,9 @@
 
           if (needsJump) {
             hasHovered = true;
-            requestAnimationFrame(() => nav.classList.remove("nav-hover-jump"));
+            this.scheduleElementFrame(nav, "_md3eNavHoverJumpFrame", () =>
+              nav.classList.remove("nav-hover-jump"),
+            );
           }
         });
       });
@@ -48,10 +46,6 @@
 
     const hide = () => {
       hoverTarget = null;
-      if (hoverFrame) {
-        cancelAnimationFrame(hoverFrame);
-        hoverFrame = null;
-      }
 
       hideTimer = setTimeout(() => {
         nav.classList.remove("nav-hovering");

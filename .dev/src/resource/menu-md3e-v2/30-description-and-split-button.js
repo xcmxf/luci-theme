@@ -1,4 +1,52 @@
   initDescriptionPlacement() {
+    const syncValueState = (row) => {
+      if (!(row instanceof HTMLElement) || !row.classList.contains("cbi-value")) {
+        return;
+      }
+
+      const field = row.querySelector(":scope > .cbi-value-field");
+      const hasOpenDropdown = Boolean(
+        row.querySelector(".cbi-dropdown[open], .outline-select.open"),
+      );
+      const hasProgress = Boolean(
+        row.querySelector(".cbi-progressbar, .progress"),
+      );
+      const hasTextarea = Boolean(field?.querySelector("textarea"));
+      const hasControl = Boolean(
+        field?.querySelector(":scope > :is(input, select, textarea, .cbi-dropdown, .control-group)"),
+      );
+      const hasDisabledDropdown = Boolean(
+        field?.querySelector(":scope > .cbi-dropdown[disabled]"),
+      );
+      const hasLocalTime = Boolean(field?.querySelector("#localtime"));
+      const hasStandardLayout = Boolean(
+        row.querySelector(":scope > .cbi-value-title") ||
+          row.querySelector(":scope > .cbi-value-field"),
+      );
+      const hasPortDropdown = Boolean(
+        field?.querySelector(":scope > .cbi-dropdown:not(.btn):not(.cbi-button)"),
+      );
+
+      row.classList.toggle("md3e-value-dropdown-open", hasOpenDropdown);
+      field?.classList.toggle("md3e-value-field-dropdown-open", hasOpenDropdown);
+      row.classList.toggle("md3e-value-progress", hasProgress);
+      row.classList.toggle("md3e-value-custom-mount", !hasStandardLayout);
+      row.classList.toggle("md3e-value-port-dropdown", hasPortDropdown);
+      field?.classList.toggle("md3e-value-field-textarea", hasTextarea);
+      field?.classList.toggle("md3e-value-field-control", hasControl);
+      field?.classList.toggle("md3e-value-field-disabled-dropdown", hasDisabledDropdown);
+      field?.classList.toggle("md3e-value-field-localtime", hasLocalTime);
+    };
+
+    const syncValueStates = (scope = document) => {
+      if (scope instanceof HTMLElement) {
+        if (scope.matches(".cbi-value")) syncValueState(scope);
+        scope.querySelectorAll?.(".cbi-value").forEach(syncValueState);
+      } else {
+        document.querySelectorAll(".cbi-value").forEach(syncValueState);
+      }
+    };
+
     const move = (scope = document) => {
       const descriptions = [];
 
@@ -23,30 +71,49 @@
           title.appendChild(desc);
         }
       });
+
+      syncValueStates(scope);
     };
 
     move();
 
     const target = document.getElementById("maincontent") || document.body;
-    let moveFrame = null;
     const pendingScopes = new Set();
 
     new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        if (
+          mutation.type === "attributes" &&
+          mutation.target instanceof HTMLElement
+        ) {
+          const row = mutation.target.closest(".cbi-value");
+          if (row) pendingScopes.add(row);
+          return;
+        }
+
+        if (
+          mutation.type === "childList" &&
+          mutation.target instanceof HTMLElement
+        ) {
+          const row = mutation.target.closest(".cbi-value");
+          if (row) pendingScopes.add(row);
+        }
+
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === 1) pendingScopes.add(node);
         });
       });
 
-      if (!pendingScopes.size || moveFrame) return;
+      if (!pendingScopes.size) return;
 
-      moveFrame = requestAnimationFrame(() => {
-        moveFrame = null;
+      this.scheduleFrame("_descriptionPlacementFrame", () => {
         pendingScopes.forEach((scope) => move(scope));
         pendingScopes.clear();
       });
     }).observe(target, {
       childList: true,
+      attributes: true,
+      attributeFilter: ["open", "class", "disabled"],
       subtree: true,
     });
   },

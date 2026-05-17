@@ -3,6 +3,8 @@ node_modules
 package-lock.json
 yarn.lock
 .artifacts/
+artifacts/
+*-artifacts/
 
 # Env files
 .env
@@ -47,6 +49,7 @@ todo.md
 /.tmp-*.json
 /.tmp-*.html
 /.tmp-*.log
+/.tmp-*.png
 /.edge-profile-*/
 /md3e-edge-*/
 /playwright-report/
@@ -66,6 +69,8 @@ todo.md
 .dev/*headless*.png
 .dev/*collapsed*.png
 .dev/*preview-cdp*.png
+.dev/tmp-*
+.dev/.tmp-*
 .dev/*profile*/
 .dev/.vite/
 .dev/.vite-temp/
@@ -77,6 +82,8 @@ preview/*.log
 /.tmp-playwright/
 /.tmp-router-*.css
 /.tmp-router-*.js
+/*-verify/
+/release-drafts/
 /status-preview.stdout.log
 /status-preview.stderr.log
 

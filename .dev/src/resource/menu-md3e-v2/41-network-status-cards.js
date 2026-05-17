@@ -4,7 +4,73 @@
     const target = document.getElementById("maincontent") || document.body;
     if (!target) return;
 
+    const enhanceCard = (card, allowNetworkCard = false) => {
+      if (!(card instanceof HTMLElement)) return false;
+
+      const isPortCard = Boolean(
+        card.querySelector(":scope > .ifacebox-head.cbi-tooltip-container"),
+      );
+
+      card.classList.toggle("md3e-port-card", isPortCard);
+
+      if (allowNetworkCard) {
+        card.classList.toggle("md3e-network-card", !isPortCard);
+      } else if (isPortCard) {
+        card.classList.remove("md3e-network-card");
+      }
+
+      if (isPortCard) {
+        card
+          .querySelector(":scope > .ifacebox-head:first-child")
+          ?.classList.add("md3e-port-name");
+        card
+          .querySelector(":scope > .ifacebox-head.cbi-tooltip-container")
+          ?.classList.add("md3e-port-zone");
+
+        const bodies = Array.from(
+          card.querySelectorAll(":scope > .ifacebox-body"),
+        );
+
+        bodies[0]?.classList.add("md3e-port-link");
+        bodies[1]?.classList.add("md3e-port-stats");
+        bodies[1]
+          ?.querySelector(":scope > .cbi-tooltip-container")
+          ?.classList.add("md3e-port-traffic");
+      }
+
+      if (!isPortCard && allowNetworkCard) {
+        card
+          .querySelectorAll(":scope > .ifacebox-body .ifacebadge")
+          .forEach((badge) => badge.classList.add("md3e-network-list-item"));
+      }
+
+      return isPortCard;
+    };
+
     const enhance = (scope = target) => {
+      const markNetworkInterfaceRow = (node) => {
+        if (!(node instanceof HTMLElement)) return;
+
+        const ifaceCell = node.matches('[data-name="_ifacebox"]')
+          ? node
+          : node.querySelector?.('[data-name="_ifacebox"]');
+        if (!(ifaceCell instanceof HTMLElement)) return;
+
+        const row = ifaceCell.closest("tr, .tr, .cbi-section-table-row");
+        if (!(row instanceof HTMLElement)) return;
+
+        row.classList.add("md3e-interface-row");
+        ifaceCell.classList.add("md3e-interface-cell");
+        row
+          .querySelector('[data-name="_ifacestat"]')
+          ?.classList.add("md3e-interface-status-cell");
+        row
+          .querySelector(
+            ".cbi-section-actions, .md3e-row-actions, .md3e-row-action-cell",
+          )
+          ?.classList.add("md3e-interface-actions-cell");
+      };
+
       const tables = [];
       if (
         scope instanceof HTMLElement &&
@@ -20,23 +86,46 @@
         table.classList.add("md3e-network-card-grid");
 
         table.querySelectorAll(":scope > .ifacebox").forEach((card) => {
-          if (!(card instanceof HTMLElement)) return;
-
-          const isPortCard = Boolean(
-            card.querySelector(":scope > .ifacebox-head.cbi-tooltip-container"),
-          );
-          card.classList.toggle("md3e-port-card", isPortCard);
-          card.classList.toggle("md3e-network-card", !isPortCard);
-
-          if (!isPortCard) {
-            card
-              .querySelectorAll(":scope > .ifacebox-body .ifacebadge")
-              .forEach((badge) =>
-                badge.classList.add("md3e-network-list-item"),
-              );
-          }
+          enhanceCard(card, true);
         });
       });
+
+      const portCards = [];
+      if (
+        scope instanceof HTMLElement &&
+        scope.matches(".ifacebox") &&
+        scope.querySelector(":scope > .ifacebox-head.cbi-tooltip-container")
+      ) {
+        portCards.push(scope);
+      }
+
+      scope.querySelectorAll?.(".ifacebox").forEach((card) => {
+        if (
+          card instanceof HTMLElement &&
+          card.querySelector(":scope > .ifacebox-head.cbi-tooltip-container")
+        ) {
+          portCards.push(card);
+        }
+      });
+
+      portCards.forEach((card) => {
+        if (!enhanceCard(card, false)) return;
+
+        const grid = card.parentElement;
+        if (grid && !grid.classList.contains("network-status-table")) {
+          grid.classList.add("md3e-port-card-grid");
+        }
+      });
+
+      if (
+        scope instanceof HTMLElement &&
+        scope.matches('[data-name="_ifacebox"]')
+      ) {
+        markNetworkInterfaceRow(scope);
+      }
+      scope
+        .querySelectorAll?.('[data-name="_ifacebox"]')
+        .forEach(markNetworkInterfaceRow);
     };
 
     this._networkStatusCardsInitialized = true;
@@ -52,7 +141,7 @@
       }
 
       if (!added.size) return;
-      requestAnimationFrame(() => {
+      this.scheduleFrame("_networkStatusCardsFrame", () => {
         added.forEach((node) => {
           if (node.isConnected) enhance(node);
         });

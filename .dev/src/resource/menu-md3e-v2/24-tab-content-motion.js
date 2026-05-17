@@ -22,16 +22,9 @@
     const replayAnimation = (el, className) => {
       if (!(el instanceof HTMLElement)) return;
 
-      if (el._md3eReplayFrame) cancelAnimationFrame(el._md3eReplayFrame);
-      if (el._md3eReplayWriteFrame) {
-        cancelAnimationFrame(el._md3eReplayWriteFrame);
-      }
-
       el.classList.remove(className);
-      el._md3eReplayFrame = requestAnimationFrame(() => {
-        el._md3eReplayFrame = null;
-        el._md3eReplayWriteFrame = requestAnimationFrame(() => {
-          el._md3eReplayWriteFrame = null;
+      this.scheduleElementFrame(el, "_md3eReplayFrame", () => {
+        this.scheduleElementFrame(el, "_md3eReplayWriteFrame", () => {
           el.classList.add(className);
           el.addEventListener(
             "animationend",
@@ -84,6 +77,11 @@
 
     /* ── Container height animation (independent via ResizeObserver) ── */
 
+    const reduceHeightMotion = () =>
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const maxAnimatedHeight = 720;
+    const maxAnimatedDelta = 360;
+
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const el = entry.target;
@@ -94,11 +92,18 @@
         el._htPrev = newH;
 
         if (oldH === undefined || oldH === newH) continue;
+        if (
+          reduceHeightMotion() ||
+          Math.max(oldH, newH) > maxAnimatedHeight ||
+          Math.abs(newH - oldH) > maxAnimatedDelta
+        ) {
+          continue;
+        }
 
         el._htLock = true;
         el.classList.add("tab-height-anim");
         el.style.height = oldH + "px";
-        requestAnimationFrame(() => {
+        this.scheduleElementFrame(el, "_md3eHeightWriteFrame", () => {
           el.style.height = newH + "px";
         });
 
@@ -155,7 +160,30 @@
     const view = target.querySelector("#view");
     if (view) watchView(view);
 
+    const isTabContentMutation = (mutation) => {
+      if (
+        mutation.type === "attributes" &&
+        mutation.attributeName === "data-tab-active"
+      ) {
+        return true;
+      }
+
+      if (mutation.type !== "childList") return false;
+
+      return Array.from(mutation.addedNodes).some(
+        (node) =>
+          node.nodeType === 1 &&
+          (node.id === "view" ||
+            node.matches?.(".cbi-section-node-tabbed, .cbi-map-tabbed") ||
+            node.querySelector?.(
+              ".cbi-section-node-tabbed, .cbi-map-tabbed, #view",
+            )),
+      );
+    };
+
     new MutationObserver((muts) => {
+      if (!muts.some(isTabContentMutation)) return;
+
       for (const m of muts) {
         if (
           m.type === "attributes" &&
